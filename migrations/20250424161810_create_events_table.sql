@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE TABLE IF NOT EXISTS events (
+CREATE TABLE IF NOT EXISTS events(
   id UUID DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES users (id),
   info TEXT NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS events (
   providers JSONB NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT id_events_pk PRIMARY KEY (id),
+  CONSTRAINT id_events_pk PRIMARY KEY (id)
 );
 -- +goose StatementEnd
 
