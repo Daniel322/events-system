@@ -53,8 +53,6 @@ func main() {
 		}
 	}
 
-	// result, err = rows.Values()
-
 	fmt.Println(result)
 
 	fmt.Println("Connected!")
