@@ -18,6 +18,10 @@ func ConnectDatabase(context context.Context) {
 	}
 }
 
+func CheckConnection() bool {
+	return !Connection.IsClosed()
+}
+
 func Close(context context.Context) {
 	Connection.Close(context)
 }

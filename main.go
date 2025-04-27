@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"events-system/modules/db"
+	user_module "events-system/modules/user"
 	"fmt"
 	"log"
 
@@ -26,6 +27,12 @@ func main() {
 
 	var rows pgx.Rows
 	var result []string
+
+	if db.CheckConnection() {
+		fmt.Println("Connected!")
+	} else {
+		fmt.Println("Disconnected!")
+	}
 
 	rows, err = db.Connection.Query(context.Background(), "SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';")
 	if err != nil {
@@ -51,5 +58,11 @@ func main() {
 
 	fmt.Println(result)
 
-	fmt.Println("Connected!")
+	// test user.CreateUser
+
+	var testResult *user_module.User
+
+	testResult, err = user_module.CreateUser(user_module.CreateUserData{Username: "dkravchenkoo"})
+
+	fmt.Println(testResult)
 }
