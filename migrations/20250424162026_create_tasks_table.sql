@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE TABLE IF NOT EXISTS events(
+CREATE TABLE IF NOT EXISTS tasks(
   id UUID DEFAULT uuid_generate_v4(),
   event_id UUID REFERENCES events (id),
   account_id UUID REFERENCES accounts (id),
@@ -14,5 +14,5 @@ CREATE TABLE IF NOT EXISTS events(
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS tasks;
 -- +goose StatementEnd

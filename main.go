@@ -31,7 +31,7 @@ func main() {
 	var rows pgx.Rows
 	var result []string
 
-	rows, err = conn.Query(context.Background(), "SELECT tablename FROM pg_catalog.pg_tables")
+	rows, err = conn.Query(context.Background(), "SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';")
 	if err != nil {
 		log.Fatal(err)
 	}
