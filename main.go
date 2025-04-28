@@ -65,4 +65,8 @@ func main() {
 	testResult, err = user_module.CreateUser(user_module.CreateUserData{Username: "dkravchenkoo"})
 
 	fmt.Println(testResult)
+
+	testResult, err = user_module.UpdateUser(user_module.UpdateUserData{Username: "hrunovna", Id: testResult.Id})
+
+	fmt.Println(testResult)
 }

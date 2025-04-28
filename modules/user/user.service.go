@@ -15,29 +15,14 @@ type CreateUserData struct {
 
 type UpdateUserData struct {
 	Id string `json:"id"`
-	CreateUserData
+	// TODO: find how can inherit upper struct
+	Username string `json:"username"`
+	// CreateUserData
 }
 
-// func GetUsers() {
-// 	var rows, err = db.Connection.Query(context.Background(), "select * from users")
-// 	if (err != nil) {
-// 		log.Fatal(err);
-// 	}
-// 	return rows.Values();
-// }
-
-func UpdateUser(data UpdateUserData) (*User, error) {
+func baseQuery(context context.Context, query string, args ...any) (*User, error) {
 	var result User
-	rowResult, err := db.Connection.Query(context.Background(), "UPDATE users SET username=$1, updated_at=NOW() WHERE id = $2", data.Username, data.Id)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rowResult.Close()
-}
-
-func CreateUser(data CreateUserData) (*User, error) {
-	var result User
-	rowResult, err := db.Connection.Query(context.Background(), "INSERT INTO users (username) VALUES ($1) RETURNING *", data.Username)
+	rowResult, err := db.Connection.Query(context, query, args...)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,4 +42,22 @@ func CreateUser(data CreateUserData) (*User, error) {
 	}
 
 	return &result, nil
+}
+
+func UpdateUser(data UpdateUserData) (*User, error) {
+	var query = "UPDATE users SET username=$1, updated_at=NOW() WHERE id = $2 RETURNING *"
+	result, err := baseQuery(context.Background(), query, data.Username, data.Id)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return result, err
+}
+
+func CreateUser(data CreateUserData) (*User, error) {
+	var query = "INSERT INTO users (username) VALUES ($1) RETURNING *"
+	result, err := baseQuery(context.Background(), query, data.Username)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return result, err
 }
