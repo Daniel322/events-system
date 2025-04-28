@@ -61,3 +61,13 @@ func CreateUser(data CreateUserData) (*User, error) {
 	}
 	return result, err
 }
+
+func DeleteUser(id string) (bool, error) {
+	query := "DELETE FROM users WHERE id = $1"
+	_, err := db.Connection.Exec(context.Background(), query, id)
+	if err != nil {
+		log.Fatal(err)
+		return false, err
+	}
+	return true, err
+}
