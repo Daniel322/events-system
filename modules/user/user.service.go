@@ -64,8 +64,43 @@ func baseQuery[T any](context context.Context, query string, args ...any) (*T, e
 }
 
 func GetUsers(options GetUserOptions) (*[]User, error) {
-	var query = "SELECT * FROM users LIMIT = $1 OFFSET = $2"
-	result, err := baseQuery[[]User](context.Background(), query, options.Limit, options.Skip)
+	var query = "SELECT * FROM users LIMIT $1 OFFSET $2"
+	rows, err := db.Connection.Query(context.Background(), query, options.Limit, options.Skip)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var result []User
+
+	for rows.Next() {
+		var iterationScanValue User
+		err = rows.Scan(
+			&iterationScanValue.Id,
+			&iterationScanValue.Username,
+			&iterationScanValue.CreatedAt,
+			&iterationScanValue.UpdatedAt,
+		)
+		if err != nil {
+			log.Fatal(err)
+		} else {
+			result = append(
+				result,
+				User{
+					Id:        string(iterationScanValue.Id),
+					Username:  iterationScanValue.Username,
+					CreatedAt: iterationScanValue.CreatedAt,
+					UpdatedAt: iterationScanValue.UpdatedAt,
+				},
+			)
+		}
+	}
+
+	return &result, err
+}
+
+func GetUserById(id string) (*User, error) {
+	var query = "SELECT * FROM users WHERE id = $1"
+	result, err := baseQuery[User](context.Background(), query, id)
 	if err != nil {
 		log.Fatal(err)
 	}
