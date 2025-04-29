@@ -65,4 +65,10 @@ func main() {
 	testResult, err = user_module.CreateUser(user_module.CreateUserData{Username: "dkravchenkoo"})
 
 	fmt.Println(testResult)
+
+	var users *[]user_module.User
+
+	users, err = user_module.GetUsers(user_module.GetUserOptions{Limit: 100, Skip: 0})
+
+	fmt.Println(users)
 }
