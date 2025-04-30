@@ -25,25 +25,29 @@ func CreateAccount(data AccountData) (*Account, error) {
 func UpdateAccount(id string, data AccountData) (*Account, error) {
 	query := "UPDATE accounts SET "
 	setIndex := 0
+	var values []any
 
 	if data.UserId != "" {
 		query += "user_id =" + "$" + string(setIndex)
 		setIndex++
+		values = append(values, data.UserId)
 	}
 	if data.AccountId != "" {
 		query += "account_id =" + "$" + string(setIndex)
 		setIndex++
+		values = append(values, data.AccountId)
 	}
 	if data.Type.String() != "" {
 		query += "type =" + "$" + string(setIndex)
 		setIndex++
+		values = append(values, data.Type.String())
 	}
 
 	query += " WHERE id =" + "$" + string(setIndex) + " RETURNING *"
 
 	fmt.Println(query)
 
-	result, err := db.BaseQuery[Account](context.Background(), query, []any{data}...)
+	result, err := db.BaseQuery[Account](context.Background(), query, values...)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,14 +65,42 @@ func DeleteAccount(id string) (bool, error) {
 	return true, err
 }
 
-// func GetAccounts(options AccountData) (*[]Account, error) {
-// 	query := "SELECT * FROM accounts"
+func GetAccounts(options AccountData) (*[]Account, error) {
+	query := "SELECT * FROM accounts"
+	var values []any
 
-// 	if reflect.ValueOf(options).Elem().NumField() != 0 {
+	// TODO: need to add filter support
 
-// 	}
+	rows, err := db.Connection.Query(context.Background(), query, values...)
 
-// 	result, err := db.Connection.Query(context.Background(), query, []any{options}...)
+	var result []Account
 
-// 	return result, err
-// }
+	for rows.Next() {
+		var iterationScanValue Account
+		err = rows.Scan(
+			&iterationScanValue.Id,
+			&iterationScanValue.UserId,
+			&iterationScanValue.AccountId,
+			&iterationScanValue.Type,
+			&iterationScanValue.CreatedAt,
+			&iterationScanValue.UpdatedAt,
+		)
+		if err != nil {
+			log.Fatal(err)
+		} else {
+			result = append(
+				result,
+				Account{
+					Id:        string(iterationScanValue.Id),
+					UserId:    iterationScanValue.UserId,
+					AccountId: iterationScanValue.AccountId,
+					Type:      iterationScanValue.Type,
+					CreatedAt: iterationScanValue.CreatedAt,
+					UpdatedAt: iterationScanValue.UpdatedAt,
+				},
+			)
+		}
+	}
+
+	return &result, err
+}

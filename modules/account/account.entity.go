@@ -1,5 +1,7 @@
 package account_module
 
+import "database/sql"
+
 type AccountType int
 
 const (
@@ -19,8 +21,10 @@ func (val AccountType) String() string {
 }
 
 type Account struct {
-	Id        string      `json:"id"`
-	UserId    string      `json:"user_id"`
-	AccountId string      `json:"account_id"`
-	Type      AccountType `json:"type"`
+	Id        string       `json:"id"`
+	UserId    string       `json:"user_id"`
+	AccountId string       `json:"account_id"`
+	Type      AccountType  `json:"type"`
+	CreatedAt sql.NullTime `json:"created_at"`
+	UpdatedAt sql.NullTime `json:"updated_at"`
 }
