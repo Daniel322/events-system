@@ -1,4 +1,4 @@
-package account
+package account_module
 
 type AccountType int
 
@@ -19,6 +19,7 @@ func (val AccountType) String() string {
 }
 
 type Account struct {
+	Id        string      `json:"id"`
 	UserId    string      `json:"user_id"`
 	AccountId string      `json:"account_id"`
 	Type      AccountType `json:"type"`
