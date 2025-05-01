@@ -8,9 +8,13 @@ import (
 )
 
 type AccountData struct {
-	UserId    string      `json:"user_id"`
-	AccountId string      `json:"account_id"`
-	Type      AccountType `json:"type"`
+	UserId    string `json:"user_id"`
+	AccountId string `json:"account_id"`
+	Type      string `json:"type"`
+}
+
+type CountData struct {
+	Count int `json:"count"`
 }
 
 func CreateAccount(data AccountData) (*Account, error) {
@@ -37,10 +41,10 @@ func UpdateAccount(id string, data AccountData) (*Account, error) {
 		setIndex++
 		values = append(values, data.AccountId)
 	}
-	if data.Type.String() != "" {
+	if data.Type != "" {
 		query += "type =" + "$" + string(setIndex)
 		setIndex++
-		values = append(values, data.Type.String())
+		values = append(values, data.Type)
 	}
 
 	query += " WHERE id =" + "$" + string(setIndex) + " RETURNING *"
@@ -63,6 +67,14 @@ func DeleteAccount(id string) (bool, error) {
 		return false, err
 	}
 	return true, err
+}
+
+func GetAccountByAccountId(account_id string) (int, error) {
+	query := "SELECT COUNT(*) FROM accounts WHERE account_id = $1"
+
+	result, err := db.BaseQuery[CountData](context.Background(), query, account_id)
+
+	return result.Count, err
 }
 
 func GetAccounts(options AccountData) (*[]Account, error) {

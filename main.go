@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
+	telegram_api "events-system/apis/telegram"
 	"events-system/modules/db"
-	user_module "events-system/modules/user"
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
@@ -14,6 +15,10 @@ import (
 var err error
 
 func main() {
+	var mutex = &sync.RWMutex{}
+	mutex.Lock()
+
+	defer mutex.Unlock()
 	err = godotenv.Load()
 	if err != nil {
 		fmt.Println("Error loading .env file")
@@ -24,6 +29,8 @@ func main() {
 	db.ConnectDatabase(context.Background())
 
 	defer db.Close(context.Background())
+
+	telegram_api.BootstrapBot()
 
 	var rows pgx.Rows
 	var result []string
@@ -72,7 +79,7 @@ func main() {
 
 	// fmt.Println(users)
 
-	curUser, _ := user_module.GetUserById("2620fc9a-2bda-4357-b595-e8819a358712")
+	// curUser, _ := user_module.GetUserById("2620fc9a-2bda-4357-b595-e8819a358712")
 
-	fmt.Println(curUser)
+	// fmt.Println(curUser)
 }
