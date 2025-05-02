@@ -1,7 +1,9 @@
 package telegram_api
 
 import (
+	"context"
 	account_module "events-system/modules/account"
+	"events-system/modules/db"
 	user_module "events-system/modules/user"
 	"fmt"
 	"log"
@@ -58,12 +60,34 @@ func BootstrapBot() {
 				break
 			}
 			// TODO: add transaction
-			var user, err = user_module.CreateUser(user_module.CreateUserData{Username: update.Message.From.UserName})
+			currentContext := context.Background()
+			transaction, _ := db.Connection.Begin(currentContext)
+			var user, err = user_module.CreateUser(
+				user_module.CreateUserData{
+					Username: update.Message.From.UserName,
+				},
+				currentContext,
+			)
 			if err != nil {
 				msg.Text = "Something went wrong"
+				transaction.Rollback(currentContext)
 				break
 			}
-			account_module.CreateAccount(account_module.AccountData{UserId: user.Id, AccountId: strconv.FormatInt(update.Message.From.ID, 10), Type: "telegram"})
+			_, err = account_module.CreateAccount(
+				account_module.AccountData{
+					UserId: user.Id,
+					// TODO: need to fix incorrect convert from int64 to string
+					AccountId: strconv.FormatInt(update.Message.From.ID, 10),
+					Type:      "telegram",
+				},
+				currentContext,
+			)
+			if err != nil {
+				msg.Text = "Something went wrong"
+				transaction.Rollback(currentContext)
+				break
+			}
+			transaction.Commit(currentContext)
 			msg.Text = "Start, account created"
 		case "help":
 			msg.Text = "I understand /sayhi and /status."

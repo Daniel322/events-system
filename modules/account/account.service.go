@@ -17,16 +17,16 @@ type CountData struct {
 	Count int `json:"count"`
 }
 
-func CreateAccount(data AccountData) (*Account, error) {
+func CreateAccount(data AccountData, operationContext context.Context) (*Account, error) {
 	const query = "INSERT INTO accounts (user_id, account_id, type) VALUES ($1, $2, $3) RETURNING *"
-	result, err := db.BaseQuery[Account](context.Background(), query, data.UserId, data.AccountId, data.Type)
+	result, err := db.BaseQuery[Account](operationContext, query, data.UserId, data.AccountId, data.Type)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return result, err
 }
 
-func UpdateAccount(id string, data AccountData) (*Account, error) {
+func UpdateAccount(id string, data AccountData, operationContext context.Context) (*Account, error) {
 	query := "UPDATE accounts SET "
 	setIndex := 0
 	var values []any
@@ -51,7 +51,7 @@ func UpdateAccount(id string, data AccountData) (*Account, error) {
 
 	fmt.Println(query)
 
-	result, err := db.BaseQuery[Account](context.Background(), query, values...)
+	result, err := db.BaseQuery[Account](operationContext, query, values...)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,9 +59,9 @@ func UpdateAccount(id string, data AccountData) (*Account, error) {
 	return result, err
 }
 
-func DeleteAccount(id string) (bool, error) {
+func DeleteAccount(id string, operationContext context.Context) (bool, error) {
 	query := "DELETE FROM accounts WHERE id = $1"
-	_, err := db.Connection.Exec(context.Background(), query, id)
+	_, err := db.Connection.Exec(operationContext, query, id)
 	if err != nil {
 		log.Fatal(err)
 		return false, err

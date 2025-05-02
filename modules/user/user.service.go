@@ -69,27 +69,27 @@ func GetUserById(id string) (*User, error) {
 	return result, err
 }
 
-func UpdateUser(data UpdateUserData) (*User, error) {
+func UpdateUser(data UpdateUserData, operationContext context.Context) (*User, error) {
 	var query = "UPDATE users SET username=$1, updated_at=NOW() WHERE id = $2 RETURNING *"
-	result, err := db.BaseQuery[User](context.Background(), query, data.Username, data.Id)
+	result, err := db.BaseQuery[User](operationContext, query, data.Username, data.Id)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return result, err
 }
 
-func CreateUser(data CreateUserData) (*User, error) {
+func CreateUser(data CreateUserData, operationContext context.Context) (*User, error) {
 	var query = "INSERT INTO users (username) VALUES ($1) RETURNING *"
-	result, err := db.BaseQuery[User](context.Background(), query, data.Username)
+	result, err := db.BaseQuery[User](operationContext, query, data.Username)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return result, err
 }
 
-func DeleteUser(id string) (bool, error) {
+func DeleteUser(id string, operationContext context.Context) (bool, error) {
 	query := "DELETE FROM users WHERE id = $1"
-	_, err := db.Connection.Exec(context.Background(), query, id)
+	_, err := db.Connection.Exec(operationContext, query, id)
 	if err != nil {
 		log.Fatal(err)
 		return false, err
