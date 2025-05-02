@@ -75,9 +75,8 @@ func BootstrapBot() {
 			}
 			_, err = account_module.CreateAccount(
 				account_module.AccountData{
-					UserId: user.Id,
-					// TODO: need to fix incorrect convert from int64 to string
-					AccountId: strconv.FormatInt(update.Message.From.ID, 10),
+					UserId:    user.Id,
+					AccountId: strconv.Itoa(int(update.Message.From.ID)),
 					Type:      "telegram",
 				},
 				currentContext,
