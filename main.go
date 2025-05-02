@@ -4,6 +4,7 @@ import (
 	"context"
 	telegram_api "events-system/apis/telegram"
 	"events-system/modules/db"
+	event_module "events-system/modules/event"
 	"fmt"
 	"log"
 	"sync"
@@ -65,21 +66,11 @@ func main() {
 
 	fmt.Println(result)
 
-	// test user.CreateUser
-
-	// var testResult *user_module.User
-
-	// testResult, err = user_module.CreateUser(user_module.CreateUserData{Username: "dkravchenkoo"})
-
-	// fmt.Println(testResult)
-
-	// var users *[]user_module.User
-
-	// users, err = user_module.GetUsers(user_module.GetUserOptions{Limit: 100, Skip: 0})
-
-	// fmt.Println(users)
-
-	// curUser, _ := user_module.GetUserById("2620fc9a-2bda-4357-b595-e8819a358712")
-
-	// fmt.Println(curUser)
+	event_module.CreateEvent(event_module.CreateEventData{
+		UserId:       "92e7e817-275a-4fe5-bf59-da72641c8549",
+		Info:         "Moms birthday",
+		Date:         "1975-08-28T00:00:00.000Z",
+		NotifyLevels: []string{"month", "week", "tomorrow", "today"},
+		Providers:    []string{"telegram"},
+	}, context.Background())
 }
