@@ -68,7 +68,7 @@ func main() {
 
 	event_module.CreateEvent(event_module.CreateEventData{
 		UserId:       "92e7e817-275a-4fe5-bf59-da72641c8549",
-		Info:         "Moms birthday",
+		Info:         "Moms birthdays",
 		Date:         "1975-08-28T00:00:00.000Z",
 		NotifyLevels: []string{"month", "week", "tomorrow", "today"},
 		Providers:    []string{"telegram"},
