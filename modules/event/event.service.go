@@ -18,9 +18,15 @@ type CreateEventData struct {
 type UpdateEventData struct {
 }
 
-// func GetUserEvents(userId string) (*[]Event, error) {
+func GetUserEvents(userId string) (*[]Event, error) {
+	query := "SELECT * FROM events WHERE user_id = $1"
+	result, err := db.BaseQuery[[]Event](context.Background(), query, userId)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-// }
+	return result, err
+}
 
 func CreateEvent(data CreateEventData, currentContext context.Context) (*Event, error) {
 	query := "INSERT INTO events (user_id, info, date, notify_levels, providers) VALUES ($1, $2, $3, $4, $5) RETURNING *"
