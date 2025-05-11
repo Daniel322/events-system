@@ -57,10 +57,6 @@ func CreateEvent(data CreateEventData, currentContext context.Context) (*Event, 
 	return result, err
 }
 
-// func UpdateEvent(data UpdateEventData) (*Event, error) {
-
-// }
-
 func DeleteEvent(id string, operationContext context.Context) (bool, error) {
 	query := "DELETE FROM events WHERE id = $1"
 	_, err := db.Connection.Exec(operationContext, query, id)
