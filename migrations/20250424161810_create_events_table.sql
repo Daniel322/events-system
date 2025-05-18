@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS events(
   info TEXT NOT NULL,
   date TIMESTAMP NOT NULL,
   notify_levels JSONB NOT NULL,
-  providers JSONB NOT NULL,
+  providers JSONB NOT NULL DEFAULT '["month", "week", "tomorrow", "today"]'::JSONB,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT id_events_pk PRIMARY KEY (id)

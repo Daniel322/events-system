@@ -4,7 +4,6 @@ import (
 	"context"
 	telegram_api "events-system/apis/telegram"
 	"events-system/modules/db"
-	event_module "events-system/modules/event"
 	"fmt"
 	"log"
 	"sync"
@@ -66,11 +65,10 @@ func main() {
 
 	fmt.Println(result)
 
-	event_module.CreateEvent(event_module.CreateEventData{
-		UserId:       "92e7e817-275a-4fe5-bf59-da72641c8549",
-		Info:         "Moms birthdays",
-		Date:         "1975-08-28T00:00:00.000Z",
-		NotifyLevels: []string{"month", "week", "tomorrow", "today"},
-		Providers:    []string{"telegram"},
-	}, context.Background())
+	// event_module.CreateEvent(event_module.CreateEventData{
+	// 	UserId:    "92e7e817-275a-4fe5-bf59-da72641c8549",
+	// 	Info:      "Moms birthdays",
+	// 	Date:      "1975-08-28T00:00:00.000Z",
+	// 	Providers: []string{"telegram"},
+	// }, context.Background())
 }
