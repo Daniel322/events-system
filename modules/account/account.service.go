@@ -17,6 +17,10 @@ type CountData struct {
 	Count int `json:"count"`
 }
 
+type UserIdData struct {
+	UserId string `json:"user_id"`
+}
+
 func CreateAccount(data AccountData, operationContext context.Context) (*Account, error) {
 	const query = "INSERT INTO accounts (user_id, account_id, type) VALUES ($1, $2, $3) RETURNING *"
 	result, err := db.BaseQuery[Account](operationContext, query, data.UserId, data.AccountId, data.Type)
@@ -73,8 +77,14 @@ func GetAccountByAccountId(account_id string) (int, error) {
 	query := "SELECT COUNT(*) FROM accounts WHERE account_id = $1"
 
 	result, err := db.BaseQuery[CountData](context.Background(), query, account_id)
-
 	return result.Count, err
+}
+
+func GetUserIdByAccountId(account_id string) (string, error) {
+	query := "SELECT user_id from accounts WHERE account_id = $1"
+
+	result, err := db.BaseQuery[UserIdData](context.Background(), query, account_id)
+	return result.UserId, err
 }
 
 func GetAccounts(options AccountData) (*[]Account, error) {
