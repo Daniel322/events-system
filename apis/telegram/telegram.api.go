@@ -49,25 +49,27 @@ func BootstrapBot() {
 						msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 						msg.Text = "user not found, account not created. use /start before work for create account"
 						bot.Send(msg)
-						continue
+						break
 					}
 					msgSlice := strings.Split(update.Message.Text, `/`)
 					fmt.Println(msgSlice[0] + "T00:00:00.000Z")
 					event_module.CreateEvent(event_module.CreateEventData{
-						// TODO: fix next error: can't scan into dest[3] (col: date): cannot scan timestamp (OID 1114) in binary format into *string
 						Date:      msgSlice[0] + "T00:00:00.000Z",
 						Info:      msgSlice[1],
 						UserId:    currentUserId,
 						Providers: []string{"telegram"},
 					}, context.Background())
-					eventsChatSlice = append(eventsChatSlice[:i], eventsChatSlice...)
+					eventsChatSlice = append(eventsChatSlice[:i], eventsChatSlice[i+1:]...)
 					fmt.Println("length of chats slice after delete", len(eventsChatSlice))
 					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 					msg.Text = "Event created!"
 					bot.Send(msg)
-					continue
+					break
 				}
 			}
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+			msg.Text = "Use /help command"
+			bot.Send(msg)
 			continue
 		}
 

@@ -1,12 +1,15 @@
 package event_module
 
-import "database/sql"
+import (
+	"database/sql"
+	"time"
+)
 
 type Event struct {
 	Id           string       `json:"id"`
 	UserId       string       `json:"user_id"`
 	Info         string       `json:"info"`
-	Date         string       `json:"date"`
+	Date         time.Time    `json:"date"`
 	NotifyLevels []string     `json:"notify_levels"`
 	Providers    []string     `json:"providers"`
 	CreatedAt    sql.NullTime `json:"created_at"`
