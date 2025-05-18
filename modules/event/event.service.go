@@ -29,12 +29,12 @@ func GetUserEvents(userId string) (*[]Event, error) {
 }
 
 func CreateEvent(data CreateEventData, currentContext context.Context) (*Event, error) {
-	query := "INSERT INTO events (user_id, info, date, notify_levels, providers) VALUES ($1, $2, $3, $4, $5) RETURNING *"
+	query := "INSERT INTO events (user_id, info, date, providers) VALUES ($1, $2, $3, $4) RETURNING *"
 
-	jsonNotify, err := json.Marshal(data.NotifyLevels)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// jsonNotify, err := json.Marshal(data.NotifyLevels)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	jsonProviders, err := json.Marshal(data.Providers)
 	if err != nil {
@@ -47,7 +47,6 @@ func CreateEvent(data CreateEventData, currentContext context.Context) (*Event, 
 		data.UserId,
 		data.Info,
 		data.Date,
-		jsonNotify,
 		jsonProviders,
 	)
 	if err != nil {

@@ -6,8 +6,8 @@ CREATE TABLE IF NOT EXISTS events(
   user_id UUID REFERENCES users (id),
   info TEXT NOT NULL,
   date TIMESTAMP NOT NULL,
-  notify_levels JSONB NOT NULL,
-  providers JSONB NOT NULL DEFAULT '["month", "week", "tomorrow", "today"]'::JSONB,
+  notify_levels JSONB NOT NULL DEFAULT '["month", "week", "tomorrow", "today"]'::JSONB,
+  providers JSONB NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT id_events_pk PRIMARY KEY (id)
