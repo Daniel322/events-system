@@ -2,6 +2,7 @@ package telegram_api
 
 import (
 	"context"
+	"encoding/json"
 	account_module "events-system/modules/account"
 	"events-system/modules/db"
 	event_module "events-system/modules/event"
@@ -121,8 +122,36 @@ func BootstrapBot() {
 			transaction.Commit(currentContext)
 			msg.Text = "Start, account created"
 		case "add":
+			currentAccCount, err := account_module.GetAccountByAccountId(strconv.Itoa(int(update.Message.From.ID)))
+			if err != nil {
+				msg.Text = "Something went wrong"
+				break
+			}
+			if currentAccCount == 0 {
+				msg.Text = "Your account not found, use /start command before add events"
+				break
+			}
 			eventsChatSlice = append(eventsChatSlice, update.Message.Chat.ID)
 			msg.Text = "send information about your event in next format: YYYY-MM-DD / event-info"
+		case "events":
+			currentUserId, err := account_module.GetUserIdByAccountId(strconv.Itoa(int(update.Message.From.ID)))
+			if err != nil {
+				msg.Text = "Something went wrong"
+				break
+			}
+			var events *[]event_module.Event
+			events, err = event_module.GetUserEvents(currentUserId)
+			fmt.Println(events)
+			if err != nil {
+				msg.Text = "Something went wrong"
+				break
+			}
+			jsonEvents, err := json.Marshal(events)
+			if err != nil {
+				msg.Text = "Something went wrong"
+				break
+			}
+			msg.Text = string(jsonEvents)
 		case "help":
 			msg.Text = "I understand /sayhi and /status."
 		case "sayhi":

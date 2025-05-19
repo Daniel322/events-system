@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"events-system/modules/db"
+	"fmt"
 	"log"
 )
 
@@ -20,11 +21,13 @@ type UpdateEventData struct {
 
 func GetUserEvents(userId string) (*[]Event, error) {
 	query := "SELECT * FROM events WHERE user_id = $1"
+	// TODO: fix (make custyom or add slice support in BaseQuery)
 	result, err := db.BaseQuery[[]Event](context.Background(), query, userId)
 	if err != nil {
+		fmt.Println("error", err)
 		log.Fatal(err)
 	}
-
+	fmt.Println(result)
 	return result, err
 }
 
