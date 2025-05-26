@@ -22,6 +22,14 @@ type GetUserOptions struct {
 	Skip  int `json:"skip"`
 }
 
+type UserService interface {
+	GetUsers(options GetUserOptions) (*[]User, error)
+	GetUserById(id string) (*User, error)
+	UpdateUser(data UpdateUserData, operationContext context.Context) (*User, error)
+	CreateUser(data CreateUserData, operationContext context.Context) (*User, error)
+	DeleteUser(id string, operationContext context.Context) (bool, error)
+}
+
 func GetUsers(options GetUserOptions) (*[]User, error) {
 	var users []User
 
