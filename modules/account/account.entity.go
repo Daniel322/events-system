@@ -1,30 +1,18 @@
 package account_module
 
-import "database/sql"
+import (
+	"time"
 
-type AccountType int
-
-const (
-	Telegram AccountType = iota
-	VK
-	Gmail
+	"github.com/google/uuid"
 )
 
-var accountTypes = map[AccountType]string{
-	Telegram: "telegram",
-	VK:       "vk",
-	Gmail:    "gmail",
-}
-
-func (val AccountType) String() string {
-	return accountTypes[val]
-}
+var ACCOUNT_TYPES = [3]string{"telegram", "vk", "gmail"}
 
 type Account struct {
-	Id        string       `json:"id"`
-	UserId    string       `json:"user_id"`
-	AccountId string       `json:"account_id"`
-	Type      string       `json:"type"`
-	CreatedAt sql.NullTime `json:"created_at"`
-	UpdatedAt sql.NullTime `json:"updated_at"`
+	ID        uuid.UUID `json:"id" gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	UserId    *string   `json:"user_id"`
+	AccountId *string   `json:"account_id" gorm:"unique"`
+	Type      string    `json:"type"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

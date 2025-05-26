@@ -22,12 +22,20 @@ type UserIdData struct {
 }
 
 func CreateAccount(data AccountData, operationContext context.Context) (*Account, error) {
-	const query = "INSERT INTO accounts (user_id, account_id, type) VALUES ($1, $2, $3) RETURNING *"
-	result, err := db.BaseQuery[Account](operationContext, query, data.UserId, data.AccountId, data.Type)
-	if err != nil {
-		log.Fatal(err)
+	account := Account{
+		UserId:    &data.UserId,
+		AccountId: &data.AccountId,
+		Type:      data.Type,
 	}
-	return result, err
+
+	result := db.Connection.Table("accounts").Create(&account)
+
+	if result.Error != nil {
+		log.Fatal(result.Error)
+		return nil, result.Error
+	}
+
+	return &account, nil
 }
 
 func UpdateAccount(id string, data AccountData, operationContext context.Context) (*Account, error) {
