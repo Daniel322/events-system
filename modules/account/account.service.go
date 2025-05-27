@@ -74,11 +74,12 @@ func GetAccountByAccountId(account_id string) (int, error) {
 	return int(count), nil
 }
 
-func GetUserIdByAccountId(account_id string) (string, error) {
-	query := "SELECT user_id from accounts WHERE account_id = $1"
+func GetUserIdByAccountId(account_id string) (*string, error) {
+	var account Account
 
-	result, err := db.BaseQuery[UserIdData](context.Background(), query, account_id)
-	return result.UserId, err
+	result := db.Connection.Table("accounts").Where("account_id = ?", account_id).First(&account)
+
+	return account.UserId, result.Error
 }
 
 func GetAccounts(options AccountData) (*[]Account, error) {
