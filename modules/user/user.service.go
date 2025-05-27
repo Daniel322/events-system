@@ -82,7 +82,7 @@ func CreateUser(data CreateUserData, operationContext context.Context) (*User, e
 }
 
 func DeleteUser(id string, operationContext context.Context) (bool, error) {
-	result := db.Connection.Delete(&User{}, id)
+	result := db.Connection.Table("users").Delete(&User{}, id)
 
 	if result.Error != nil {
 		log.Fatal(result.Error)

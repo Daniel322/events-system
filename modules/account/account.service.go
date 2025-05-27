@@ -3,7 +3,6 @@ package account_module
 import (
 	"context"
 	"events-system/modules/db"
-	"fmt"
 	"log"
 )
 
@@ -39,53 +38,40 @@ func CreateAccount(data AccountData, operationContext context.Context) (*Account
 }
 
 func UpdateAccount(id string, data AccountData, operationContext context.Context) (*Account, error) {
-	query := "UPDATE accounts SET "
-	setIndex := 0
-	var values []any
+	var account Account
 
-	if data.UserId != "" {
-		query += "user_id =" + "$" + string(setIndex)
-		setIndex++
-		values = append(values, data.UserId)
-	}
-	if data.AccountId != "" {
-		query += "account_id =" + "$" + string(setIndex)
-		setIndex++
-		values = append(values, data.AccountId)
-	}
-	if data.Type != "" {
-		query += "type =" + "$" + string(setIndex)
-		setIndex++
-		values = append(values, data.Type)
+	result := db.Connection.Table("accounts").Model(&account).Where("id = ?", id).Updates(data)
+
+	if result.Error != nil {
+		log.Fatal(result.Error)
+		return nil, result.Error
 	}
 
-	query += " WHERE id =" + "$" + string(setIndex) + " RETURNING *"
-
-	fmt.Println(query)
-
-	result, err := db.BaseQuery[Account](operationContext, query, values...)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return result, err
+	return &account, nil
 }
 
 func DeleteAccount(id string, operationContext context.Context) (bool, error) {
-	query := "DELETE FROM accounts WHERE id = $1"
-	_, err := db.Connection.Exec(operationContext, query, id)
-	if err != nil {
-		log.Fatal(err)
-		return false, err
+	result := db.Connection.Table("accounts").Delete(&Account{}, id)
+
+	if result.Error != nil {
+		log.Fatal(result.Error)
+		return false, result.Error
 	}
-	return true, err
+
+	return true, nil
 }
 
 func GetAccountByAccountId(account_id string) (int, error) {
-	query := "SELECT COUNT(*) FROM accounts WHERE account_id = $1"
+	var count int64
 
-	result, err := db.BaseQuery[CountData](context.Background(), query, account_id)
-	return result.Count, err
+	result := db.Connection.Table("accounts").Where("account_id = ?", account_id).Count(&count)
+
+	if result.Error != nil {
+		log.Fatal(result.Error)
+		return 0, result.Error
+	}
+
+	return int(count), nil
 }
 
 func GetUserIdByAccountId(account_id string) (string, error) {
@@ -96,41 +82,14 @@ func GetUserIdByAccountId(account_id string) (string, error) {
 }
 
 func GetAccounts(options AccountData) (*[]Account, error) {
-	query := "SELECT * FROM accounts"
-	var values []any
+	var accounts []Account
 
-	// TODO: need to add filter support
+	result := db.Connection.Table("accounts").Where(options).Take(&accounts)
 
-	rows, err := db.Connection.Query(context.Background(), query, values...)
-
-	var result []Account
-
-	for rows.Next() {
-		var iterationScanValue Account
-		err = rows.Scan(
-			&iterationScanValue.Id,
-			&iterationScanValue.UserId,
-			&iterationScanValue.AccountId,
-			&iterationScanValue.Type,
-			&iterationScanValue.CreatedAt,
-			&iterationScanValue.UpdatedAt,
-		)
-		if err != nil {
-			log.Fatal(err)
-		} else {
-			result = append(
-				result,
-				Account{
-					Id:        string(iterationScanValue.Id),
-					UserId:    iterationScanValue.UserId,
-					AccountId: iterationScanValue.AccountId,
-					Type:      iterationScanValue.Type,
-					CreatedAt: iterationScanValue.CreatedAt,
-					UpdatedAt: iterationScanValue.UpdatedAt,
-				},
-			)
-		}
+	if result.Error != nil {
+		log.Fatal(result.Error)
+		return nil, result.Error
 	}
 
-	return &result, err
+	return &accounts, nil
 }
