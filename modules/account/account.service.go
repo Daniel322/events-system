@@ -4,12 +4,14 @@ import (
 	"context"
 	"events-system/modules/db"
 	"log"
+
+	"github.com/google/uuid"
 )
 
 type AccountData struct {
-	UserId    string `json:"user_id"`
-	AccountId string `json:"account_id"`
-	Type      string `json:"type"`
+	UserId    uuid.UUID `json:"user_id"`
+	AccountId string    `json:"account_id"`
+	Type      string    `json:"type"`
 }
 
 type CountData struct {
@@ -74,7 +76,7 @@ func GetAccountByAccountId(account_id string) (int, error) {
 	return int(count), nil
 }
 
-func GetUserIdByAccountId(account_id string) (*string, error) {
+func GetUserIdByAccountId(account_id string) (*uuid.UUID, error) {
 	var account Account
 
 	result := db.Connection.Table("accounts").Where("account_id = ?", account_id).First(&account)

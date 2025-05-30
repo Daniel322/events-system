@@ -3,11 +3,13 @@ package event_module
 import (
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Event struct {
 	Id           string       `json:"id"`
-	UserId       string       `json:"user_id"`
+	UserId       *uuid.UUID   `json:"user_id"`
 	Info         string       `json:"info"`
 	Date         time.Time    `json:"date"`
 	NotifyLevels []string     `json:"notify_levels"`

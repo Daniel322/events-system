@@ -6,14 +6,16 @@ import (
 	"events-system/modules/db"
 	"log"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type CreateEventData struct {
-	UserId       string    `json:"user_id"`
-	Info         string    `json:"info"`
-	Date         time.Time `json:"date"`
-	NotifyLevels []string  `json:"notify_levels"`
-	Providers    []string  `json:"providers"`
+	UserId       *uuid.UUID `json:"user_id"`
+	Info         string     `json:"info"`
+	Date         time.Time  `json:"date"`
+	NotifyLevels []string   `json:"notify_levels"`
+	Providers    []string   `json:"providers"`
 }
 
 type UpdateEventData struct {
@@ -21,7 +23,7 @@ type UpdateEventData struct {
 	Date time.Time `json:"date"`
 }
 
-func GetUserEvents(userId string) (*[]Event, error) {
+func GetUserEvents(userId *uuid.UUID) (*[]Event, error) {
 	var events []Event
 
 	result := db.Connection.Table("events").Where("user_id = ?", userId).Take(&events)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	account_module "events-system/modules/account"
-	"events-system/modules/db"
 	event_module "events-system/modules/event"
 	user_module "events-system/modules/user"
 	"fmt"
@@ -12,6 +11,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -54,8 +54,17 @@ func BootstrapBot() {
 					}
 					msgSlice := strings.Split(update.Message.Text, `/`)
 					fmt.Println(msgSlice[0] + "T00:00:00.000Z")
+					timeVar, err := time.Parse(msgSlice[0], msgSlice[0])
+
+					if err != nil {
+						msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+						msg.Text = "incorrect date"
+						bot.Send(msg)
+						break
+					}
+
 					event_module.CreateEvent(event_module.CreateEventData{
-						Date:      msgSlice[0] + "T00:00:00.000Z",
+						Date:      timeVar,
 						Info:      msgSlice[1],
 						UserId:    currentUserId,
 						Providers: []string{"telegram"},
@@ -94,7 +103,7 @@ func BootstrapBot() {
 				break
 			}
 			currentContext := context.Background()
-			transaction, _ := db.Connection.Begin(currentContext)
+			// transaction, _ := db.Connection.Begin(currentContext)
 			var user, err = user_module.CreateUser(
 				user_module.CreateUserData{
 					Username: update.Message.From.UserName,
@@ -103,12 +112,12 @@ func BootstrapBot() {
 			)
 			if err != nil {
 				msg.Text = "Something went wrong"
-				transaction.Rollback(currentContext)
+				// transaction.Rollback(currentContext)
 				break
 			}
 			_, err = account_module.CreateAccount(
 				account_module.AccountData{
-					UserId:    user.Id,
+					UserId:    user.ID,
 					AccountId: strconv.Itoa(int(update.Message.From.ID)),
 					Type:      "telegram",
 				},
@@ -116,10 +125,10 @@ func BootstrapBot() {
 			)
 			if err != nil {
 				msg.Text = "Something went wrong"
-				transaction.Rollback(currentContext)
+				// transaction.Rollback(currentContext)
 				break
 			}
-			transaction.Commit(currentContext)
+			// transaction.Commit(currentContext)
 			msg.Text = "Start, account created"
 		case "add":
 			currentAccCount, err := account_module.GetAccountByAccountId(strconv.Itoa(int(update.Message.From.ID)))
