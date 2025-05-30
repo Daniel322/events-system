@@ -33,7 +33,7 @@ type UserService interface {
 func GetUsers(options GetUserOptions) (*[]User, error) {
 	var users []User
 
-	result := db.Connection.Limit(options.Limit).Offset(options.Skip).Table("users").Take(&users)
+	result := db.Connection.Limit(options.Limit).Offset(options.Skip).Table("users").Find(&users)
 
 	if result.Error != nil {
 		log.Fatal(result.Error)
@@ -69,7 +69,7 @@ func UpdateUser(data UpdateUserData, operationContext context.Context) (*User, e
 }
 
 func CreateUser(data CreateUserData, operationContext context.Context) (*User, error) {
-	user := User{Username: &data.Username}
+	user := User{Username: data.Username}
 
 	result := db.Connection.Create(&user)
 

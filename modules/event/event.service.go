@@ -26,7 +26,7 @@ type UpdateEventData struct {
 func GetUserEvents(userId *uuid.UUID) (*[]Event, error) {
 	var events []Event
 
-	result := db.Connection.Table("events").Where("user_id = ?", userId).Take(&events)
+	result := db.Connection.Table("events").Where("user_id = ?", userId).Find(&events)
 
 	if result.Error != nil {
 		log.Fatal(result.Error)
@@ -34,7 +34,6 @@ func GetUserEvents(userId *uuid.UUID) (*[]Event, error) {
 	}
 
 	return &events, nil
-
 }
 
 func UpdateEvent(id string, data UpdateEventData) (*Event, error) {

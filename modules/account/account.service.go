@@ -87,7 +87,7 @@ func GetUserIdByAccountId(account_id string) (*uuid.UUID, error) {
 func GetAccounts(options AccountData) (*[]Account, error) {
 	var accounts []Account
 
-	result := db.Connection.Table("accounts").Where(options).Take(&accounts)
+	result := db.Connection.Table("accounts").Where(options).Find(&accounts)
 
 	if result.Error != nil {
 		log.Fatal(result.Error)
