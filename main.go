@@ -1,11 +1,14 @@
 package main
 
 import (
-	telegram_api "events-system/apis/telegram"
+	"encoding/json"
 	"events-system/modules/db"
+	event_module "events-system/modules/event"
 	"fmt"
+	"log"
 	"sync"
 
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 )
 
@@ -23,5 +26,27 @@ func main() {
 
 	db.ConnectDatabase()
 
-	telegram_api.BootstrapBot()
+	// telegram_api.BootstrapBot()
+
+	uuid, err := uuid.Parse("92e7e817-275a-4fe5-bf59-da72641c8549")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	result, err := event_module.GetUserEvents(&uuid)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(result)
+
+	firstEvent := (*result)[0]
+
+	var jsonNotifyLevels []string
+
+	json.Unmarshal(firstEvent.NotifyLevels, &jsonNotifyLevels)
+
+	fmt.Println(jsonNotifyLevels)
 }

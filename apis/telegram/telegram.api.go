@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	account_module "events-system/modules/account"
 	event_module "events-system/modules/event"
+	task_module "events-system/modules/task"
 	user_module "events-system/modules/user"
 	"fmt"
 	"log"
@@ -53,7 +54,7 @@ func BootstrapBot() {
 						break
 					}
 					msgSlice := strings.Split(update.Message.Text, `/`)
-					fmt.Println(msgSlice[0] + "T00:00:00.000Z")
+
 					timeVar, err := time.Parse(msgSlice[0], msgSlice[0])
 
 					if err != nil {
@@ -63,12 +64,28 @@ func BootstrapBot() {
 						break
 					}
 
-					event_module.CreateEvent(event_module.CreateEventData{
+					event, err := event_module.CreateEvent(event_module.CreateEventData{
 						Date:      timeVar,
 						Info:      msgSlice[1],
 						UserId:    currentUserId,
 						Providers: []string{"telegram"},
 					}, context.Background())
+
+					timesForTask := make([]time.Time, 4)
+
+					timesForTask = append(timesForTask, timeVar,
+						timeVar.Add(-(time.Hour * 24)),
+						timeVar.Add(-(time.Hour * 24 * 7)),
+						timeVar.Add(-(time.Hour * 24 * 30)))
+
+					for _, timeForTask := range timesForTask {
+						task_module.CreateTask(task_module.CreateTaskData{
+							EventId:   event.Id,
+							AccountId: strconv.Itoa(int(update.Message.From.ID)),
+							Date:      timeForTask,
+						})
+					}
+
 					eventsChatSlice = append(eventsChatSlice[:i], eventsChatSlice[i+1:]...)
 					fmt.Println("length of chats slice after delete", len(eventsChatSlice))
 					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
