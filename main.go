@@ -1,15 +1,15 @@
 package main
 
 import (
-	"encoding/json"
 	"events-system/modules/db"
-	event_module "events-system/modules/event"
 	"fmt"
-	"log"
 	"sync"
 
-	"github.com/google/uuid"
+	"net/http"
+
 	"github.com/joho/godotenv"
+
+	"github.com/labstack/echo/v4"
 )
 
 var err error
@@ -28,25 +28,10 @@ func main() {
 
 	// telegram_api.BootstrapBot()
 
-	uuid, err := uuid.Parse("92e7e817-275a-4fe5-bf59-da72641c8549")
+	e := echo.New()
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Hello, World!")
+	})
+	e.Logger.Fatal(e.Start(":1323"))
 
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	result, err := event_module.GetUserEvents(&uuid)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(result)
-
-	firstEvent := (*result)[0]
-
-	var jsonNotifyLevels []string
-
-	json.Unmarshal(firstEvent.NotifyLevels, &jsonNotifyLevels)
-
-	fmt.Println(jsonNotifyLevels)
 }
