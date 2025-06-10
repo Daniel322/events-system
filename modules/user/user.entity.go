@@ -1,10 +1,14 @@
 package user_module
 
-import "database/sql"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type User struct {
-	Id        string       `json:"id"`
-	Username  string       `json:"username"`
-	CreatedAt sql.NullTime `json:"created_at"`
-	UpdatedAt sql.NullTime `json:"updated_at"`
+	ID        uuid.UUID `json:"id" gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Username  string    `json:"username"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

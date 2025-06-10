@@ -4,67 +4,82 @@ import (
 	"context"
 	"encoding/json"
 	"events-system/modules/db"
-	"fmt"
 	"log"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type CreateEventData struct {
-	UserId       string   `json:"user_id"`
-	Info         string   `json:"info"`
-	Date         string   `json:"date"`
-	NotifyLevels []string `json:"notify_levels"`
-	Providers    []string `json:"providers"`
+	UserId       *uuid.UUID `json:"user_id"`
+	Info         string     `json:"info"`
+	Date         time.Time  `json:"date"`
+	NotifyLevels []string   `json:"notify_levels"`
+	Providers    []string   `json:"providers"`
 }
 
 type UpdateEventData struct {
+	Info string    `json:"info"`
+	Date time.Time `json:"date"`
 }
 
-func GetUserEvents(userId string) (*[]Event, error) {
-	query := "SELECT * FROM events WHERE user_id = $1"
-	// TODO: fix (make custyom or add slice support in BaseQuery)
-	result, err := db.BaseQuery[[]Event](context.Background(), query, userId)
-	if err != nil {
-		fmt.Println("error", err)
-		log.Fatal(err)
+func GetUserEvents(userId *uuid.UUID) (*[]Event, error) {
+	var events []Event
+
+	result := db.Connection.Table("events").Where("user_id = ?", userId).Find(&events)
+
+	if result.Error != nil {
+		log.Fatal(result.Error)
+		return nil, result.Error
 	}
-	fmt.Println(result)
-	return result, err
+
+	return &events, nil
+}
+
+func UpdateEvent(id string, data UpdateEventData) (*Event, error) {
+	var event Event
+	result := db.Connection.Model(&event).Where("id = ?", id).Updates(data)
+
+	if result.Error != nil {
+		log.Fatal(result.Error)
+		return nil, result.Error
+	}
+
+	return &event, nil
 }
 
 func CreateEvent(data CreateEventData, currentContext context.Context) (*Event, error) {
-	query := "INSERT INTO events (user_id, info, date, providers) VALUES ($1, $2, $3, $4) RETURNING *"
-
-	// jsonNotify, err := json.Marshal(data.NotifyLevels)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
 	jsonProviders, err := json.Marshal(data.Providers)
+
 	if err != nil {
 		log.Fatal(err)
+		return nil, err
 	}
 
-	result, err := db.BaseQuery[Event](
-		currentContext,
-		query,
-		data.UserId,
-		data.Info,
-		data.Date,
-		jsonProviders,
-	)
-	if err != nil {
-		log.Fatal(err)
+	event := Event{
+		UserId:    data.UserId,
+		Info:      data.Info,
+		Date:      data.Date,
+		Providers: jsonProviders,
 	}
 
-	return result, err
+	result := db.Connection.Create(&event)
+
+	if result.Error != nil {
+		log.Fatal(result.Error)
+		return nil, result.Error
+	}
+
+	return &event, nil
 }
 
 func DeleteEvent(id string, operationContext context.Context) (bool, error) {
-	query := "DELETE FROM events WHERE id = $1"
-	_, err := db.Connection.Exec(operationContext, query, id)
-	if err != nil {
-		log.Fatal(err)
-		return false, err
+	result := db.Connection.Table("events").Delete(&Event{}, id)
+
+	if result.Error != nil {
+		log.Fatal(result.Error)
+		return false, result.Error
 	}
-	return true, err
+
+	return true, nil
 }

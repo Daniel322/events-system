@@ -6,9 +6,6 @@ import (
 	"log"
 )
 
-type UserService struct {
-}
-
 type CreateUserData struct {
 	Username string `json:"username"`
 }
@@ -25,74 +22,72 @@ type GetUserOptions struct {
 	Skip  int `json:"skip"`
 }
 
+type UserService interface {
+	GetUsers(options GetUserOptions) (*[]User, error)
+	GetUserById(id string) (*User, error)
+	UpdateUser(data UpdateUserData, operationContext context.Context) (*User, error)
+	CreateUser(data CreateUserData, operationContext context.Context) (*User, error)
+	DeleteUser(id string, operationContext context.Context) (bool, error)
+}
+
 func GetUsers(options GetUserOptions) (*[]User, error) {
-	var query = "SELECT * FROM users LIMIT $1 OFFSET $2"
-	rows, err := db.Connection.Query(context.Background(), query, options.Limit, options.Skip)
-	if err != nil {
-		log.Fatal(err)
+	var users []User
+
+	result := db.Connection.Limit(options.Limit).Offset(options.Skip).Table("users").Find(&users)
+
+	if result.Error != nil {
+		log.Fatal(result.Error)
+		return nil, result.Error
 	}
 
-	var result []User
-
-	for rows.Next() {
-		var iterationScanValue User
-		err = rows.Scan(
-			&iterationScanValue.Id,
-			&iterationScanValue.Username,
-			&iterationScanValue.CreatedAt,
-			&iterationScanValue.UpdatedAt,
-		)
-		if err != nil {
-			log.Fatal(err)
-		} else {
-			result = append(
-				result,
-				User{
-					Id:        string(iterationScanValue.Id),
-					Username:  iterationScanValue.Username,
-					CreatedAt: iterationScanValue.CreatedAt,
-					UpdatedAt: iterationScanValue.UpdatedAt,
-				},
-			)
-		}
-	}
-
-	return &result, err
+	return &users, nil
 }
 
 func GetUserById(id string) (*User, error) {
-	var query = "SELECT * FROM users WHERE id = $1"
-	result, err := db.BaseQuery[User](context.Background(), query, id)
-	if err != nil {
-		log.Fatal(err)
+	var user User
+
+	result := db.Connection.Where("id = ?", id).First(&user)
+
+	if result.Error != nil {
+		log.Fatal(result.Error)
+		return nil, result.Error
 	}
-	return result, err
+
+	return &user, nil
 }
 
 func UpdateUser(data UpdateUserData, operationContext context.Context) (*User, error) {
-	var query = "UPDATE users SET username=$1, updated_at=NOW() WHERE id = $2 RETURNING *"
-	result, err := db.BaseQuery[User](operationContext, query, data.Username, data.Id)
-	if err != nil {
-		log.Fatal(err)
+	var user User
+	result := db.Connection.Model(&user).Where("id = ?", data.Id).Update("username", data.Username)
+
+	if result.Error != nil {
+		log.Fatal(result.Error)
+		return nil, result.Error
 	}
-	return result, err
+
+	return &user, nil
 }
 
 func CreateUser(data CreateUserData, operationContext context.Context) (*User, error) {
-	var query = "INSERT INTO users (username) VALUES ($1) RETURNING *"
-	result, err := db.BaseQuery[User](operationContext, query, data.Username)
-	if err != nil {
-		log.Fatal(err)
+	user := User{Username: data.Username}
+
+	result := db.Connection.Create(&user)
+
+	if result.Error != nil {
+		log.Fatal(result.Error)
+		return nil, result.Error
 	}
-	return result, err
+
+	return &user, nil
 }
 
 func DeleteUser(id string, operationContext context.Context) (bool, error) {
-	query := "DELETE FROM users WHERE id = $1"
-	_, err := db.Connection.Exec(operationContext, query, id)
-	if err != nil {
-		log.Fatal(err)
-		return false, err
+	result := db.Connection.Table("users").Delete(&User{}, id)
+
+	if result.Error != nil {
+		log.Fatal(result.Error)
+		return false, result.Error
 	}
-	return true, err
+
+	return true, nil
 }

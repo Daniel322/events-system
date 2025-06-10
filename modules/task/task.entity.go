@@ -1,4 +1,4 @@
-package task
+package task_module
 
 type Task struct {
 	Id        string `json:"id"`
