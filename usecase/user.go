@@ -8,11 +8,11 @@ import (
 	"github.com/google/uuid"
 )
 
-type CreateUserData struct {
+type UserData struct {
 	Username string `json:"username"`
 }
 
-func CreateUser(data CreateUserData) (*domain.User, error) {
+func CreateUser(data UserData) (*domain.User, error) {
 	var id uuid.UUID = uuid.New()
 
 	if len(data.Username) == 0 {
@@ -27,4 +27,15 @@ func CreateUser(data CreateUserData) (*domain.User, error) {
 	}
 
 	return &user, nil
+}
+
+func UpdateUser(user *domain.User, data UserData) (*domain.User, error) {
+	if len(data.Username) == 0 {
+		return nil, errors.New("username cant be empty")
+	}
+
+	user.Username = data.Username
+	user.UpdatedAt = time.Now()
+
+	return user, nil
 }
