@@ -1,41 +1,39 @@
 package usecases
 
 import (
-	"errors"
 	"events-system/internal/domain"
-	"time"
+	db "events-system/internal/providers"
+	"events-system/internal/services"
+	"log"
 
-	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
-type UserData struct {
-	Username string `json:"username"`
+type UserUseCase struct {
+	Db      *gorm.DB
+	Service *services.UserService
 }
 
-func CreateUser(data UserData) (*domain.User, error) {
-	var id uuid.UUID = uuid.New()
-
-	if len(data.Username) == 0 {
-		return nil, errors.New("username cant be empty")
+func NewUserUseCase(db *gorm.DB, service *services.UserService) *UserUseCase {
+	return &UserUseCase{
+		Db:      db,
+		Service: service,
 	}
-
-	var user = domain.User{
-		ID:        id,
-		Username:  data.Username,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	return &user, nil
 }
 
-func UpdateUser(user *domain.User, data UserData) (*domain.User, error) {
-	if len(data.Username) == 0 {
-		return nil, errors.New("username cant be empty")
-	}
+func (us UserUseCase) CreateUser(data services.UserData) (*domain.User, error) {
+	user, err := us.Service.CreateUser(data)
 
-	user.Username = data.Username
-	user.UpdatedAt = time.Now()
+	if err != nil {
+		// log error
+	}
+	// change to value from context
+	result := db.Connection.Create(&user)
+
+	if result.Error != nil {
+		log.Fatal(result.Error)
+		return nil, result.Error
+	}
 
 	return user, nil
 }
