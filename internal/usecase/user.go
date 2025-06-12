@@ -2,7 +2,7 @@ package usecases
 
 import (
 	"errors"
-	"events-system/domain"
+	"events-system/internal/domain"
 	"time"
 
 	"github.com/google/uuid"

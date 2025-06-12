@@ -1,10 +1,9 @@
 package main
 
 import (
-	"events-system/modules/db"
+	db "events-system/internal/providers"
 	"fmt"
 	"os"
-	"sync"
 
 	"net/http"
 
@@ -13,14 +12,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-var err error
-
 func main() {
-	var mutex = &sync.RWMutex{}
-	mutex.Lock()
-
-	defer mutex.Unlock()
-	err = godotenv.Load()
+	err := godotenv.Load()
 	if err != nil {
 		fmt.Println("Error loading .env file")
 	}

@@ -1,7 +1,7 @@
 package usecases
 
 import (
-	"events-system/domain"
+	"events-system/internal/domain"
 
 	"github.com/google/uuid"
 )

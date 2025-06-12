@@ -1,7 +1,7 @@
 package task_module
 
 import (
-	"events-system/modules/db"
+	db "events-system/internal/providers"
 	"log"
 	"time"
 )

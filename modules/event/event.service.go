@@ -3,7 +3,7 @@ package event_module
 import (
 	"context"
 	"encoding/json"
-	"events-system/modules/db"
+	db "events-system/internal/providers"
 	"log"
 	"time"
 

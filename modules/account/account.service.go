@@ -2,7 +2,7 @@ package account_module
 
 import (
 	"context"
-	"events-system/modules/db"
+	db "events-system/internal/providers"
 	"log"
 
 	"github.com/google/uuid"
