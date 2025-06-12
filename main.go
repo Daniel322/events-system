@@ -1,7 +1,7 @@
 package main
 
 import (
-	db "events-system/internal/providers"
+	db "events-system/internal/providers/db"
 	"events-system/internal/providers/server"
 	"fmt"
 	"os"
@@ -15,7 +15,9 @@ func main() {
 		fmt.Println("Error loading .env file")
 	}
 
-	db.ConnectDatabase()
+	db := db.NewDatabase(os.Getenv("GOOSE_DBSTRING"))
+
+	fmt.Println(db)
 
 	// telegram_api.BootstrapBot()
 

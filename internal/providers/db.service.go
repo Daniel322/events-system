@@ -1,3 +1,4 @@
+// TODO: deprecated, remove
 package db
 
 import (
