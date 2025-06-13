@@ -9,7 +9,7 @@ import (
 )
 
 type UserData struct {
-	Username string `json:"username"`
+	Username string
 }
 
 type UserService struct {

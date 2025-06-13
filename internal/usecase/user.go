@@ -2,10 +2,10 @@ package usecases
 
 import (
 	"events-system/internal/domain"
-	db "events-system/internal/providers"
 	"events-system/internal/services"
-	"log"
+	"fmt"
 
+	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -24,14 +24,17 @@ func NewUserUseCase(db *gorm.DB, service *services.UserService) *UserUseCase {
 func (us UserUseCase) CreateUser(data services.UserData) (*domain.User, error) {
 	user, err := us.Service.CreateUser(data)
 
+	fmt.Println(user)
+
 	if err != nil {
-		// log error
+		fmt.Println(err.Error())
+		return nil, err
 	}
 	// change to value from context
-	result := db.Connection.Create(&user)
+	result := us.Db.Create(user)
 
 	if result.Error != nil {
-		log.Fatal(result.Error)
+		fmt.Println(result.Error)
 		return nil, result.Error
 	}
 
