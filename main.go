@@ -10,7 +10,6 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/labstack/echo/v4"
 )
 
 func main() {
@@ -37,9 +36,6 @@ func main() {
 	)
 
 	// init http routes
-	server.Instance.GET("/", func(c echo.Context) error {
-		return c.JSON(200, "ok")
-	})
 	userController.InitRoutes()
 
 	fmt.Println(server.Instance.Routes())
