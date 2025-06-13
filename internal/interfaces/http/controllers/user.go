@@ -17,3 +17,14 @@ func NewUserController(server *echo.Echo, useCase *usecases.UserUseCase) *UserCo
 		useCase: useCase,
 	}
 }
+
+func (uc UserController) ExecRoute(c echo.Context) error {
+	return c.JSON(200, "ok")
+}
+
+func (uc UserController) InitRoutes() {
+	uc.server.POST("/users", uc.ExecRoute)
+	uc.server.GET("/users/:id", uc.ExecRoute)
+	uc.server.PATCH("/users/:id", uc.ExecRoute)
+	uc.server.DELETE("/users/:id", uc.ExecRoute)
+}
