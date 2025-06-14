@@ -40,3 +40,8 @@ func (us UserUseCase) CreateUser(data services.UserData) (*domain.User, error) {
 
 	return user, nil
 }
+
+func (us UserUseCase) GetUser(id string) (*domain.User, error) {
+	var user = new(domain.User)
+	return user, nil
+}

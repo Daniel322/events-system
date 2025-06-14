@@ -30,6 +30,15 @@ func (uc UserController) ExecRoute(c echo.Context) error {
 	switch method := c.Request().Method; method {
 	case "GET":
 		fmt.Println("GET METHOD")
+		id := c.Param("id")
+		fmt.Println(id)
+		user, err := uc.useCase.GetUser(id)
+
+		if err != nil {
+			return c.String(http.StatusBadRequest, "bad request")
+		}
+
+		return c.JSON(200, user)
 	case "POST":
 		fmt.Println("start post method")
 		userData := new(UserDataDTO)
@@ -47,7 +56,7 @@ func (uc UserController) ExecRoute(c echo.Context) error {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		return c.JSON(200, user)
+		return c.JSON(http.StatusCreated, user)
 	case "PATCH":
 		fmt.Println("PATCH method")
 	case "DELETE":
