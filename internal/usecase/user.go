@@ -10,19 +10,19 @@ import (
 )
 
 type UserUseCase struct {
-	Db      *gorm.DB
-	Service *services.UserService
+	db      *gorm.DB
+	service services.IUserService
 }
 
-func NewUserUseCase(db *gorm.DB, service *services.UserService) *UserUseCase {
+func NewUserUseCase(db *gorm.DB, service services.IUserService) *UserUseCase {
 	return &UserUseCase{
-		Db:      db,
-		Service: service,
+		db:      db,
+		service: service,
 	}
 }
 
 func (us UserUseCase) CreateUser(data services.UserData) (*domain.User, error) {
-	user, err := us.Service.CreateUser(data)
+	user, err := us.service.CreateUser(data)
 
 	fmt.Println(user)
 
@@ -31,7 +31,7 @@ func (us UserUseCase) CreateUser(data services.UserData) (*domain.User, error) {
 		return nil, err
 	}
 	// change to value from context
-	result := us.Db.Create(user)
+	result := us.db.Create(user)
 
 	if result.Error != nil {
 		fmt.Println(result.Error)

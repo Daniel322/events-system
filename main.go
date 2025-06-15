@@ -25,7 +25,7 @@ func main() {
 	// init http server
 	server := server.NewEchoInstance()
 	// init user domain
-	userService := services.NewUserService()
+	userService := services.NewUserService("users")
 	userUseCase := usecases.NewUserUseCase(
 		db.Instance,
 		userService,

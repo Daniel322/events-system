@@ -13,10 +13,18 @@ type UserData struct {
 }
 
 type UserService struct {
+	Name string
 }
 
-func NewUserService() *UserService {
-	return &UserService{}
+type IUserService interface {
+	CreateUser(data UserData) (*domain.User, error)
+	UpdateUser(user *domain.User, data UserData) (*domain.User, error)
+}
+
+func NewUserService(name string) *UserService {
+	return &UserService{
+		Name: name,
+	}
 }
 
 func (us *UserService) CreateUser(data UserData) (*domain.User, error) {
