@@ -28,17 +28,18 @@ func main() {
 	// init user domain
 	userFactory := domain.NewUserFactory("user-factory")
 	userRepository := repositories.NewUserRepository("userRepository", db.Instance, userFactory)
-	fmt.Println(userRepository)
 	userService := services.NewUserService("users", userRepository)
 	userController := controllers.NewUserController(
 		server.Instance,
 		userService,
 	)
 
+	user, err := userRepository.UpdateUser("53e6ea62-3ea3-453f-91d8-21a1ed7b4381", domain.UserData{Username: "asdasda"})
+
+	fmt.Println(user, err)
+
 	// init http routes
 	userController.InitRoutes()
-
-	fmt.Println(server.Instance.Routes())
 
 	// start http server
 	server.Start(os.Getenv("HTTP_PORT"))

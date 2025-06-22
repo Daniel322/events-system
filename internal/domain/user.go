@@ -25,6 +25,7 @@ type UserFactory struct {
 type IUserFactory interface {
 	CreateUser(data UserData) (*User, error)
 	UpdateUser(user *User, data UserData) (*User, error)
+	ParseId(id string) (uuid.UUID, error)
 }
 
 func NewUserFactory(name string) *UserFactory {
@@ -59,4 +60,15 @@ func (us *UserFactory) UpdateUser(user *User, data UserData) (*User, error) {
 	user.UpdatedAt = time.Now()
 
 	return user, nil
+}
+
+func (us *UserFactory) ParseId(id string) (uuid.UUID, error) {
+	var parsedId uuid.UUID
+	parsedId, err := uuid.Parse(id)
+
+	if err != nil {
+		return parsedId, errors.New(err.Error())
+	}
+
+	return parsedId, nil
 }
