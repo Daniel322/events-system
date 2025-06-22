@@ -6,12 +6,19 @@ import (
 	"fmt"
 )
 
+type IUserService interface {
+	CreateUser(data domain.UserData) (*domain.User, error)
+	GetUser(id string) (*domain.User, error)
+}
+
 type UserService struct {
+	Name           string
 	userRepository repositories.IUserRepository
 }
 
-func NewUserService(repository repositories.IUserRepository) *UserService {
+func NewUserService(name string, repository repositories.IUserRepository) *UserService {
 	return &UserService{
+		Name:           name,
 		userRepository: repository,
 	}
 }
@@ -31,6 +38,12 @@ func (us UserService) CreateUser(data domain.UserData) (*domain.User, error) {
 }
 
 func (us UserService) GetUser(id string) (*domain.User, error) {
-	var user = new(domain.User)
+	user, err := us.userRepository.GetUserById(id)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+
 	return user, nil
 }

@@ -1,13 +1,12 @@
 package main
 
 import (
+	"events-system/internal/controllers"
 	"events-system/internal/domain"
-	"events-system/internal/interfaces/http/controllers"
 	db "events-system/internal/providers/db"
 	"events-system/internal/providers/server"
 	"events-system/internal/repositories"
 	"events-system/internal/services"
-	usecases "events-system/internal/usecase"
 	"fmt"
 	"os"
 
@@ -28,16 +27,12 @@ func main() {
 	server := server.NewEchoInstance()
 	// init user domain
 	userFactory := domain.NewUserFactory("user-factory")
-	userRepository := repositories.NewUserRepository(db.Instance, userFactory)
+	userRepository := repositories.NewUserRepository("userRepository", db.Instance, userFactory)
 	fmt.Println(userRepository)
-	userService := services.NewUserService("users")
-	userUseCase := usecases.NewUserUseCase(
-		db.Instance,
-		userService,
-	)
+	userService := services.NewUserService("users", userRepository)
 	userController := controllers.NewUserController(
 		server.Instance,
-		userUseCase,
+		userService,
 	)
 
 	// init http routes

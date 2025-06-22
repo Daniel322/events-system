@@ -1,8 +1,8 @@
 package controllers
 
 import (
+	"events-system/internal/domain"
 	"events-system/internal/services"
-	usecases "events-system/internal/usecase"
 	"fmt"
 	"net/http"
 
@@ -10,18 +10,18 @@ import (
 )
 
 type UserController struct {
-	server  *echo.Echo
-	useCase *usecases.UserUseCase
+	server      *echo.Echo
+	userService services.IUserService
 }
 
 type UserDataDTO struct {
 	Username string `json:"username" form:"username" query:"username"`
 }
 
-func NewUserController(server *echo.Echo, useCase *usecases.UserUseCase) *UserController {
+func NewUserController(server *echo.Echo, service services.IUserService) *UserController {
 	return &UserController{
-		server:  server,
-		useCase: useCase,
+		server:      server,
+		userService: service,
 	}
 }
 
@@ -32,7 +32,7 @@ func (uc UserController) ExecRoute(c echo.Context) error {
 		fmt.Println("GET METHOD")
 		id := c.Param("id")
 		fmt.Println(id)
-		user, err := uc.useCase.GetUser(id)
+		user, err := uc.userService.GetUser(id)
 
 		if err != nil {
 			return c.String(http.StatusBadRequest, "bad request")
@@ -48,7 +48,7 @@ func (uc UserController) ExecRoute(c echo.Context) error {
 		}
 
 		// TODO: fix, use only controller or usecase types
-		user, err := uc.useCase.CreateUser(services.UserData{
+		user, err := uc.userService.CreateUser(domain.UserData{
 			Username: userData.Username,
 		})
 
