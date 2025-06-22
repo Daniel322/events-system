@@ -9,6 +9,7 @@ import (
 )
 
 type Database struct {
+	// TODO: change gorm to special astract interface
 	Instance *gorm.DB
 	Url      string
 }

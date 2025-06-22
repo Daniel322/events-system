@@ -1,56 +1,36 @@
 package services
 
 import (
-	"errors"
 	"events-system/internal/domain"
-	"time"
-
-	"github.com/google/uuid"
+	"events-system/internal/repositories"
+	"fmt"
 )
 
-type UserData struct {
-	Username string
-}
-
 type UserService struct {
-	Name string
+	userRepository repositories.IUserRepository
 }
 
-type IUserService interface {
-	CreateUser(data UserData) (*domain.User, error)
-	UpdateUser(user *domain.User, data UserData) (*domain.User, error)
-}
-
-func NewUserService(name string) *UserService {
+func NewUserService(repository repositories.IUserRepository) *UserService {
 	return &UserService{
-		Name: name,
+		userRepository: repository,
 	}
 }
 
-func (us *UserService) CreateUser(data UserData) (*domain.User, error) {
-	var id uuid.UUID = uuid.New()
+func (us UserService) CreateUser(data domain.UserData) (*domain.User, error) {
+	// TODO: add logic for create account also
+	user, err := us.userRepository.CreateUser(data)
 
-	if len(data.Username) == 0 {
-		return nil, errors.New("username cant be empty")
+	fmt.Println(user)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
 	}
 
-	var user = domain.User{
-		ID:        id,
-		Username:  data.Username,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	return &user, nil
+	return user, nil
 }
 
-func (us *UserService) UpdateUser(user *domain.User, data UserData) (*domain.User, error) {
-	if len(data.Username) == 0 {
-		return nil, errors.New("username cant be empty")
-	}
-
-	user.Username = data.Username
-	user.UpdatedAt = time.Now()
-
+func (us UserService) GetUser(id string) (*domain.User, error) {
+	var user = new(domain.User)
 	return user, nil
 }
