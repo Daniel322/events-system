@@ -3,6 +3,7 @@ package repositories
 import (
 	"errors"
 	"events-system/internal/domain"
+	"events-system/internal/utils"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -63,7 +64,7 @@ func (ur *UserRepository) GetUserById(id string) (*domain.User, error) {
 }
 
 func (ur *UserRepository) DeleteUser(id string) (bool, error) {
-	parsedId, err := ur.factory.ParseId(id)
+	parsedId, _, err := utils.ParseId(id)
 
 	if err != nil {
 		return false, errors.New(err.Error())

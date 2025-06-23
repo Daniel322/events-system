@@ -38,10 +38,6 @@ func main() {
 		userService,
 	)
 
-	user, err := userRepository.UpdateUser("53e6ea62-3ea3-453f-91d8-21a1ed7b4381", domain.UserData{Username: "asdasda"})
-
-	fmt.Println(user, err)
-
 	// init http routes
 	userController.InitRoutes()
 

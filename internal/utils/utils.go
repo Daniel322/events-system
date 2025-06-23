@@ -17,27 +17,22 @@ const (
 	UUID   ParseFlow = "uuid"
 )
 
-func ParseId[T ParsedTypes](id T, flow ParseFlow) (uuid.UUID, string, error) {
+func ParseId[T ParsedTypes](id T) (uuid.UUID, string, error) {
 	var (
 		uuidVersion   uuid.UUID
 		stringVersion string
 		err           error
 	)
 
-	switch flow {
-	case String:
-		if str, ok := any(id).(string); ok {
-			stringVersion = str
-			uuidVersion, err = uuid.Parse(str)
-		} else {
-			err = fmt.Errorf("expected string, got %T", id)
-		}
-	case UUID:
+	if str, ok := any(id).(string); ok {
+		stringVersion = str
+		uuidVersion, err = uuid.Parse(str)
+	} else {
 		if u, ok := any(id).(uuid.UUID); ok {
 			uuidVersion = u
 			stringVersion = u.String()
 		} else {
-			err = fmt.Errorf("expected uuid.UUID, got %T", id)
+			err = fmt.Errorf("invalid type, got %T", id)
 		}
 	}
 
