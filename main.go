@@ -25,8 +25,12 @@ func main() {
 
 	// init http server
 	server := server.NewEchoInstance()
-	// init user domain
+	// init domain factories
 	userFactory := domain.NewUserFactory("user-factory")
+	accountFactory := domain.NewAccountFactory()
+	fmt.Println(accountFactory)
+	// init user domain
+
 	userRepository := repositories.NewUserRepository("userRepository", db.Instance, userFactory)
 	userService := services.NewUserService("users", userRepository)
 	userController := controllers.NewUserController(

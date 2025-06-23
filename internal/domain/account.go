@@ -14,3 +14,19 @@ type Account struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+type AccountFactory struct {
+	Name string
+}
+
+type AccountData struct {
+	UserId    uuid.UUID
+	AccountId string
+	Type      string
+}
+
+func NewAccountFactory() *AccountFactory {
+	return &AccountFactory{
+		Name: "accountFactory",
+	}
+}
