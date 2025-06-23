@@ -41,6 +41,14 @@ func main() {
 	// init http routes
 	userController.InitRoutes()
 
+	account, err := accountFactory.CreateAccount(domain.AccountData{
+		UserId:    "0bf81a5a-6b50-4b04-a6d9-5828d3ca9b72",
+		AccountId: "sdafadsfas",
+		Type:      "http",
+	})
+
+	fmt.Println(account, err)
+
 	// start http server
 	server.Start(os.Getenv("HTTP_PORT"))
 }
