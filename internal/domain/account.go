@@ -23,8 +23,13 @@ type AccountFactory struct {
 	Name string
 }
 
-type AccountData struct {
+type CreateAccountData struct {
 	UserId    string
+	AccountId string
+	Type      string
+}
+
+type UpdateAccountData struct {
 	AccountId string
 	Type      string
 }
@@ -37,7 +42,7 @@ func NewAccountFactory() *AccountFactory {
 	}
 }
 
-func (af *AccountFactory) CreateAccount(data AccountData) (*Account, error) {
+func (af *AccountFactory) CreateAccount(data CreateAccountData) (*Account, error) {
 	var id uuid.UUID = uuid.New()
 
 	parsedUserId, _, err := utils.ParseId(data.UserId)
@@ -68,9 +73,20 @@ func (af *AccountFactory) CreateAccount(data AccountData) (*Account, error) {
 	return &account, nil
 }
 
-func (af *AccountFactory) UpdateAccount(acc *Account, data AccountData) (*Account, error) {
-	// TODO: think what fields we can update, after complete func
+func (af *AccountFactory) UpdateAccount(acc *Account, data UpdateAccountData) (*Account, error) {
+	if len(data.AccountId) == 0 || len(data.AccountId) > 50 {
+		return nil, errors.New("invalid accountId")
+	}
+
+	typeContains := slices.Contains(SUPPORTED_TYPES, data.Type)
+
+	if !typeContains {
+		return nil, errors.New("invalid type")
+	}
+
 	acc.UpdatedAt = time.Now()
+	acc.AccountId = data.AccountId
+	acc.Type = data.Type
 
 	return acc, nil
 }

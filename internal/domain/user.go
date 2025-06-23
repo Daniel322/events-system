@@ -22,11 +22,6 @@ type UserFactory struct {
 	Name string
 }
 
-type IUserFactory interface {
-	CreateUser(data UserData) (*User, error)
-	UpdateUser(user *User, data UserData) (*User, error)
-}
-
 func NewUserFactory(name string) *UserFactory {
 	return &UserFactory{
 		Name: name,
