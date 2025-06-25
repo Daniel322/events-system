@@ -34,7 +34,7 @@ func NewUserRepository(name string, db *gorm.DB, factory domain.IUserFactory) *U
 // TODO: add transaction support in create, update and delete methods
 
 func (ur *UserRepository) CreateUser(data domain.UserData) (*domain.User, error) {
-	user, err := ur.factory.CreateUser(data)
+	user, err := ur.factory.Create(data)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -95,14 +95,26 @@ func (ur *UserRepository) GetUsers(options map[string]interface{}) (*[]domain.Us
 }
 
 func (ur *UserRepository) UpdateUser(id string, data domain.UserData) (*domain.User, error) {
-	var user domain.User
-	// TODO: fix user return value, return with nullable fields
-	result := ur.db.Model(&user).Where("id = ?", id).Updates(data)
+	user, err := ur.GetUserById(id)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	user, err = ur.factory.Update(user, data)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	result := ur.db.Save(user)
 
 	if result.Error != nil {
 		fmt.Println(result.Error)
 		return nil, result.Error
 	}
 
-	return &user, nil
+	return user, nil
 }

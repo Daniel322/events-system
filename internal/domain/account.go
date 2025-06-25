@@ -42,7 +42,7 @@ func NewAccountFactory() *AccountFactory {
 	}
 }
 
-func (af *AccountFactory) CreateAccount(data CreateAccountData) (*Account, error) {
+func (af *AccountFactory) Create(data CreateAccountData) (*Account, error) {
 	var id uuid.UUID = uuid.New()
 
 	parsedUserId, _, err := utils.ParseId(data.UserId)
@@ -73,7 +73,7 @@ func (af *AccountFactory) CreateAccount(data CreateAccountData) (*Account, error
 	return &account, nil
 }
 
-func (af *AccountFactory) UpdateAccount(acc *Account, data UpdateAccountData) (*Account, error) {
+func (af *AccountFactory) Update(acc *Account, data UpdateAccountData) (*Account, error) {
 	if len(data.AccountId) == 0 || len(data.AccountId) > 50 {
 		return nil, errors.New("invalid accountId")
 	}

@@ -41,7 +41,7 @@ func main() {
 	// init http routes
 	userController.InitRoutes()
 
-	account, err := accountFactory.CreateAccount(domain.AccountData{
+	account, err := accountFactory.Create(domain.CreateAccountData{
 		UserId:    "0bf81a5a-6b50-4b04-a6d9-5828d3ca9b72",
 		AccountId: "sdafadsfas",
 		Type:      "http",

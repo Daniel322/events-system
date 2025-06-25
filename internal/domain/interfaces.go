@@ -1,11 +1,14 @@
 package domain
 
-type IAccountFactory interface {
-	CreateAccount(data CreateAccountData) (*Account, error)
-	UpdateAccount(acc *Account, data UpdateAccountData) (*Account, error)
+type Factory[Entity any, CreateData any, UpdateData any] interface {
+	Create(data CreateData) (*Entity, error)
+	Update(t *Entity, data UpdateData) (*Entity, error)
 }
 
 type IUserFactory interface {
-	CreateUser(data UserData) (*User, error)
-	UpdateUser(user *User, data UserData) (*User, error)
+	Factory[User, UserData, UserData]
+}
+
+type IAccountFactory interface {
+	Factory[Account, CreateAccountData, UpdateAccountData]
 }

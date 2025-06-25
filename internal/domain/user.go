@@ -28,7 +28,7 @@ func NewUserFactory(name string) *UserFactory {
 	}
 }
 
-func (us *UserFactory) CreateUser(data UserData) (*User, error) {
+func (us *UserFactory) Create(data UserData) (*User, error) {
 	var id uuid.UUID = uuid.New()
 
 	if len(data.Username) == 0 {
@@ -45,7 +45,7 @@ func (us *UserFactory) CreateUser(data UserData) (*User, error) {
 	return &user, nil
 }
 
-func (us *UserFactory) UpdateUser(user *User, data UserData) (*User, error) {
+func (us *UserFactory) Update(user *User, data UserData) (*User, error) {
 	if len(data.Username) == 0 {
 		return nil, errors.New("username cant be empty")
 	}
