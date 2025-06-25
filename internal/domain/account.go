@@ -2,6 +2,7 @@ package domain
 
 import (
 	"events-system/internal/utils"
+	"reflect"
 	"slices"
 	"time"
 
@@ -78,19 +79,28 @@ func (af *AccountFactory) Create(data CreateAccountData) (*Account, error) {
 }
 
 func (af *AccountFactory) Update(acc *Account, data UpdateAccountData) (*Account, error) {
-	if len(data.AccountId) == 0 || len(data.AccountId) > 50 {
+	var reflectData = reflect.ValueOf(data).Elem()
+	var fieldsAccount = 0
+
+	if accountId := reflectData.FieldByName("AccountId"); !accountId.IsValid() || len(data.AccountId) > 50 {
 		return nil, utils.GenerateError(af.Name, INVALID_ACCOUNT_ID)
+	} else {
+		acc.AccountId = data.AccountId
+		fieldsAccount++
 	}
 
 	typeContains := slices.Contains(SUPPORTED_TYPES, data.Type)
 
 	if !typeContains {
 		return nil, utils.GenerateError(af.Name, INVALID_TYPE)
+	} else {
+		acc.Type = data.Type
+		fieldsAccount++
 	}
 
-	acc.UpdatedAt = time.Now()
-	acc.AccountId = data.AccountId
-	acc.Type = data.Type
+	if fieldsAccount > 0 {
+		acc.UpdatedAt = time.Now()
+	}
 
 	return acc, nil
 }
