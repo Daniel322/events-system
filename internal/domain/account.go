@@ -1,9 +1,7 @@
 package domain
 
 import (
-	"errors"
 	"events-system/internal/utils"
-	"fmt"
 	"slices"
 	"time"
 
@@ -36,6 +34,12 @@ type UpdateAccountData struct {
 
 var SUPPORTED_TYPES = []string{"http", "telegram"}
 
+const (
+	INVALID_TYPE       = "invalid type"
+	INVALID_ACCOUNT_ID = "invalid accountId"
+	INVALID_USER_ID    = "invalid user id type"
+)
+
 func NewAccountFactory() *AccountFactory {
 	return &AccountFactory{
 		Name: "AccountFactory",
@@ -48,17 +52,17 @@ func (af *AccountFactory) Create(data CreateAccountData) (*Account, error) {
 	parsedUserId, _, err := utils.ParseId(data.UserId)
 
 	if err != nil {
-		fmt.Println("Invalid userId type")
+		return nil, utils.GenerateError(af.Name, INVALID_USER_ID)
 	}
 
 	if len(data.AccountId) == 0 || len(data.AccountId) > 50 {
-		return nil, errors.New("invalid accountId")
+		return nil, utils.GenerateError(af.Name, INVALID_ACCOUNT_ID)
 	}
 
 	typeContains := slices.Contains(SUPPORTED_TYPES, data.Type)
 
 	if !typeContains {
-		return nil, errors.New("invalid type")
+		return nil, utils.GenerateError(af.Name, INVALID_TYPE)
 	}
 
 	var account = Account{
@@ -75,13 +79,13 @@ func (af *AccountFactory) Create(data CreateAccountData) (*Account, error) {
 
 func (af *AccountFactory) Update(acc *Account, data UpdateAccountData) (*Account, error) {
 	if len(data.AccountId) == 0 || len(data.AccountId) > 50 {
-		return nil, errors.New("invalid accountId")
+		return nil, utils.GenerateError(af.Name, INVALID_ACCOUNT_ID)
 	}
 
 	typeContains := slices.Contains(SUPPORTED_TYPES, data.Type)
 
 	if !typeContains {
-		return nil, errors.New("invalid type")
+		return nil, utils.GenerateError(af.Name, INVALID_TYPE)
 	}
 
 	acc.UpdatedAt = time.Now()
