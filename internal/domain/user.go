@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"errors"
+	"events-system/internal/utils"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,9 +22,11 @@ type UserFactory struct {
 	Name string
 }
 
-func NewUserFactory(name string) *UserFactory {
+const USERNAME_CANT_BE_EMPTY_ERR_MSG = "username cant be empty"
+
+func NewUserFactory() *UserFactory {
 	return &UserFactory{
-		Name: name,
+		Name: "UserFactory",
 	}
 }
 
@@ -32,7 +34,7 @@ func (us *UserFactory) Create(data UserData) (*User, error) {
 	var id uuid.UUID = uuid.New()
 
 	if len(data.Username) == 0 {
-		return nil, errors.New("username cant be empty")
+		return nil, utils.GenerateError(us.Name, USERNAME_CANT_BE_EMPTY_ERR_MSG)
 	}
 
 	var user = User{
@@ -47,7 +49,7 @@ func (us *UserFactory) Create(data UserData) (*User, error) {
 
 func (us *UserFactory) Update(user *User, data UserData) (*User, error) {
 	if len(data.Username) == 0 {
-		return nil, errors.New("username cant be empty")
+		return nil, utils.GenerateError(us.Name, USERNAME_CANT_BE_EMPTY_ERR_MSG)
 	}
 
 	user.Username = data.Username

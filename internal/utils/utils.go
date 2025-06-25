@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
+	"log"
 
 	"github.com/google/uuid"
 )
@@ -37,4 +39,10 @@ func ParseId[T ParsedTypes](id T) (uuid.UUID, string, error) {
 	}
 
 	return uuidVersion, stringVersion, err
+}
+
+func GenerateError(Name string, Message string) error {
+	log.SetPrefix("ERROR " + Name + " ")
+	log.Println(" " + Message)
+	return errors.New("Error in " + Name + ": " + Message)
 }

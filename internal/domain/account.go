@@ -38,7 +38,7 @@ var SUPPORTED_TYPES = []string{"http", "telegram"}
 
 func NewAccountFactory() *AccountFactory {
 	return &AccountFactory{
-		Name: "accountFactory",
+		Name: "AccountFactory",
 	}
 }
 
