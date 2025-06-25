@@ -9,14 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type IUserRepository interface {
-	CreateUser(data domain.UserData) (*domain.User, error)
-	GetUserById(id string) (*domain.User, error)
-	DeleteUser(id string) (bool, error)
-	GetUsers(options map[string]interface{}) (*[]domain.User, error)
-	UpdateUser(id string, data domain.UserData) (*domain.User, error)
-}
-
 type UserRepository struct {
 	Name    string
 	db      *gorm.DB
