@@ -26,9 +26,11 @@ func main() {
 	// init http server
 	server := server.NewEchoInstance()
 	// init domain factories
-	userFactory := domain.NewUserFactory("user-factory")
+	userFactory := domain.NewUserFactory()
 	accountFactory := domain.NewAccountFactory()
-	fmt.Println(accountFactory)
+	eventFactory := domain.NewEventFactory()
+	taskFactory := domain.NewTaskFactory()
+	fmt.Println(accountFactory, eventFactory, taskFactory)
 	// init user domain
 
 	userRepository := repositories.NewUserRepository("userRepository", db.Instance, userFactory)
@@ -40,14 +42,6 @@ func main() {
 
 	// init http routes
 	userController.InitRoutes()
-
-	account, err := accountFactory.Create(domain.CreateAccountData{
-		UserId:    "0bf81a5a-6b50-4b04-a6d9-5828d3ca9b72",
-		AccountId: "sdafadsfas",
-		Type:      "http",
-	})
-
-	fmt.Println(account, err)
 
 	// start http server
 	server.Start(os.Getenv("HTTP_PORT"))

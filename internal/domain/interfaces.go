@@ -16,3 +16,7 @@ type IAccountFactory interface {
 type IEventFactory interface {
 	Factory[Event, CreateEventData, UpdateEventData]
 }
+
+type ITaskFactory interface {
+	Factory[Task, CreateTaskData, UpdateTaskData]
+}
