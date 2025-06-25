@@ -12,3 +12,7 @@ type IUserFactory interface {
 type IAccountFactory interface {
 	Factory[Account, CreateAccountData, UpdateAccountData]
 }
+
+type IEventFactory interface {
+	Factory[Event, CreateEventData, UpdateEventData]
+}
