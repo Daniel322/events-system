@@ -15,7 +15,9 @@ type Database struct {
 }
 
 func NewDatabase(url string) *Database {
-	conn, err := gorm.Open(postgres.Open(url))
+	conn, err := gorm.Open(postgres.Open(url), &gorm.Config{
+		SkipDefaultTransaction: true,
+	})
 
 	if err != nil {
 		log.Fatal(err)

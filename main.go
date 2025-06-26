@@ -31,9 +31,10 @@ func main() {
 	eventFactory := domain.NewEventFactory()
 	taskFactory := domain.NewTaskFactory()
 	fmt.Println(accountFactory, eventFactory, taskFactory)
-	// init user domain
 
+	// init repositories
 	userRepository := repositories.NewUserRepository(db, userFactory)
+
 	userService := services.NewUserService("users", userRepository)
 	userController := controllers.NewUserController(
 		server.Instance,
