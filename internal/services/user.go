@@ -25,7 +25,7 @@ func NewUserService(name string, repository repositories.IUserRepository) *UserS
 
 func (us UserService) CreateUser(data domain.UserData) (*domain.User, error) {
 	// TODO: add logic for create account also
-	user, err := us.userRepository.CreateUser(data)
+	user, err := us.userRepository.Create(data)
 
 	fmt.Println(user)
 
@@ -38,7 +38,7 @@ func (us UserService) CreateUser(data domain.UserData) (*domain.User, error) {
 }
 
 func (us UserService) GetUser(id string) (*domain.User, error) {
-	user, err := us.userRepository.GetUserById(id)
+	user, err := us.userRepository.GetById(id)
 
 	if err != nil {
 		fmt.Println(err.Error())

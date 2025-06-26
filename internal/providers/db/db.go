@@ -1,4 +1,4 @@
-package dbnew
+package db
 
 import (
 	"fmt"
@@ -27,4 +27,10 @@ func NewDatabase(url string) *Database {
 		Url:      url,
 		Instance: conn,
 	}
+}
+
+func (db *Database) CreateTransaction() *gorm.DB {
+	tx := db.Instance.Begin()
+
+	return tx
 }

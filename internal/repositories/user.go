@@ -3,21 +3,20 @@ package repositories
 import (
 	"errors"
 	"events-system/internal/domain"
+	"events-system/internal/providers/db"
 	"events-system/internal/utils"
 	"fmt"
-
-	"gorm.io/gorm"
 )
 
 type UserRepository struct {
 	Name    string
-	db      *gorm.DB
+	db      *db.Database
 	factory domain.IUserFactory
 }
 
-func NewUserRepository(name string, db *gorm.DB, factory domain.IUserFactory) *UserRepository {
+func NewUserRepository(db *db.Database, factory domain.IUserFactory) *UserRepository {
 	return &UserRepository{
-		Name:    name,
+		Name:    "UserRepository",
 		db:      db,
 		factory: factory,
 	}
@@ -25,7 +24,7 @@ func NewUserRepository(name string, db *gorm.DB, factory domain.IUserFactory) *U
 
 // TODO: add transaction support in create, update and delete methods
 
-func (ur *UserRepository) CreateUser(data domain.UserData) (*domain.User, error) {
+func (ur *UserRepository) Create(data domain.UserData) (*domain.User, error) {
 	user, err := ur.factory.Create(data)
 
 	if err != nil {
@@ -33,7 +32,7 @@ func (ur *UserRepository) CreateUser(data domain.UserData) (*domain.User, error)
 		return nil, err
 	}
 	// change to value from context
-	result := ur.db.Create(user)
+	result := ur.db.Instance.Create(user)
 
 	if result.Error != nil {
 		fmt.Println(result.Error)
@@ -43,10 +42,10 @@ func (ur *UserRepository) CreateUser(data domain.UserData) (*domain.User, error)
 	return user, nil
 }
 
-func (ur *UserRepository) GetUserById(id string) (*domain.User, error) {
+func (ur *UserRepository) GetById(id string) (*domain.User, error) {
 	user := new(domain.User)
 
-	result := ur.db.First(user, "id =?", id)
+	result := ur.db.Instance.First(user, "id =?", id)
 
 	if result.Error != nil {
 		return nil, result.Error
@@ -55,7 +54,7 @@ func (ur *UserRepository) GetUserById(id string) (*domain.User, error) {
 	return user, nil
 }
 
-func (ur *UserRepository) DeleteUser(id string) (bool, error) {
+func (ur *UserRepository) Delete(id string) (bool, error) {
 	parsedId, _, err := utils.ParseId(id)
 
 	if err != nil {
@@ -63,7 +62,7 @@ func (ur *UserRepository) DeleteUser(id string) (bool, error) {
 	}
 
 	user := domain.User{ID: parsedId}
-	result := ur.db.Delete(&user)
+	result := ur.db.Instance.Delete(&user)
 
 	if result.Error != nil {
 		fmt.Println(result.Error)
@@ -73,10 +72,10 @@ func (ur *UserRepository) DeleteUser(id string) (bool, error) {
 	return true, nil
 }
 
-func (ur *UserRepository) GetUsers(options map[string]interface{}) (*[]domain.User, error) {
+func (ur *UserRepository) GetList(options map[string]interface{}) (*[]domain.User, error) {
 	var users *[]domain.User
 
-	result := ur.db.Where(options).Find(&users)
+	result := ur.db.Instance.Where(options).Find(&users)
 
 	if result.Error != nil {
 		fmt.Println(result.Error)
@@ -86,8 +85,8 @@ func (ur *UserRepository) GetUsers(options map[string]interface{}) (*[]domain.Us
 	return users, nil
 }
 
-func (ur *UserRepository) UpdateUser(id string, data domain.UserData) (*domain.User, error) {
-	user, err := ur.GetUserById(id)
+func (ur *UserRepository) Update(id string, data domain.UserData) (*domain.User, error) {
+	user, err := ur.GetById(id)
 
 	if err != nil {
 		fmt.Println(err)
@@ -101,7 +100,7 @@ func (ur *UserRepository) UpdateUser(id string, data domain.UserData) (*domain.U
 		return nil, err
 	}
 
-	result := ur.db.Save(user)
+	result := ur.db.Instance.Save(user)
 
 	if result.Error != nil {
 		fmt.Println(result.Error)
