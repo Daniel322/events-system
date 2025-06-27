@@ -19,23 +19,24 @@ func main() {
 		fmt.Println("Error loading .env file")
 	}
 
+	// init external providers
 	db := db.NewDatabase(os.Getenv("GOOSE_DBSTRING"))
+	server := server.NewEchoInstance()
 
 	// telegram_api.BootstrapBot()
 
-	// init http server
-	server := server.NewEchoInstance()
 	// init domain factories
 	userFactory := domain.NewUserFactory()
 	accountFactory := domain.NewAccountFactory()
 	eventFactory := domain.NewEventFactory()
 	taskFactory := domain.NewTaskFactory()
-	fmt.Println(accountFactory, eventFactory, taskFactory)
+	fmt.Println(eventFactory, taskFactory)
 
 	// init repositories
 	userRepository := repositories.NewUserRepository(db, userFactory)
+	accountRepository := repositories.NewAccountRepository(db, accountFactory)
 
-	userService := services.NewUserService("users", userRepository)
+	userService := services.NewUserService(db, userRepository, accountRepository)
 	userController := controllers.NewUserController(
 		server.Instance,
 		userService,

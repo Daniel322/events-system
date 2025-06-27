@@ -8,9 +8,11 @@ import (
 	"gorm.io/gorm"
 )
 
+type DatabaseInstance = *gorm.DB
+
 type Database struct {
 	// TODO: change gorm to special astract interface
-	Instance *gorm.DB
+	Instance DatabaseInstance
 	Url      string
 }
 
@@ -31,7 +33,7 @@ func NewDatabase(url string) *Database {
 	}
 }
 
-func (db *Database) CreateTransaction() *gorm.DB {
+func (db *Database) CreateTransaction() DatabaseInstance {
 	tx := db.Instance.Begin()
 
 	return tx

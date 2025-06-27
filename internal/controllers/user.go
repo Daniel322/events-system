@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"events-system/internal/domain"
 	"events-system/internal/services"
+	"events-system/internal/utils"
 	"fmt"
 	"net/http"
 
@@ -10,16 +10,20 @@ import (
 )
 
 type UserController struct {
+	Name        string
 	server      *echo.Echo
 	userService services.IUserService
 }
 
 type UserDataDTO struct {
-	Username string `json:"username" form:"username" query:"username"`
+	Username  string `json:"username" validate:"required"`
+	Type      string `json:"type" validate:"required,oneof='telegram' 'mail' 'http'"`
+	AccountId string `json:"accountId" validate:"required_if=Type telegram,required_if=Type mail"`
 }
 
 func NewUserController(server *echo.Echo, service services.IUserService) *UserController {
 	return &UserController{
+		Name:        "UserController",
 		server:      server,
 		userService: service,
 	}
@@ -47,16 +51,20 @@ func (uc UserController) ExecRoute(c echo.Context) error {
 			return c.String(http.StatusBadRequest, "bad request")
 		}
 
+		err = c.Validate(userData)
+		if err != nil || len(userData.Username) == 0 {
+			generatedError := utils.GenerateError(uc.Name, err.Error())
+			return c.String(http.StatusBadRequest, generatedError.Error())
+		}
+
 		// TODO: fix, use only controller or usecase types
-		user, err := uc.userService.CreateUser(domain.UserData{
-			Username: userData.Username,
-		})
+		// user, err := uc.userService.CreateUser(userData)
 
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		return c.JSON(http.StatusCreated, user)
+		return c.JSON(http.StatusCreated, "user")
 	case "PATCH":
 		fmt.Println("PATCH method")
 	case "DELETE":

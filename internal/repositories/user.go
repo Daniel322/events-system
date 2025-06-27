@@ -6,6 +6,8 @@ import (
 	"events-system/internal/providers/db"
 	"events-system/internal/utils"
 	"fmt"
+	"log"
+	"reflect"
 )
 
 type UserRepository struct {
@@ -24,19 +26,29 @@ func NewUserRepository(db *db.Database, factory domain.IUserFactory) *UserReposi
 
 // TODO: add transaction support in create, update and delete methods
 
-func (ur *UserRepository) Create(data domain.UserData) (*domain.User, error) {
+func (ur *UserRepository) Create(data domain.UserData, transaction db.DatabaseInstance) (*domain.User, error) {
 	user, err := ur.factory.Create(data)
 
 	if err != nil {
-		fmt.Println(err.Error())
-		return nil, err
+		return nil, utils.GenerateError(ur.Name, err.Error())
 	}
-	// change to value from context
-	result := ur.db.Instance.Create(user)
+
+	var instanceForExec db.DatabaseInstance
+
+	if reflect.ValueOf(transaction).Elem().IsValid() {
+		log.SetPrefix("INFO ")
+		log.Println(ur.Name + ": " + "transaction coming")
+		instanceForExec = transaction
+	} else {
+		log.SetPrefix("INFO ")
+		log.Println(ur.Name + ": " + "transaction not exist")
+		instanceForExec = ur.db.Instance
+	}
+
+	result := instanceForExec.Create(user)
 
 	if result.Error != nil {
-		fmt.Println(result.Error)
-		return nil, result.Error
+		return nil, utils.GenerateError(ur.Name, result.Error.Error())
 	}
 
 	return user, nil
@@ -48,7 +60,7 @@ func (ur *UserRepository) GetById(id string) (*domain.User, error) {
 	result := ur.db.Instance.First(user, "id =?", id)
 
 	if result.Error != nil {
-		return nil, result.Error
+		return nil, utils.GenerateError(ur.Name, result.Error.Error())
 	}
 
 	return user, nil
