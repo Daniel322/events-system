@@ -30,11 +30,11 @@ type UserService struct {
 }
 
 type User struct {
-	ID        uuid.UUID
-	Username  string
-	Accounts  []domain.Account
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        uuid.UUID        `json:"id"`
+	Username  string           `json:"username"`
+	Accounts  []domain.Account `json:"accounts"`
+	CreatedAt time.Time        `json:"createdAt"`
+	UpdatedAt time.Time        `json:"updatedAt"`
 }
 
 func NewUserService(db *db.Database, userRepository repositories.IUserRepository, accRepository repositories.IAccountRepository) *UserService {
@@ -73,7 +73,7 @@ func (us UserService) CreateUser(data CreateUserData) (*User, error) {
 		return nil, utils.GenerateError(us.Name, err.Error())
 	}
 
-	var accs = make([]domain.Account, 1)
+	var accs []domain.Account
 	accs = append(accs, *acc)
 
 	if trRes := transaction.Commit(); trRes.Error != nil {
