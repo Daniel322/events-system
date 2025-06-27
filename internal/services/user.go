@@ -24,8 +24,8 @@ type CreateUserData struct {
 type UserService struct {
 	Name           string
 	DB             *db.Database
-	userRepository repositories.IUserRepository
-	accRepository  repositories.IAccountRepository
+	userRepository *repositories.Repository[domain.User, domain.UserData, domain.UserData]
+	accRepository  *repositories.Repository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData]
 }
 
 type User struct {
@@ -36,7 +36,11 @@ type User struct {
 	UpdatedAt time.Time        `json:"updatedAt"`
 }
 
-func NewUserService(db *db.Database, userRepository repositories.IUserRepository, accRepository repositories.IAccountRepository) *UserService {
+func NewUserService(
+	db *db.Database,
+	userRepository *repositories.Repository[domain.User, domain.UserData, domain.UserData],
+	accRepository *repositories.Repository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData],
+) *UserService {
 	return &UserService{
 		Name:           "UserService",
 		DB:             db,
