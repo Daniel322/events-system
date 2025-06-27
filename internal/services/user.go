@@ -5,7 +5,6 @@ import (
 	"events-system/internal/providers/db"
 	"events-system/internal/repositories"
 	"events-system/internal/utils"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,7 +12,7 @@ import (
 
 type IUserService interface {
 	CreateUser(data CreateUserData) (*User, error)
-	GetUser(id string) (*domain.User, error)
+	GetUser(id string) (*User, error)
 }
 
 type CreateUserData struct {
@@ -89,13 +88,28 @@ func (us UserService) CreateUser(data CreateUserData) (*User, error) {
 	}, nil
 }
 
-func (us UserService) GetUser(id string) (*domain.User, error) {
+func (us UserService) GetUser(id string) (*User, error) {
 	user, err := us.userRepository.GetById(id)
 
 	if err != nil {
-		fmt.Println(err.Error())
-		return nil, err
+		return nil, utils.GenerateError(us.Name, err.Error())
 	}
 
-	return user, nil
+	options := make(map[string]interface{})
+
+	options["user_id"] = user.ID
+
+	accs, err := us.accRepository.GetList(options)
+
+	if err != nil {
+		return nil, utils.GenerateError(us.Name, err.Error())
+	}
+
+	return &User{
+		ID:        user.ID,
+		Username:  user.Username,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+		Accounts:  *accs,
+	}, nil
 }

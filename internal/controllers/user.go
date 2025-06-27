@@ -39,7 +39,7 @@ func (uc UserController) ExecRoute(c echo.Context) error {
 		user, err := uc.userService.GetUser(id)
 
 		if err != nil {
-			return c.String(http.StatusBadRequest, "bad request")
+			return c.String(http.StatusBadRequest, err.Error())
 		}
 
 		return c.JSON(200, user)
