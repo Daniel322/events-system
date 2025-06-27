@@ -33,7 +33,7 @@ type UpdateAccountData struct {
 	Type      string
 }
 
-var SUPPORTED_TYPES = []string{"http", "telegram"}
+var SUPPORTED_TYPES = []string{"http", "telegram", "mail"}
 
 const (
 	INVALID_TYPE       = "invalid type"
