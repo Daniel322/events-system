@@ -57,14 +57,17 @@ func (uc UserController) ExecRoute(c echo.Context) error {
 			return c.String(http.StatusBadRequest, generatedError.Error())
 		}
 
-		// TODO: fix, use only controller or usecase types
-		// user, err := uc.userService.CreateUser(userData)
+		user, err := uc.userService.CreateUser(services.CreateUserData{
+			Username:  userData.Username,
+			AccountId: userData.AccountId,
+			Type:      userData.Type,
+		})
 
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		return c.JSON(http.StatusCreated, "user")
+		return c.JSON(http.StatusCreated, user)
 	case "PATCH":
 		fmt.Println("PATCH method")
 	case "DELETE":

@@ -4,11 +4,15 @@ import (
 	"events-system/internal/domain"
 	"events-system/internal/providers/db"
 	"events-system/internal/repositories"
+	"events-system/internal/utils"
 	"fmt"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type IUserService interface {
-	CreateUser(data CreateUserData) (*domain.User, error)
+	CreateUser(data CreateUserData) (*User, error)
 	GetUser(id string) (*domain.User, error)
 }
 
@@ -25,6 +29,14 @@ type UserService struct {
 	accRepository  repositories.IAccountRepository
 }
 
+type User struct {
+	ID        uuid.UUID
+	Username  string
+	Accounts  []domain.Account
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 func NewUserService(db *db.Database, userRepository repositories.IUserRepository, accRepository repositories.IAccountRepository) *UserService {
 	return &UserService{
 		Name:           "UserService",
@@ -34,22 +46,47 @@ func NewUserService(db *db.Database, userRepository repositories.IUserRepository
 	}
 }
 
-func (us UserService) CreateUser(data CreateUserData) (*domain.User, error) {
+func (us UserService) CreateUser(data CreateUserData) (*User, error) {
 	transaction := us.DB.CreateTransaction()
 
-	fmt.Println(transaction)
+	defer func() {
+		if r := recover(); r != nil {
+			transaction.Rollback()
+		}
+	}()
 
 	user, err := us.userRepository.Create(domain.UserData{Username: data.Username}, transaction)
 
-	// var account
-
 	if err != nil {
-		fmt.Println(err.Error())
-		return nil, err
+		transaction.Rollback()
+		return nil, utils.GenerateError(us.Name, err.Error())
 	}
 
-	transaction.Commit()
-	return user, nil
+	acc, err := us.accRepository.Create(domain.CreateAccountData{
+		UserId:    user.ID.String(),
+		AccountId: data.AccountId,
+		Type:      data.Type,
+	}, transaction)
+
+	if err != nil {
+		transaction.Rollback()
+		return nil, utils.GenerateError(us.Name, err.Error())
+	}
+
+	var accs = make([]domain.Account, 1)
+	accs = append(accs, *acc)
+
+	if trRes := transaction.Commit(); trRes.Error != nil {
+		return nil, utils.GenerateError(us.Name, trRes.Error.Error())
+	}
+
+	return &User{
+		ID:        user.ID,
+		Username:  user.Username,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+		Accounts:  accs,
+	}, nil
 }
 
 func (us UserService) GetUser(id string) (*domain.User, error) {
