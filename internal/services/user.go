@@ -10,11 +10,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type IUserService interface {
-	CreateUser(data CreateUserData) (*User, error)
-	GetUser(id string) (*User, error)
-}
-
 type CreateUserData struct {
 	Username  string
 	Type      string
