@@ -5,6 +5,7 @@ import (
 	"events-system/internal/domain"
 	db "events-system/internal/providers/db"
 	"events-system/internal/providers/server"
+	"events-system/internal/providers/telegram"
 	"events-system/internal/repositories"
 	"events-system/internal/services"
 	"fmt"
@@ -23,8 +24,6 @@ func main() {
 	db := db.NewDatabase(os.Getenv("GOOSE_DBSTRING"))
 	server := server.NewEchoInstance()
 
-	// telegram_api.BootstrapBot()
-
 	// init domain factories
 	userFactory := domain.NewUserFactory()
 	accountFactory := domain.NewAccountFactory()
@@ -40,10 +39,19 @@ func main() {
 	fmt.Println(eventRepository, taskRepository)
 
 	userService := services.NewUserService(db, userRepository, accountRepository)
+	accountService := services.NewAccountService(db, accountRepository)
 	userController := controllers.NewUserController(
 		server.Instance,
 		userService,
 	)
+
+	tgBotProvider, err := telegram.NewTgBotProvider(os.Getenv("TG_BOT_TOKEN"), userService, accountService)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	tgBotProvider.Bootstrap()
 
 	// init http routes
 	userController.InitRoutes()

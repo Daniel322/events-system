@@ -4,6 +4,9 @@ import (
 	"events-system/internal/domain"
 	"events-system/internal/providers/db"
 	"events-system/internal/repositories"
+	"events-system/internal/utils"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,7 +22,7 @@ type EventService struct {
 type CreateEventData struct {
 	AccountId string
 	UserId    string
-	Name      string
+	Info      string
 	Date      time.Time
 	Providers []byte
 }
@@ -58,7 +61,19 @@ func (es *EventService) CreateEvent(data CreateEventData) (*Event, error) {
 		}
 	}()
 
-	// event, err := es.eventRepository.Create()
+	event, err := es.eventRepository.Create(domain.CreateEventData{
+		UserId:       data.UserId,
+		Info:         data.Info,
+		Date:         data.Date,
+		Providers:    strings.Split(string(data.Providers), ","),
+		NotifyLevels: []string{"month", "week", "tomorrow", "today"},
+	}, transaction)
+
+	if err != nil {
+		return nil, utils.GenerateError(es.Name, err.Error())
+	}
+
+	fmt.Println(event)
 
 	return &Event{}, nil
 }

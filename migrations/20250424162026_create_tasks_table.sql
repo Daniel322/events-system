@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS tasks(
   id UUID DEFAULT uuid_generate_v4(),
   event_id UUID REFERENCES events (id),
   account_id UUID REFERENCES accounts (id),
-  -- TODO: add chat_id field 
+  type VARCHAR NOT NULL,
+  provider VARCHAR NOT NULL,
   date TIMESTAMP NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
