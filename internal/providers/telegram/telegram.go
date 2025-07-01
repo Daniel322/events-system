@@ -77,7 +77,14 @@ func (tg *TgBotProvider) Bootstrap() {
 
 				msg.Text = "account " + newUser.Username + " created"
 			} else {
-				msg.Text = "account already created"
+				currentUser, err := tg.UserService.GetUser(currentAccount.UserId.String())
+
+				if err != nil || currentUser == nil {
+					utils.GenerateError(tg.Name, err.Error())
+					break
+				}
+
+				msg.Text = "account " + currentUser.Username + " already created"
 			}
 		case "help":
 			msg.Text = "I understand /sayhi and /status."
