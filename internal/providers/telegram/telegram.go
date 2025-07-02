@@ -21,6 +21,7 @@ type TgBotProvider struct {
 	Bot                  *tgbotapi.BotAPI
 	UserService          services.IUserService
 	AccountService       services.IAccountService
+	EventService         services.IEventService
 	NotCompletedEventMap map[int64]*TgEvent
 }
 
@@ -28,6 +29,7 @@ func NewTgBotProvider(
 	token string,
 	userService services.IUserService,
 	accService services.IAccountService,
+	eventService services.IEventService,
 ) (*TgBotProvider, error) {
 	bot, err := tgbotapi.NewBotAPI(token)
 
@@ -40,6 +42,7 @@ func NewTgBotProvider(
 		Bot:                  bot,
 		UserService:          userService,
 		AccountService:       accService,
+		EventService:         eventService,
 		NotCompletedEventMap: make(map[int64]*TgEvent, 10),
 	}, nil
 }
@@ -60,6 +63,20 @@ func (tg *TgBotProvider) Bootstrap() {
 
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 
+		currentAcc, err := tg.AccountService.CheckAccount(update.Message.Chat.ID)
+
+		if err != nil {
+			msg.Text = err.Error()
+			tg.Bot.Send(msg)
+			continue
+		}
+
+		if currentAcc == nil {
+			msg.Text = "need to create account, use /start command"
+			tg.Bot.Send(msg)
+			continue
+		}
+
 		if !update.Message.IsCommand() {
 			log.Println(tg.NotCompletedEventMap)
 			currentEvent, isCurrentEventExist := tg.NotCompletedEventMap[update.Message.From.ID]
@@ -78,14 +95,31 @@ func (tg *TgBotProvider) Bootstrap() {
 				} else {
 					timeVar, err := time.Parse("2006-01-02", update.Message.Text)
 					if err != nil {
-						utils.GenerateError(tg.Name, err.Error())
+						err = utils.GenerateError(tg.Name, err.Error())
 						msg.Text = err.Error()
 						tg.Bot.Send(msg)
 						continue
 					}
 					log.Println("timeVar", timeVar.String(), timeVar)
+					// strAccId := strconv.Itoa(int(update.Message.From.ID))
 					currentEvent.Date = &timeVar
-					// TODO: call event service and create event
+
+					event, err := tg.EventService.CreateEvent(services.CreateEventData{
+						AccountId: currentAcc.ID.String(),
+						Date:      *currentEvent.Date,
+						Info:      currentEvent.Name,
+						UserId:    currentAcc.UserId.String(),
+					})
+
+					if err != nil {
+						msg.Text = err.Error()
+						tg.Bot.Send(msg)
+						continue
+					}
+
+					log.Println("EVENT:", event)
+					log.Println("err:", err)
+
 					msg.Text = "event " + currentEvent.Name + " with next date:" + currentEvent.Date.Format("2006-01-02") + " created!"
 					delete(tg.NotCompletedEventMap, update.Message.From.ID)
 					tg.Bot.Send(msg)

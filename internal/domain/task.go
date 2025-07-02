@@ -2,6 +2,7 @@ package domain
 
 import (
 	"events-system/internal/utils"
+	"log"
 	"reflect"
 	"time"
 
@@ -13,6 +14,8 @@ type Task struct {
 	EventId   uuid.UUID
 	AccountId uuid.UUID
 	Date      time.Time
+	Type      string
+	Provider  string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -25,6 +28,8 @@ type CreateTaskData struct {
 	EventId   uuid.UUID
 	AccountId uuid.UUID
 	Date      time.Time
+	Type      string
+	Provider  string
 }
 
 type UpdateTaskData struct {
@@ -44,30 +49,38 @@ func NewTaskFactory() *TaskFactory {
 }
 
 func (tf *TaskFactory) Create(data CreateTaskData) (*Task, error) {
+	log.Println("CREATE TASK DATA", data)
+	// TODO: add validation for type and provider
 	var reflectData = reflect.ValueOf(data).Elem()
 
-	if eventId := reflectData.FieldByName("EventId"); !eventId.IsValid() {
+	if eventId := reflectData.FieldByName("EventId"); eventId.IsZero() {
 		return nil, utils.GenerateError(tf.Name, EVENT_ID_IS_REQUIRED)
 	}
 
-	if accountId := reflectData.FieldByName("AccountId"); !accountId.IsValid() {
+	if accountId := reflectData.FieldByName("AccountId"); accountId.IsZero() {
 		return nil, utils.GenerateError(tf.Name, ACCOUNT_ID_IS_REQUIRED)
 	}
 
-	if date := reflectData.FieldByName("Date"); !date.IsValid() {
+	if date := reflectData.FieldByName("Date"); date.IsZero() {
 		return nil, utils.GenerateError(tf.Name, DATE_IS_REQUIRED)
 	}
 
 	var id uuid.UUID = uuid.New()
+
+	log.Println("Cid", id)
 
 	task := Task{
 		ID:        id,
 		EventId:   data.EventId,
 		AccountId: data.AccountId,
 		Date:      data.Date,
+		Type:      data.Type,
+		Provider:  data.Provider,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
+
+	log.Println("task", task)
 
 	return &task, nil
 }
