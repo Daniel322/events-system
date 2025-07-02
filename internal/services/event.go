@@ -5,7 +5,6 @@ import (
 	"events-system/internal/providers/db"
 	"events-system/internal/repositories"
 	"events-system/internal/utils"
-	"log"
 	"strings"
 	"time"
 
@@ -61,8 +60,6 @@ func (es *EventService) CreateEvent(data CreateEventData) (*Event, error) {
 		}
 	}()
 
-	log.Println(es.Name, "DATA:", data)
-
 	event, err := es.eventRepository.Create(domain.CreateEventData{
 		UserId:       data.UserId,
 		Info:         data.Info,
@@ -80,21 +77,15 @@ func (es *EventService) CreateEvent(data CreateEventData) (*Event, error) {
 
 	tasks := make([]domain.Task, 0)
 
-	// log.Println(data.Date, data.Date.Add(-(time.Hour * 24)), data.Date.Add(-(time.Hour * 24 * 7)))
-	log.Println(timesForTask)
+	// TODO: fix dates, now make invalid dates for tasks
+	// also need to right set of task type
 	timesForTask = append(timesForTask, data.Date)
-	log.Println(timesForTask)
 	timesForTask = append(timesForTask, data.Date.Add(-(time.Hour * 24)))
-	log.Println(timesForTask)
 	timesForTask = append(timesForTask, data.Date.Add(-(time.Hour * 24 * 7)))
-	log.Println(timesForTask)
 	timesForTask = append(timesForTask, data.Date.Add(-(time.Hour * 24 * 30)))
-	log.Println(timesForTask)
 
 	for _, timeValue := range timesForTask {
 		uuidV, _, err := utils.ParseId(data.AccountId)
-
-		log.Println(es.Name, "uuidV:", uuidV)
 
 		if err != nil {
 			transaction.Rollback()
@@ -112,8 +103,6 @@ func (es *EventService) CreateEvent(data CreateEventData) (*Event, error) {
 			transaction,
 		)
 
-		log.Println(es.Name, "task:", task)
-
 		if err != nil {
 			transaction.Rollback()
 			return nil, utils.GenerateError(es.Name, err.Error())
@@ -122,7 +111,7 @@ func (es *EventService) CreateEvent(data CreateEventData) (*Event, error) {
 		tasks = append(tasks, *task)
 	}
 
-	log.Println(es.Name, "tasks after loop:", tasks)
+	transaction.Commit()
 
 	return &Event{
 		ID:           event.ID,

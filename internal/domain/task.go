@@ -51,7 +51,7 @@ func NewTaskFactory() *TaskFactory {
 func (tf *TaskFactory) Create(data CreateTaskData) (*Task, error) {
 	log.Println("CREATE TASK DATA", data)
 	// TODO: add validation for type and provider
-	var reflectData = reflect.ValueOf(data).Elem()
+	var reflectData = reflect.ValueOf(&data).Elem()
 
 	if eventId := reflectData.FieldByName("EventId"); eventId.IsZero() {
 		return nil, utils.GenerateError(tf.Name, EVENT_ID_IS_REQUIRED)
@@ -86,7 +86,7 @@ func (tf *TaskFactory) Create(data CreateTaskData) (*Task, error) {
 }
 
 func (tf *TaskFactory) Update(task *Task, data UpdateTaskData) (*Task, error) {
-	var reflectData = reflect.ValueOf(data).Elem()
+	var reflectData = reflect.ValueOf(&data).Elem()
 
 	if date := reflectData.FieldByName("Date"); !date.IsValid() {
 		return nil, utils.GenerateError(tf.Name, DATE_IS_REQUIRED)

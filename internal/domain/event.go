@@ -101,7 +101,7 @@ func (ef *EventFactory) Create(data CreateEventData) (*Event, error) {
 }
 
 func (ef *EventFactory) Update(event *Event, data UpdateEventData) (*Event, error) {
-	dataValue := reflect.ValueOf(data).Elem()
+	dataValue := reflect.ValueOf(&data).Elem()
 	var fields = 0
 
 	if infoField := dataValue.FieldByName("Info"); infoField.IsValid() {

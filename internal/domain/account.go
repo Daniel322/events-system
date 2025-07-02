@@ -79,7 +79,7 @@ func (af *AccountFactory) Create(data CreateAccountData) (*Account, error) {
 }
 
 func (af *AccountFactory) Update(acc *Account, data UpdateAccountData) (*Account, error) {
-	var reflectData = reflect.ValueOf(data).Elem()
+	var reflectData = reflect.ValueOf(&data).Elem()
 	var fieldsAccount = 0
 
 	if accountId := reflectData.FieldByName("AccountId"); !accountId.IsValid() || len(data.AccountId) > 50 {
