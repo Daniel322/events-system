@@ -4,16 +4,24 @@ import (
 	"events-system/internal/services"
 	"events-system/internal/utils"
 	"log"
+	"reflect"
 	"strconv"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+type TgEvent struct {
+	Name string
+	Date *time.Time
+}
+
 type TgBotProvider struct {
-	Name           string
-	Bot            *tgbotapi.BotAPI
-	UserService    services.IUserService
-	AccountService services.IAccountService
+	Name                 string
+	Bot                  *tgbotapi.BotAPI
+	UserService          services.IUserService
+	AccountService       services.IAccountService
+	NotCompletedEventMap map[int64]*TgEvent
 }
 
 func NewTgBotProvider(
@@ -28,10 +36,11 @@ func NewTgBotProvider(
 	}
 
 	return &TgBotProvider{
-		Name:           "TgBotProvider",
-		Bot:            bot,
-		UserService:    userService,
-		AccountService: accService,
+		Name:                 "TgBotProvider",
+		Bot:                  bot,
+		UserService:          userService,
+		AccountService:       accService,
+		NotCompletedEventMap: make(map[int64]*TgEvent, 10),
 	}, nil
 }
 
@@ -86,12 +95,27 @@ func (tg *TgBotProvider) Bootstrap() {
 
 				msg.Text = "account " + currentUser.Username + " already created"
 			}
+		case "event":
+			msg.Text = "start to create event"
+			currentAccountId := update.Message.From.ID
+			currentNotCompletedEventOfCurrentAccount, ok := tg.NotCompletedEventMap[currentAccountId]
+
+			if ok {
+				log.SetPrefix("TG_BOT ")
+				log.Println("created event iof current account id:", currentNotCompletedEventOfCurrentAccount)
+				msg.Text = "We have not completed event,"
+				reflectValue := reflect.ValueOf(currentNotCompletedEventOfCurrentAccount).Elem()
+				if isInvalidName := reflectValue.FieldByName("Name").IsZero(); isInvalidName {
+					msg.Text += " enter name or info about event"
+				} else if isInvalidDate := reflectValue.FieldByName("Date").IsZero(); isInvalidDate {
+					msg.Text += " enter date in next format: YYYY-MM-DD"
+				}
+			} else {
+				tg.NotCompletedEventMap[currentAccountId] = &TgEvent{Date: nil}
+				msg.Text = "Start to create event, write event name or info"
+			}
 		case "help":
 			msg.Text = "I understand /sayhi and /status."
-		case "sayhi":
-			msg.Text = "Hi :)"
-		case "status":
-			msg.Text = "I'm ok."
 		default:
 			msg.Text = "I don't know that command"
 		}
