@@ -38,6 +38,11 @@ type Event struct {
 	Tasks        []domain.Task
 }
 
+type TaskSliceEvent struct {
+	Date time.Time
+	Type string
+}
+
 func NewEventService(
 	db *db.Database,
 	eventRepository *repositories.Repository[domain.Event, domain.CreateEventData, domain.UpdateEventData],
@@ -73,16 +78,43 @@ func (es *EventService) CreateEvent(data CreateEventData) (*Event, error) {
 		return nil, utils.GenerateError(es.Name, err.Error())
 	}
 
-	timesForTask := make([]time.Time, 0)
+	timesForTask := make([]TaskSliceEvent, 0)
 
 	tasks := make([]domain.Task, 0)
 
-	// TODO: fix dates, now make invalid dates for tasks
-	// also need to right set of task type
-	timesForTask = append(timesForTask, data.Date)
-	timesForTask = append(timesForTask, data.Date.Add(-(time.Hour * 24)))
-	timesForTask = append(timesForTask, data.Date.Add(-(time.Hour * 24 * 7)))
-	timesForTask = append(timesForTask, data.Date.Add(-(time.Hour * 24 * 30)))
+	today := time.Now()
+	todayYear := today.Year()
+	eventDateYear := data.Date.Year()
+	currentEventInThatYear := data.Date
+	if eventDateYear < todayYear {
+		currentEventInThatYear = time.Date(
+			todayYear,
+			data.Date.Month(),
+			data.Date.Day(),
+			data.Date.Hour(),
+			data.Date.Minute(),
+			data.Date.Second(),
+			data.Date.Nanosecond(),
+			data.Date.Location(),
+		)
+		// if event in that year before today
+		if currentEventInThatYear.Compare(today) == -1 {
+			currentEventInThatYear = time.Date(
+				todayYear+1,
+				data.Date.Month(),
+				data.Date.Day(),
+				data.Date.Hour(),
+				data.Date.Minute(),
+				data.Date.Second(),
+				data.Date.Nanosecond(),
+				data.Date.Location(),
+			)
+		}
+	}
+	timesForTask = append(timesForTask, TaskSliceEvent{Date: currentEventInThatYear, Type: "today"})
+	timesForTask = append(timesForTask, TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24)), Type: "tomorrow"})
+	timesForTask = append(timesForTask, TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24 * 7)), Type: "week"})
+	timesForTask = append(timesForTask, TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24 * 30)), Type: "month"})
 
 	for _, timeValue := range timesForTask {
 		uuidV, _, err := utils.ParseId(data.AccountId)
@@ -96,8 +128,8 @@ func (es *EventService) CreateEvent(data CreateEventData) (*Event, error) {
 			domain.CreateTaskData{
 				EventId:   event.ID,
 				AccountId: uuidV,
-				Date:      timeValue,
-				Type:      "today",
+				Date:      timeValue.Date,
+				Type:      timeValue.Type,
 				Provider:  "telegram",
 			},
 			transaction,

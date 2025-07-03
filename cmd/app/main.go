@@ -51,7 +51,7 @@ func main() {
 		panic(err.Error())
 	}
 
-	tgBotProvider.Bootstrap()
+	go tgBotProvider.Bootstrap()
 
 	// init http routes
 	userController.InitRoutes()

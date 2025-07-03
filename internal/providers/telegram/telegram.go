@@ -6,6 +6,7 @@ import (
 	"log"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -78,9 +79,8 @@ func (tg *TgBotProvider) Bootstrap() {
 		}
 
 		if !update.Message.IsCommand() {
-			log.Println(tg.NotCompletedEventMap)
 			currentEvent, isCurrentEventExist := tg.NotCompletedEventMap[update.Message.From.ID]
-			log.Println(currentEvent, isCurrentEventExist)
+
 			if !isCurrentEventExist {
 				msg.Text = "you dont have uncompleted events, use /event command for start to create event or /help for get list of available commands"
 				tg.Bot.Send(msg)
@@ -100,7 +100,7 @@ func (tg *TgBotProvider) Bootstrap() {
 						tg.Bot.Send(msg)
 						continue
 					}
-					log.Println("timeVar", timeVar.String(), timeVar)
+
 					// strAccId := strconv.Itoa(int(update.Message.From.ID))
 					currentEvent.Date = &timeVar
 
@@ -109,6 +109,7 @@ func (tg *TgBotProvider) Bootstrap() {
 						Date:      *currentEvent.Date,
 						Info:      currentEvent.Name,
 						UserId:    currentAcc.UserId.String(),
+						Providers: []byte(strings.Join([]string{"telegram"}, " ")),
 					})
 
 					if err != nil {
@@ -117,10 +118,7 @@ func (tg *TgBotProvider) Bootstrap() {
 						continue
 					}
 
-					log.Println("EVENT:", event)
-					log.Println("err:", err)
-
-					msg.Text = "event " + currentEvent.Name + " with next date:" + currentEvent.Date.Format("2006-01-02") + " created!"
+					msg.Text = "event " + event.Info + " with next date:" + event.Date.Format("2006-01-02") + " created!"
 					delete(tg.NotCompletedEventMap, update.Message.From.ID)
 					tg.Bot.Send(msg)
 					continue
@@ -169,7 +167,7 @@ func (tg *TgBotProvider) Bootstrap() {
 
 				if ok {
 					log.SetPrefix("TG_BOT ")
-					log.Println("created event iof current account id:", currentNotCompletedEventOfCurrentAccount)
+					log.Println("created event for current account id:", currentNotCompletedEventOfCurrentAccount)
 					msg.Text = "We have not completed event,"
 					reflectValue := reflect.ValueOf(currentNotCompletedEventOfCurrentAccount).Elem()
 					if isInvalidName := reflectValue.FieldByName("Name").IsZero(); isInvalidName {
