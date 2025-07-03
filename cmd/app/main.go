@@ -3,6 +3,7 @@ package main
 import (
 	"events-system/internal/controllers"
 	"events-system/internal/domain"
+	"events-system/internal/providers/cron"
 	db "events-system/internal/providers/db"
 	"events-system/internal/providers/server"
 	"events-system/internal/providers/telegram"
@@ -40,6 +41,9 @@ func main() {
 	userService := services.NewUserService(db, userRepository, accountRepository)
 	accountService := services.NewAccountService(db, accountRepository)
 	eventsService := services.NewEventService(db, eventRepository, taskRepository)
+	tasksService := services.NewTaskService(db, taskRepository, eventRepository, accountRepository)
+
+	// init controllers
 	userController := controllers.NewUserController(
 		server.Instance,
 		userService,
@@ -50,6 +54,10 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+
+	cronProvider := cron.NewCronProvider(tgBotProvider, tasksService)
+
+	cronProvider.Bootstrap()
 
 	go tgBotProvider.Bootstrap()
 

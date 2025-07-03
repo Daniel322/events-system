@@ -195,3 +195,9 @@ func (tg *TgBotProvider) Bootstrap() {
 		}
 	}
 }
+
+func (tg *TgBotProvider) SendMsg(chatId int64, text string) {
+	msg := tgbotapi.NewMessage(chatId, text)
+
+	tg.Bot.Send(msg)
+}
