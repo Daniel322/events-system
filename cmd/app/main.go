@@ -1,11 +1,11 @@
 package main
 
 import (
-	"events-system/internal/controllers"
 	"events-system/internal/domain"
 	"events-system/internal/providers/cron"
 	db "events-system/internal/providers/db"
-	"events-system/internal/providers/server"
+	"events-system/internal/providers/http/controllers"
+	"events-system/internal/providers/http/server"
 	"events-system/internal/providers/telegram"
 	"events-system/internal/repositories"
 	"events-system/internal/services"
