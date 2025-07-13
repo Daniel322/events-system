@@ -48,6 +48,10 @@ func NewTgBotProvider(
 	}, nil
 }
 
+func (tg *TgBotProvider) NewMessage(id int64) tgbotapi.MessageConfig {
+	return tgbotapi.NewMessage(id, "")
+}
+
 func (tg *TgBotProvider) Bootstrap() {
 	log.SetPrefix("TG_BOT ")
 	log.Printf("Authorized on account %s", tg.Bot.Self.UserName)

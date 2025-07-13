@@ -22,4 +22,5 @@ func NewCronProvider(TG *telegram.TgBotProvider, service *services.TaskService) 
 
 func (cron *CronProvider) Bootstrap() {
 	log.Println("CRON STARTED")
+	// utils.SetInterval()
 }
