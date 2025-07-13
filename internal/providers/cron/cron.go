@@ -3,7 +3,9 @@ package cron
 import (
 	"events-system/internal/providers/telegram"
 	"events-system/internal/services"
+	"events-system/internal/utils"
 	"log"
+	"time"
 )
 
 type CronProvider struct {
@@ -22,5 +24,5 @@ func NewCronProvider(TG *telegram.TgBotProvider, service *services.TaskService) 
 
 func (cron *CronProvider) Bootstrap() {
 	log.Println("CRON STARTED")
-	// utils.SetInterval()
+	utils.SetInterval(cron.TaskJob, time.Duration(60*60*24)*time.Second)
 }

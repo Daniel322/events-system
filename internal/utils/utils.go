@@ -48,7 +48,7 @@ func GenerateError(Name string, Message string) error {
 	return errors.New("Error in " + Name + ": " + Message)
 }
 
-func SetInterval(callback func(), interval time.Duration) chan bool {
+func SetInterval(callback func() error, interval time.Duration) chan bool {
 	ticker := time.NewTicker(interval)
 	stop := make(chan bool)
 
