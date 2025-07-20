@@ -1,8 +1,12 @@
 package cron
 
-import "events-system/internal/utils"
+import (
+	"events-system/internal/utils"
+	"log"
+)
 
 func (cron *CronProvider) TaskJob() error {
+	log.Println("JOB STARTED")
 	var tasksList, err = cron.tasksService.GetListOfTodayTasks()
 
 	if err != nil {

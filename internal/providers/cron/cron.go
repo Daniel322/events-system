@@ -5,6 +5,8 @@ import (
 	"events-system/internal/services"
 	"events-system/internal/utils"
 	"log"
+	"os"
+	"strconv"
 	"time"
 )
 
@@ -24,5 +26,10 @@ func NewCronProvider(TG *telegram.TgBotProvider, service *services.TaskService) 
 
 func (cron *CronProvider) Bootstrap() {
 	log.Println("CRON STARTED")
-	utils.SetInterval(cron.TaskJob, time.Duration(60*60*24)*time.Second)
+	duration, err := strconv.Atoi(os.Getenv("CRON_INTERVAL"))
+	if err != nil {
+		utils.GenerateError(cron.Name, "invalid cron interval in env, use hardcode value")
+		duration = 86400
+	}
+	utils.SetInterval(cron.TaskJob, time.Duration(duration)*time.Second)
 }
