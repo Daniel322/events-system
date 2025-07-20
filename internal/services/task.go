@@ -41,7 +41,7 @@ func NewTaskService(
 
 func (ts *TaskService) GetListOfTodayTasks() (*[]domain.Task, error) {
 	var options = make(map[string]interface{})
-	options["date"] = time.Now()
+	options["date"] = time.Now().Format("2006-01-02")
 	tasks, err := ts.taskRepository.GetList(options)
 
 	if err != nil {

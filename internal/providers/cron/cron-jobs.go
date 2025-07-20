@@ -21,6 +21,7 @@ func (cron *CronProvider) TaskJob() error {
 		}
 
 		msg := cron.TG.NewMessage(msgInfo.ChatId)
+		msg.Text = msgInfo.Text
 
 		cron.TG.Bot.Send(msg)
 	}
