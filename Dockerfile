@@ -15,6 +15,12 @@ WORKDIR /app
 
 COPY --from=builder /app/app .
 
+RUN apk add --no-cache bash curl zip
+
+RUN curl -fsSL \
+https://raw.githubusercontent.com/pressly/goose/master/install.sh |\
+sh 
+
 EXPOSE 8080
 
 CMD ["./app"]
