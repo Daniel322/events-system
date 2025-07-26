@@ -1,2 +1,4 @@
-. ./.env;
+if [ -e "./.env" ]; then
+  . ./.env;
+fi
 GOOSE_DRIVER=$GOOSE_DRIVER GOOSE_DBSTRING=$GOOSE_DBSTRING GOOSE_MIGRATION_DIR=$GOOSE_MIGRATION_DIR goose up;

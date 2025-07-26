@@ -16,6 +16,7 @@ WORKDIR /app
 COPY --from=builder /app/app .
 COPY --from=builder /app/migrations/ ./migrations
 COPY --from=builder /app/run-migrations.sh .
+RUN chmod +x ./run-migrations.sh
 
 RUN apk add --no-cache bash curl zip
 
@@ -25,4 +26,4 @@ sh
 
 EXPOSE 8080
 
-CMD ["./app"]
+CMD ["/bin/sh", "-c", "./run-migrations.sh && ./app"]
