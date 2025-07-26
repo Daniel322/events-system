@@ -68,21 +68,21 @@ func (tg *TgBotProvider) Bootstrap() {
 
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 
-		currentAcc, err := tg.AccountService.CheckAccount(update.Message.Chat.ID)
-
-		if err != nil {
-			msg.Text = err.Error()
-			tg.Bot.Send(msg)
-			continue
-		}
-
-		if currentAcc == nil {
-			msg.Text = "need to create account, use /start command"
-			tg.Bot.Send(msg)
-			continue
-		}
-
 		if !update.Message.IsCommand() {
+			currentAcc, err := tg.AccountService.CheckAccount(update.Message.Chat.ID)
+
+			if err != nil {
+				msg.Text = err.Error()
+				tg.Bot.Send(msg)
+				continue
+			}
+
+			if currentAcc == nil {
+				msg.Text = "need to create account, use /start command"
+				tg.Bot.Send(msg)
+				continue
+			}
+
 			currentEvent, isCurrentEventExist := tg.NotCompletedEventMap[update.Message.From.ID]
 
 			if !isCurrentEventExist {
