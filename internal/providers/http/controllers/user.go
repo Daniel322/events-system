@@ -1,7 +1,8 @@
 package controllers
 
 import (
-	"events-system/internal/services"
+	"events-system/internal/interfaces"
+	"events-system/internal/structs"
 	"events-system/internal/utils"
 	"fmt"
 	"net/http"
@@ -12,7 +13,7 @@ import (
 type UserController struct {
 	Name        string
 	server      *echo.Echo
-	userService services.IUserService
+	userService interfaces.IUserService
 }
 
 type UserDataDTO struct {
@@ -21,7 +22,7 @@ type UserDataDTO struct {
 	AccountId string `json:"accountId" validate:"required_if=Type mail"`
 }
 
-func NewUserController(server *echo.Echo, service services.IUserService) *UserController {
+func NewUserController(server *echo.Echo, service interfaces.IUserService) *UserController {
 	return &UserController{
 		Name:        "UserController",
 		server:      server,
@@ -57,7 +58,7 @@ func (uc UserController) ExecRoute(c echo.Context) error {
 			return c.String(http.StatusBadRequest, generatedError.Error())
 		}
 
-		user, err := uc.userService.CreateUser(services.CreateUserData{
+		user, err := uc.userService.CreateUser(structs.CreateUserData{
 			Username:  userData.Username,
 			AccountId: userData.AccountId,
 			Type:      userData.Type,
