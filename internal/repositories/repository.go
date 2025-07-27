@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"events-system/internal/domain"
+	"events-system/internal/interfaces"
 	"events-system/internal/providers/db"
 	"events-system/internal/utils"
 	"log"
@@ -11,7 +11,7 @@ import (
 type Repository[Entity any, CreateData any, UpdateData any] struct {
 	Name    string
 	db      *db.Database
-	factory domain.Factory[Entity, CreateData, UpdateData]
+	factory interfaces.Factory[Entity, CreateData, UpdateData]
 }
 
 func NewRepository[
@@ -21,7 +21,7 @@ func NewRepository[
 ](
 	name string,
 	db *db.Database,
-	factory domain.Factory[Entity, CreateData, UpdateData],
+	factory interfaces.Factory[Entity, CreateData, UpdateData],
 ) *Repository[Entity, CreateData, UpdateData] {
 	return &Repository[Entity, CreateData, UpdateData]{
 		Name:    name,
