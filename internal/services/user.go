@@ -2,8 +2,8 @@ package services
 
 import (
 	"events-system/internal/domain"
+	"events-system/internal/interfaces"
 	"events-system/internal/providers/db"
-	"events-system/internal/repositories"
 	"events-system/internal/utils"
 	"time"
 
@@ -19,8 +19,8 @@ type CreateUserData struct {
 type UserService struct {
 	Name           string
 	DB             *db.Database
-	userRepository repositories.IRepository[domain.User, domain.UserData, domain.UserData]
-	accRepository  repositories.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData]
+	userRepository interfaces.IRepository[domain.User, domain.UserData, domain.UserData]
+	accRepository  interfaces.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData]
 }
 
 type User struct {
@@ -33,8 +33,8 @@ type User struct {
 
 func NewUserService(
 	db *db.Database,
-	userRepository repositories.IRepository[domain.User, domain.UserData, domain.UserData],
-	accRepository repositories.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData],
+	userRepository interfaces.IRepository[domain.User, domain.UserData, domain.UserData],
+	accRepository interfaces.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData],
 ) *UserService {
 	return &UserService{
 		Name:           "UserService",

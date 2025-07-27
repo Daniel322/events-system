@@ -14,8 +14,8 @@ import (
 type EventService struct {
 	Name            string
 	DB              *db.Database
-	eventRepository *repositories.Repository[domain.Event, domain.CreateEventData, domain.UpdateEventData]
-	taskRepository  *repositories.Repository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData]
+	eventRepository repositories.IRepository[domain.Event, domain.CreateEventData, domain.UpdateEventData]
+	taskRepository  repositories.IRepository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData]
 }
 
 type CreateEventData struct {
@@ -45,8 +45,8 @@ type TaskSliceEvent struct {
 
 func NewEventService(
 	db *db.Database,
-	eventRepository *repositories.Repository[domain.Event, domain.CreateEventData, domain.UpdateEventData],
-	taskRepository *repositories.Repository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData],
+	eventRepository repositories.IRepository[domain.Event, domain.CreateEventData, domain.UpdateEventData],
+	taskRepository repositories.IRepository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData],
 ) *EventService {
 	return &EventService{
 		Name:            "EventService",

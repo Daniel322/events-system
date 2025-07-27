@@ -11,12 +11,12 @@ import (
 type AccountService struct {
 	Name              string
 	DB                *db.Database
-	accountRepository *repositories.Repository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData]
+	accountRepository repositories.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData]
 }
 
 func NewAccountService(
 	db *db.Database,
-	accountRepository *repositories.Repository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData],
+	accountRepository repositories.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData],
 ) *AccountService {
 	return &AccountService{
 		Name:              "AccountService",
