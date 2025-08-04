@@ -1,8 +1,8 @@
 package repositories
 
 import (
+	"events-system/infrastructure/providers/db"
 	"events-system/internal/interfaces"
-	"events-system/internal/providers/db"
 	"events-system/internal/utils"
 	"log"
 	"reflect"

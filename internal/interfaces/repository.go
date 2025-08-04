@@ -1,7 +1,7 @@
 package interfaces
 
 import (
-	"events-system/internal/providers/db"
+	"events-system/infrastructure/providers/db"
 )
 
 type IRepository[Entity any, CreateData any, UpdateData any] interface {

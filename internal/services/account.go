@@ -1,9 +1,9 @@
 package services
 
 import (
+	"events-system/infrastructure/providers/db"
 	"events-system/internal/domain"
 	"events-system/internal/interfaces"
-	"events-system/internal/providers/db"
 	"events-system/internal/utils"
 	"strconv"
 )
