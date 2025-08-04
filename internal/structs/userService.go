@@ -8,9 +8,9 @@ import (
 )
 
 type CreateUserData struct {
-	Username  string
-	Type      string
-	AccountId string
+	Username  string `json:"username" validate:"required"`
+	Type      string `json:"type" validate:"required,oneof='mail' 'http'"`
+	AccountId string `json:"accountId" validate:"required_if=Type mail"`
 }
 
 type User struct {
