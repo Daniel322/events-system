@@ -40,7 +40,7 @@ func (repo *Repository[Entity, CreateData, UpdateData]) Create(
 		return nil, utils.GenerateError(repo.Name, err.Error())
 	}
 
-	var instanceForExec = repo.checkTransactionExsistance(transaction)
+	var instanceForExec = repo.checkTransactionExistance(transaction)
 
 	result := instanceForExec.Create(factoryResult)
 
@@ -70,7 +70,7 @@ func (repo *Repository[Entity, CreateData, UpdateData]) Delete(id string, transa
 		return false, utils.GenerateError(repo.Name, err.Error())
 	}
 
-	var instanceForExec = repo.checkTransactionExsistance(transaction)
+	var instanceForExec = repo.checkTransactionExistance(transaction)
 
 	entity := new(Entity)
 	result := instanceForExec.Where("id = ?", parsedId).Delete(&entity)
@@ -111,7 +111,7 @@ func (repo *Repository[Entity, CreateData, UpdateData]) Update(
 		return nil, utils.GenerateError(repo.Name, err.Error())
 	}
 
-	var instanceForExec = repo.checkTransactionExsistance(transaction)
+	var instanceForExec = repo.checkTransactionExistance(transaction)
 
 	result := instanceForExec.Save(entity)
 
@@ -122,7 +122,7 @@ func (repo *Repository[Entity, CreateData, UpdateData]) Update(
 	return entity, nil
 }
 
-func (repo *Repository[Entity, CreateData, UpdateData]) checkTransactionExsistance(transaction db.DatabaseInstance) db.DatabaseInstance {
+func (repo *Repository[Entity, CreateData, UpdateData]) checkTransactionExistance(transaction db.DatabaseInstance) db.DatabaseInstance {
 	var instanceForExec db.DatabaseInstance
 
 	if reflect.ValueOf(transaction).Elem().IsValid() {
