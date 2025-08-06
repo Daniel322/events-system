@@ -3,8 +3,8 @@ package services
 import (
 	"events-system/infrastructure/providers/db"
 	"events-system/internal/domain"
+	"events-system/internal/dto"
 	"events-system/internal/interfaces"
-	"events-system/internal/structs"
 	"events-system/internal/utils"
 )
 
@@ -28,7 +28,7 @@ func NewUserService(
 	}
 }
 
-func (us UserService) CreateUser(data structs.CreateUserData) (*structs.User, error) {
+func (us UserService) CreateUser(data dto.UserDataDTO) (*dto.OutputUser, error) {
 	transaction := us.DB.CreateTransaction()
 
 	defer func() {
@@ -62,7 +62,7 @@ func (us UserService) CreateUser(data structs.CreateUserData) (*structs.User, er
 		return nil, utils.GenerateError(us.Name, trRes.Error.Error())
 	}
 
-	return &structs.User{
+	return &dto.OutputUser{
 		ID:        user.ID,
 		Username:  user.Username,
 		CreatedAt: user.CreatedAt,
@@ -71,7 +71,7 @@ func (us UserService) CreateUser(data structs.CreateUserData) (*structs.User, er
 	}, nil
 }
 
-func (us UserService) GetUser(id string) (*structs.User, error) {
+func (us UserService) GetUser(id string) (*dto.OutputUser, error) {
 	user, err := us.userRepository.GetById(id)
 
 	if err != nil {
@@ -88,7 +88,7 @@ func (us UserService) GetUser(id string) (*structs.User, error) {
 		return nil, utils.GenerateError(us.Name, err.Error())
 	}
 
-	return &structs.User{
+	return &dto.OutputUser{
 		ID:        user.ID,
 		Username:  user.Username,
 		CreatedAt: user.CreatedAt,

@@ -2,12 +2,13 @@ package interfaces
 
 import (
 	"events-system/internal/domain"
+	"events-system/internal/dto"
 	"events-system/internal/structs"
 )
 
 type IUserService interface {
-	CreateUser(data structs.CreateUserData) (*structs.User, error)
-	GetUser(id string) (*structs.User, error)
+	CreateUser(data dto.UserDataDTO) (*dto.OutputUser, error)
+	GetUser(id string) (*dto.OutputUser, error)
 }
 
 type IEventService interface {

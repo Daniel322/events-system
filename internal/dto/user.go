@@ -1,4 +1,4 @@
-package structs
+package dto
 
 import (
 	"events-system/internal/domain"
@@ -7,13 +7,13 @@ import (
 	"github.com/google/uuid"
 )
 
-type CreateUserData struct {
+type UserDataDTO struct {
 	Username  string `json:"username" validate:"required"`
 	Type      string `json:"type" validate:"required,oneof='mail' 'http'"`
 	AccountId string `json:"accountId" validate:"required_if=Type mail"`
 }
 
-type User struct {
+type OutputUser struct {
 	ID        uuid.UUID        `json:"id"`
 	Username  string           `json:"username"`
 	Accounts  []domain.Account `json:"accounts"`

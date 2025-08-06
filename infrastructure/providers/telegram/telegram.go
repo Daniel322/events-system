@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"events-system/internal/dto"
 	"events-system/internal/interfaces"
 	"events-system/internal/structs"
 	"events-system/internal/utils"
@@ -143,7 +144,7 @@ func (tg *TgBotProvider) Bootstrap() {
 				if currentAccount == nil {
 					strAccId := strconv.Itoa(int(update.Message.From.ID))
 
-					newUser, err := tg.UserService.CreateUser(structs.CreateUserData{
+					newUser, err := tg.UserService.CreateUser(dto.UserDataDTO{
 						Username:  update.Message.From.UserName,
 						AccountId: strAccId,
 						Type:      "telegram",

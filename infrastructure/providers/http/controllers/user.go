@@ -1,8 +1,8 @@
 package controllers
 
 import (
+	"events-system/internal/dto"
 	"events-system/internal/interfaces"
-	"events-system/internal/structs"
 	"events-system/internal/utils"
 	"fmt"
 	"net/http"
@@ -14,12 +14,6 @@ type UserController struct {
 	Name        string
 	server      *echo.Echo
 	userService interfaces.IUserService
-}
-
-type UserDataDTO struct {
-	Username  string `json:"username" validate:"required"`
-	Type      string `json:"type" validate:"required,oneof='mail' 'http'"`
-	AccountId string `json:"accountId" validate:"required_if=Type mail"`
 }
 
 func NewUserController(server *echo.Echo, service interfaces.IUserService) *UserController {
@@ -46,7 +40,7 @@ func (uc UserController) ExecRoute(c echo.Context) error {
 		return c.JSON(200, user)
 	case "POST":
 		fmt.Println("start post method")
-		userData := new(UserDataDTO)
+		userData := new(dto.UserDataDTO)
 		err := c.Bind(userData)
 		if err != nil || len(userData.Username) == 0 {
 			return c.String(http.StatusBadRequest, "bad request")
@@ -58,7 +52,7 @@ func (uc UserController) ExecRoute(c echo.Context) error {
 			return c.String(http.StatusBadRequest, generatedError.Error())
 		}
 
-		user, err := uc.userService.CreateUser(structs.CreateUserData{
+		user, err := uc.userService.CreateUser(dto.UserDataDTO{
 			Username:  userData.Username,
 			AccountId: userData.AccountId,
 			Type:      userData.Type,
