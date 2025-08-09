@@ -3,8 +3,8 @@ package services
 import (
 	"events-system/infrastructure/providers/db"
 	"events-system/internal/domain"
+	"events-system/internal/dto"
 	"events-system/internal/interfaces"
-	"events-system/internal/structs"
 	"events-system/internal/utils"
 	"strings"
 	"time"
@@ -35,7 +35,7 @@ func NewEventService(
 	}
 }
 
-func (es *EventService) CreateEvent(data structs.CreateEventData) (*structs.Event, error) {
+func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, error) {
 	transaction := es.DB.CreateTransaction()
 
 	defer func() {
@@ -124,7 +124,7 @@ func (es *EventService) CreateEvent(data structs.CreateEventData) (*structs.Even
 
 	transaction.Commit()
 
-	return &structs.Event{
+	return &dto.OutputEvent{
 		ID:           event.ID,
 		UserId:       event.UserId,
 		Info:         event.Info,

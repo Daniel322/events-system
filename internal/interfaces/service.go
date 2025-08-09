@@ -3,7 +3,6 @@ package interfaces
 import (
 	"events-system/internal/domain"
 	"events-system/internal/dto"
-	"events-system/internal/structs"
 )
 
 type IUserService interface {
@@ -12,7 +11,7 @@ type IUserService interface {
 }
 
 type IEventService interface {
-	CreateEvent(data structs.CreateEventData) (*structs.Event, error)
+	CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, error)
 }
 
 type IAccountService interface {

@@ -3,7 +3,6 @@ package telegram
 import (
 	"events-system/internal/dto"
 	"events-system/internal/interfaces"
-	"events-system/internal/structs"
 	"events-system/internal/utils"
 	"log"
 	"reflect"
@@ -110,7 +109,7 @@ func (tg *TgBotProvider) Bootstrap() {
 					// strAccId := strconv.Itoa(int(update.Message.From.ID))
 					currentEvent.Date = &timeVar
 
-					event, err := tg.EventService.CreateEvent(structs.CreateEventData{
+					event, err := tg.EventService.CreateEvent(dto.CreateEventDTO{
 						AccountId: currentAcc.ID.String(),
 						Date:      *currentEvent.Date,
 						Info:      currentEvent.Name,
