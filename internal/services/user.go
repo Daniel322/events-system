@@ -1,40 +1,24 @@
 package services
 
 import (
+	"events-system/infrastructure/providers/db"
 	"events-system/internal/domain"
-	"events-system/internal/providers/db"
-	"events-system/internal/repositories"
+	"events-system/internal/dto"
+	"events-system/internal/interfaces"
 	"events-system/internal/utils"
-	"time"
-
-	"github.com/google/uuid"
 )
-
-type CreateUserData struct {
-	Username  string
-	Type      string
-	AccountId string
-}
 
 type UserService struct {
 	Name           string
 	DB             *db.Database
-	userRepository *repositories.Repository[domain.User, domain.UserData, domain.UserData]
-	accRepository  *repositories.Repository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData]
-}
-
-type User struct {
-	ID        uuid.UUID        `json:"id"`
-	Username  string           `json:"username"`
-	Accounts  []domain.Account `json:"accounts"`
-	CreatedAt time.Time        `json:"createdAt"`
-	UpdatedAt time.Time        `json:"updatedAt"`
+	userRepository interfaces.IRepository[domain.User, domain.UserData, domain.UserData]
+	accRepository  interfaces.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData]
 }
 
 func NewUserService(
 	db *db.Database,
-	userRepository *repositories.Repository[domain.User, domain.UserData, domain.UserData],
-	accRepository *repositories.Repository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData],
+	userRepository interfaces.IRepository[domain.User, domain.UserData, domain.UserData],
+	accRepository interfaces.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData],
 ) *UserService {
 	return &UserService{
 		Name:           "UserService",
@@ -44,7 +28,7 @@ func NewUserService(
 	}
 }
 
-func (us UserService) CreateUser(data CreateUserData) (*User, error) {
+func (us UserService) CreateUser(data dto.UserDataDTO) (*dto.OutputUser, error) {
 	transaction := us.DB.CreateTransaction()
 
 	defer func() {
@@ -78,7 +62,7 @@ func (us UserService) CreateUser(data CreateUserData) (*User, error) {
 		return nil, utils.GenerateError(us.Name, trRes.Error.Error())
 	}
 
-	return &User{
+	return &dto.OutputUser{
 		ID:        user.ID,
 		Username:  user.Username,
 		CreatedAt: user.CreatedAt,
@@ -87,7 +71,7 @@ func (us UserService) CreateUser(data CreateUserData) (*User, error) {
 	}, nil
 }
 
-func (us UserService) GetUser(id string) (*User, error) {
+func (us UserService) GetUser(id string) (*dto.OutputUser, error) {
 	user, err := us.userRepository.GetById(id)
 
 	if err != nil {
@@ -104,7 +88,7 @@ func (us UserService) GetUser(id string) (*User, error) {
 		return nil, utils.GenerateError(us.Name, err.Error())
 	}
 
-	return &User{
+	return &dto.OutputUser{
 		ID:        user.ID,
 		Username:  user.Username,
 		CreatedAt: user.CreatedAt,

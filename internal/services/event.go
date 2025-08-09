@@ -1,41 +1,20 @@
 package services
 
 import (
+	"events-system/infrastructure/providers/db"
 	"events-system/internal/domain"
-	"events-system/internal/providers/db"
-	"events-system/internal/repositories"
+	"events-system/internal/dto"
+	"events-system/internal/interfaces"
 	"events-system/internal/utils"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type EventService struct {
 	Name            string
 	DB              *db.Database
-	eventRepository *repositories.Repository[domain.Event, domain.CreateEventData, domain.UpdateEventData]
-	taskRepository  *repositories.Repository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData]
-}
-
-type CreateEventData struct {
-	AccountId string
-	UserId    string
-	Info      string
-	Date      time.Time
-	Providers []byte
-}
-
-type Event struct {
-	ID           uuid.UUID
-	UserId       uuid.UUID
-	Info         string
-	Date         time.Time
-	NotifyLevels []byte
-	Providers    []byte
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	Tasks        []domain.Task
+	eventRepository interfaces.IRepository[domain.Event, domain.CreateEventData, domain.UpdateEventData]
+	taskRepository  interfaces.IRepository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData]
 }
 
 type TaskSliceEvent struct {
@@ -45,8 +24,8 @@ type TaskSliceEvent struct {
 
 func NewEventService(
 	db *db.Database,
-	eventRepository *repositories.Repository[domain.Event, domain.CreateEventData, domain.UpdateEventData],
-	taskRepository *repositories.Repository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData],
+	eventRepository interfaces.IRepository[domain.Event, domain.CreateEventData, domain.UpdateEventData],
+	taskRepository interfaces.IRepository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData],
 ) *EventService {
 	return &EventService{
 		Name:            "EventService",
@@ -56,7 +35,7 @@ func NewEventService(
 	}
 }
 
-func (es *EventService) CreateEvent(data CreateEventData) (*Event, error) {
+func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, error) {
 	transaction := es.DB.CreateTransaction()
 
 	defer func() {
@@ -145,7 +124,7 @@ func (es *EventService) CreateEvent(data CreateEventData) (*Event, error) {
 
 	transaction.Commit()
 
-	return &Event{
+	return &dto.OutputEvent{
 		ID:           event.ID,
 		UserId:       event.UserId,
 		Info:         event.Info,

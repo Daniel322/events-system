@@ -1,7 +1,8 @@
 package telegram
 
 import (
-	"events-system/internal/services"
+	"events-system/internal/dto"
+	"events-system/internal/interfaces"
 	"events-system/internal/utils"
 	"log"
 	"reflect"
@@ -20,17 +21,17 @@ type TgEvent struct {
 type TgBotProvider struct {
 	Name                 string
 	Bot                  *tgbotapi.BotAPI
-	UserService          services.IUserService
-	AccountService       services.IAccountService
-	EventService         services.IEventService
+	UserService          interfaces.IUserService
+	AccountService       interfaces.IAccountService
+	EventService         interfaces.IEventService
 	NotCompletedEventMap map[int64]*TgEvent
 }
 
 func NewTgBotProvider(
 	token string,
-	userService services.IUserService,
-	accService services.IAccountService,
-	eventService services.IEventService,
+	userService interfaces.IUserService,
+	accService interfaces.IAccountService,
+	eventService interfaces.IEventService,
 ) (*TgBotProvider, error) {
 	bot, err := tgbotapi.NewBotAPI(token)
 
@@ -108,7 +109,7 @@ func (tg *TgBotProvider) Bootstrap() {
 					// strAccId := strconv.Itoa(int(update.Message.From.ID))
 					currentEvent.Date = &timeVar
 
-					event, err := tg.EventService.CreateEvent(services.CreateEventData{
+					event, err := tg.EventService.CreateEvent(dto.CreateEventDTO{
 						AccountId: currentAcc.ID.String(),
 						Date:      *currentEvent.Date,
 						Info:      currentEvent.Name,
@@ -142,7 +143,7 @@ func (tg *TgBotProvider) Bootstrap() {
 				if currentAccount == nil {
 					strAccId := strconv.Itoa(int(update.Message.From.ID))
 
-					newUser, err := tg.UserService.CreateUser(services.CreateUserData{
+					newUser, err := tg.UserService.CreateUser(dto.UserDataDTO{
 						Username:  update.Message.From.UserName,
 						AccountId: strAccId,
 						Type:      "telegram",

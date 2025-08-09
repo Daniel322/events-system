@@ -1,9 +1,9 @@
 package services
 
 import (
+	"events-system/infrastructure/providers/db"
 	"events-system/internal/domain"
-	"events-system/internal/providers/db"
-	"events-system/internal/repositories"
+	"events-system/internal/interfaces"
 	"events-system/internal/utils"
 	"strconv"
 )
@@ -11,12 +11,12 @@ import (
 type AccountService struct {
 	Name              string
 	DB                *db.Database
-	accountRepository *repositories.Repository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData]
+	accountRepository interfaces.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData]
 }
 
 func NewAccountService(
 	db *db.Database,
-	accountRepository *repositories.Repository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData],
+	accountRepository interfaces.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData],
 ) *AccountService {
 	return &AccountService{
 		Name:              "AccountService",

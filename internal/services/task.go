@@ -2,9 +2,9 @@ package services
 
 import (
 	"errors"
+	"events-system/infrastructure/providers/db"
 	"events-system/internal/domain"
-	"events-system/internal/providers/db"
-	"events-system/internal/repositories"
+	"events-system/internal/interfaces"
 	"events-system/internal/utils"
 	"log"
 	"strconv"
@@ -14,9 +14,9 @@ import (
 type TaskService struct {
 	Name            string
 	DB              *db.Database
-	taskRepository  repositories.IRepository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData]
-	eventRepository repositories.IRepository[domain.Event, domain.CreateEventData, domain.UpdateEventData]
-	accRepository   repositories.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData]
+	taskRepository  interfaces.IRepository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData]
+	eventRepository interfaces.IRepository[domain.Event, domain.CreateEventData, domain.UpdateEventData]
+	accRepository   interfaces.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData]
 }
 
 type InfoAboutTaskForTgProvider struct {
@@ -26,9 +26,9 @@ type InfoAboutTaskForTgProvider struct {
 
 func NewTaskService(
 	DB *db.Database,
-	repo repositories.IRepository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData],
-	eventRepo repositories.IRepository[domain.Event, domain.CreateEventData, domain.UpdateEventData],
-	accRepository repositories.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData],
+	repo interfaces.IRepository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData],
+	eventRepo interfaces.IRepository[domain.Event, domain.CreateEventData, domain.UpdateEventData],
+	accRepository interfaces.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData],
 ) *TaskService {
 	return &TaskService{
 		Name:            "TaskService",

@@ -1,12 +1,12 @@
 package main
 
 import (
+	"events-system/infrastructure/providers/cron"
+	db "events-system/infrastructure/providers/db"
+	"events-system/infrastructure/providers/http/controllers"
+	"events-system/infrastructure/providers/http/server"
+	"events-system/infrastructure/providers/telegram"
 	"events-system/internal/domain"
-	"events-system/internal/providers/cron"
-	db "events-system/internal/providers/db"
-	"events-system/internal/providers/http/controllers"
-	"events-system/internal/providers/http/server"
-	"events-system/internal/providers/telegram"
 	"events-system/internal/repositories"
 	"events-system/internal/services"
 	"fmt"

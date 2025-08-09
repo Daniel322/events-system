@@ -1,7 +1,7 @@
 package cron
 
 import (
-	"events-system/internal/providers/telegram"
+	"events-system/infrastructure/providers/telegram"
 	"events-system/internal/services"
 	"events-system/internal/utils"
 	"log"
