@@ -11,7 +11,6 @@ import (
 type DatabaseInstance = *gorm.DB
 
 type Database struct {
-	// TODO: change gorm to special astract interface
 	Instance DatabaseInstance
 	Url      string
 }
