@@ -65,6 +65,7 @@ func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, 
 	todayYear := today.Year()
 	eventDateYear := data.Date.Year()
 	currentEventInThatYear := data.Date
+	// TODO: check flow and fix bug with next case: если создать евент с таском в текущий день, таск создастся на следующий год
 	if eventDateYear < todayYear {
 		currentEventInThatYear = time.Date(
 			todayYear,

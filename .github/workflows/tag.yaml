@@ -1,0 +1,31 @@
+name: Make tag
+on:
+  push:
+    tags:
+      - "d*"
+      - "s*"
+jobs:
+  make-be-image:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [ '1.23', '1.24' ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Show tag
+        run: "echo Tag: ${{ github.ref_name }}"
+
+      - name: Docker login
+        run: printf '%s\n' '${{ secrets.DOCKER_PASSWORD }}' | docker login -u ${{ vars.DOCKER_USER }} --password-stdin
+
+      - name: Make docker image
+        run: "docker build -f Dockerfile -t events-system ."
+
+      - name: Make tag
+        run: docker tag shortener-api ${{ vars.DOCKER_REGISTRY }}/events-system:${{ github.ref_name }}
+
+      - name: Push tag to registry
+        run: docker push ${{ vars.DOCKER_REGISTRY }}/events-system:${{ github.ref_name }}
