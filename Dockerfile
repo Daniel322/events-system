@@ -14,7 +14,6 @@ FROM alpine:latest
 WORKDIR /app
 
 COPY --from=builder /app/app .
-COPY --from=builder /app/migrations/ ./migrations
 COPY --from=builder /app/run-migrations.sh .
 RUN chmod +x ./run-migrations.sh
 
