@@ -185,7 +185,7 @@ func (tg *TgBotProvider) Bootstrap() {
 					msg.Text = "Start to create event, write event name or info"
 				}
 			case "help":
-				msg.Text = "I understand /sayhi and /status."
+				msg.Text = "I understand /start and /event."
 			default:
 				msg.Text = "I don't know that command"
 			}
