@@ -25,7 +25,7 @@ jobs:
         run: "docker build -f Dockerfile -t events-system ."
 
       - name: Make tag
-        run: docker tag shortener-api ${{ vars.DOCKER_REGISTRY }}/events-system:${{ github.ref_name }}
+        run: docker tag events-system ${{ vars.DOCKER_REGISTRY }}/events-system:${{ github.ref_name }}
 
       - name: Push tag to registry
         run: docker push ${{ vars.DOCKER_REGISTRY }}/events-system:${{ github.ref_name }}
