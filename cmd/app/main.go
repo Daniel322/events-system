@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"events-system/infrastructure/providers/cron"
 	db "events-system/infrastructure/providers/db"
 	"events-system/infrastructure/providers/http/controllers"
@@ -10,7 +11,11 @@ import (
 	"events-system/internal/repositories"
 	"events-system/internal/services"
 	"fmt"
+	"log"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -20,6 +25,9 @@ func main() {
 	if err != nil {
 		fmt.Println("Error loading .env file")
 	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
 	// init external providers
 	db := db.NewDatabase(os.Getenv("GOOSE_DBSTRING"))
@@ -65,5 +73,16 @@ func main() {
 	userController.InitRoutes()
 
 	// start http server
-	server.Start(os.Getenv("HTTP_PORT"))
+	go server.Start(os.Getenv("HTTP_PORT"))
+
+	<-ctx.Done()
+
+	log.Println("shutting down server gracefully")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.Instance.Shutdown(shutdownCtx); err != nil {
+		log.Printf("shutdown: %w", err)
+	}
 }
