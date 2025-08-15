@@ -206,3 +206,9 @@ func (tg *TgBotProvider) SendMsg(chatId int64, text string) {
 
 	tg.Bot.Send(msg)
 }
+
+func (tg *TgBotProvider) Close() {
+	tg.Bot.StopReceivingUpdates()
+	log.SetPrefix("TG_BOT ")
+	log.Println("close tg provider")
+}

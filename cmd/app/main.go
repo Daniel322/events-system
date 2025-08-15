@@ -83,6 +83,7 @@ func main() {
 	defer cancel()
 
 	db.Close()
+	tgBotProvider.Close()
 
 	if err := server.Instance.Shutdown(shutdownCtx); err != nil {
 		log.Printf("shutdown: %w", err)
