@@ -37,3 +37,20 @@ func (db *Database) CreateTransaction() DatabaseInstance {
 
 	return tx
 }
+
+func (db *Database) Close() error {
+	dbInstance, err := db.Instance.DB()
+
+	if err != nil {
+		return err
+	}
+
+	err = dbInstance.Close()
+
+	if err == nil {
+		log.SetPrefix("DB ")
+		log.Println("Close DB connection")
+	}
+
+	return err
+}
