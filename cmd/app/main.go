@@ -26,7 +26,7 @@ func main() {
 		fmt.Println("Error loading .env file")
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	defer stop()
 
 	// init external providers
@@ -84,9 +84,5 @@ func main() {
 
 	db.Close()
 	tgBotProvider.Close()
-
-	if err := server.Instance.Shutdown(shutdownCtx); err != nil {
-		log.Printf("shutdown: %w", err)
-	}
-
+	server.Close(shutdownCtx)
 }
