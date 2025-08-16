@@ -64,9 +64,9 @@ func (uc UserController) ExecRoute(c echo.Context) error {
 
 		return c.JSON(http.StatusCreated, user)
 	case "PATCH":
-		fmt.Println("PATCH method")
+		fmt.Println("PATCH method not implemented")
 	case "DELETE":
-		fmt.Println("DELETE method")
+		fmt.Println("DELETE method not implemented")
 	}
 	return c.JSON(200, "ok")
 }
