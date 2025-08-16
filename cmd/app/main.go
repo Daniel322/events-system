@@ -8,6 +8,7 @@ import (
 	"events-system/infrastructure/providers/http/server"
 	"events-system/infrastructure/providers/telegram"
 	"events-system/internal/domain"
+	entities "events-system/internal/entity"
 	"events-system/internal/repositories"
 	"events-system/internal/services"
 	"fmt"
@@ -40,10 +41,10 @@ func main() {
 	taskFactory := domain.NewTaskFactory()
 
 	// init repositories
-	userRepository := repositories.NewRepository("UserRepository", db, userFactory)
-	accountRepository := repositories.NewRepository("AccountRepository", db, accountFactory)
-	eventRepository := repositories.NewRepository("EventRepository", db, eventFactory)
-	taskRepository := repositories.NewRepository("TaskRepository", db, taskFactory)
+	userRepository := repositories.NewRepository[entities.User]("UserRepository", db)
+	accountRepository := repositories.NewRepository[entities.Account]("AccountRepository", db)
+	eventRepository := repositories.NewRepository[entities.Event]("EventRepository", db)
+	taskRepository := repositories.NewRepository[entities.Task]("TaskRepository", db)
 
 	// init services
 	userService := services.NewUserService(db, userRepository, accountRepository)

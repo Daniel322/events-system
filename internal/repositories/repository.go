@@ -2,68 +2,54 @@ package repositories
 
 import (
 	"events-system/infrastructure/providers/db"
-	"events-system/internal/interfaces"
 	"events-system/internal/utils"
 	"log"
 	"reflect"
 )
 
-type Repository[Entity any, CreateData any, UpdateData any] struct {
-	Name    string
-	db      *db.Database
-	factory interfaces.Factory[Entity, CreateData, UpdateData]
+type Repository[Entity any] struct {
+	Name string
+	db   *db.Database
 }
 
-func NewRepository[
-	Entity any,
-	CreateData any,
-	UpdateData any,
-](
+func NewRepository[Entity any](
 	name string,
 	db *db.Database,
-	factory interfaces.Factory[Entity, CreateData, UpdateData],
-) *Repository[Entity, CreateData, UpdateData] {
-	return &Repository[Entity, CreateData, UpdateData]{
-		Name:    name,
-		db:      db,
-		factory: factory,
+) *Repository[Entity] {
+	return &Repository[Entity]{
+		Name: name,
+		db:   db,
 	}
 }
 
-func (repo *Repository[Entity, CreateData, UpdateData]) Create(
-	data CreateData,
+func (repo *Repository[Entity]) Create(
+	data Entity,
 	transaction db.DatabaseInstance,
 ) (*Entity, error) {
-	factoryResult, err := repo.factory.Create(data)
-
-	if err != nil {
-		return nil, utils.GenerateError(repo.Name, err.Error())
-	}
-
 	var instanceForExec = repo.checkTransactionExistance(transaction)
 
-	result := instanceForExec.Create(factoryResult)
+	result := instanceForExec.Create(&data)
 
 	if result.Error != nil {
 		return nil, utils.GenerateError(repo.Name, result.Error.Error())
 	}
 
-	return factoryResult, nil
+	return &data, nil
 }
 
-func (repo *Repository[Entity, CreateData, UpdateData]) GetById(id string) (*Entity, error) {
-	factoryInstance := new(Entity)
+func (repo *Repository[Entity]) GetById(id string) (*Entity, error) {
+	entity := new(Entity)
 
-	result := repo.db.Instance.First(factoryInstance, "id =?", id)
+	result := repo.db.Instance.First(entity, "id =?", id)
 
 	if result.Error != nil {
 		return nil, utils.GenerateError(repo.Name, result.Error.Error())
 	}
 
-	return factoryInstance, nil
+	return entity, nil
 }
 
-func (repo *Repository[Entity, CreateData, UpdateData]) Delete(id string, transaction db.DatabaseInstance) (bool, error) {
+func (repo *Repository[Entity]) Delete(id string, transaction db.DatabaseInstance) (bool, error) {
 	parsedId, _, err := utils.ParseId(id)
 
 	if err != nil {
@@ -82,7 +68,7 @@ func (repo *Repository[Entity, CreateData, UpdateData]) Delete(id string, transa
 	return true, nil
 }
 
-func (repo *Repository[Entity, CreateData, UpdateData]) GetList(options map[string]interface{}) (*[]Entity, error) {
+func (repo *Repository[Entity]) GetList(options map[string]interface{}) (*[]Entity, error) {
 	var entities *[]Entity
 
 	result := repo.db.Instance.Where(options).Find(&entities)
@@ -94,18 +80,12 @@ func (repo *Repository[Entity, CreateData, UpdateData]) GetList(options map[stri
 	return entities, nil
 }
 
-func (repo *Repository[Entity, CreateData, UpdateData]) Update(
+func (repo *Repository[Entity]) Update(
 	id string,
-	data UpdateData,
+	data Entity,
 	transaction db.DatabaseInstance,
 ) (*Entity, error) {
 	entity, err := repo.GetById(id)
-
-	if err != nil {
-		return nil, utils.GenerateError(repo.Name, err.Error())
-	}
-
-	entity, err = repo.factory.Update(entity, data)
 
 	if err != nil {
 		return nil, utils.GenerateError(repo.Name, err.Error())
@@ -122,7 +102,7 @@ func (repo *Repository[Entity, CreateData, UpdateData]) Update(
 	return entity, nil
 }
 
-func (repo *Repository[Entity, CreateData, UpdateData]) checkTransactionExistance(transaction db.DatabaseInstance) db.DatabaseInstance {
+func (repo *Repository[Entity]) checkTransactionExistance(transaction db.DatabaseInstance) db.DatabaseInstance {
 	var instanceForExec db.DatabaseInstance
 
 	if reflect.ValueOf(transaction).Elem().IsValid() {
