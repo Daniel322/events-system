@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"events-system/internal/domain"
+	entities "events-system/internal/entity"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,9 +14,9 @@ type UserDataDTO struct {
 }
 
 type OutputUser struct {
-	ID        uuid.UUID        `json:"id"`
-	Username  string           `json:"username"`
-	Accounts  []domain.Account `json:"accounts"`
-	CreatedAt time.Time        `json:"createdAt"`
-	UpdatedAt time.Time        `json:"updatedAt"`
+	ID        uuid.UUID          `json:"id"`
+	Username  string             `json:"username"`
+	Accounts  []entities.Account `json:"accounts"`
+	CreatedAt time.Time          `json:"createdAt"`
+	UpdatedAt time.Time          `json:"updatedAt"`
 }

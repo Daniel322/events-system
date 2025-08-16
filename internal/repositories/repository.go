@@ -1,4 +1,4 @@
-package repositories
+package repository
 
 import (
 	"events-system/infrastructure/providers/db"
@@ -7,113 +7,119 @@ import (
 	"reflect"
 )
 
-type Repository[Entity any] struct {
-	Name string
-	db   *db.Database
+var connection *db.Database
+
+func Init(conn *db.Database) {
+	connection = conn
 }
 
-func NewRepository[Entity any](
-	name string,
-	db *db.Database,
-) *Repository[Entity] {
-	return &Repository[Entity]{
-		Name: name,
-		db:   db,
+func getGenericName[Entity any](value Entity) string {
+	typeName := reflect.TypeOf(value).String()
+
+	return typeName + " repository:"
+}
+
+func checkTransactionExistance(transaction db.DatabaseInstance, name string) db.DatabaseInstance {
+	var instanceForExec db.DatabaseInstance
+
+	if reflect.ValueOf(transaction).Elem().IsValid() {
+		log.SetPrefix("INFO ")
+		log.Println(name + "transaction coming")
+		instanceForExec = transaction
+	} else {
+		log.SetPrefix("INFO ")
+		log.Println(name + "transaction not exist")
+		instanceForExec = connection.Instance
 	}
+
+	return instanceForExec
 }
 
-func (repo *Repository[Entity]) Create(
-	data Entity,
-	transaction db.DatabaseInstance,
-) (*Entity, error) {
-	var instanceForExec = repo.checkTransactionExistance(transaction)
+func CreateTransaction() db.DatabaseInstance {
+	tx := connection.Instance.Begin()
 
-	result := instanceForExec.Create(&data)
+	return tx
+}
+
+func Create[Entity any](tableName string, data Entity, transaction db.DatabaseInstance) (*Entity, error) {
+	typeName := getGenericName(data)
+	var instanceForExec = checkTransactionExistance(transaction, typeName)
+
+	result := instanceForExec.Table(tableName).Create(&data)
 
 	if result.Error != nil {
-		return nil, utils.GenerateError(repo.Name, result.Error.Error())
+		return nil, utils.GenerateError(typeName, result.Error.Error())
 	}
 
 	return &data, nil
 }
 
-func (repo *Repository[Entity]) GetById(id string) (*Entity, error) {
+func GetById[Entity any](tableName string, id string) (*Entity, error) {
 	entity := new(Entity)
+	typeName := getGenericName(entity)
 
-	result := repo.db.Instance.First(entity, "id =?", id)
+	result := connection.Instance.Table(tableName).First(entity, "id =?", id)
 
 	if result.Error != nil {
-		return nil, utils.GenerateError(repo.Name, result.Error.Error())
+		return nil, utils.GenerateError(typeName, result.Error.Error())
 	}
 
 	return entity, nil
 }
 
-func (repo *Repository[Entity]) Delete(id string, transaction db.DatabaseInstance) (bool, error) {
+func Delete[Entity any](tableName string, id string, transaction db.DatabaseInstance) (bool, error) {
+	entity := new(Entity)
+	typeName := getGenericName(entity)
 	parsedId, _, err := utils.ParseId(id)
 
 	if err != nil {
-		return false, utils.GenerateError(repo.Name, err.Error())
+		return false, utils.GenerateError(typeName, err.Error())
 	}
 
-	var instanceForExec = repo.checkTransactionExistance(transaction)
+	var instanceForExec = checkTransactionExistance(transaction, typeName)
 
-	entity := new(Entity)
-	result := instanceForExec.Where("id = ?", parsedId).Delete(&entity)
+	result := instanceForExec.Table(tableName).Where("id = ?", parsedId).Delete(&entity)
 
 	if result.Error != nil {
-		return false, utils.GenerateError(repo.Name, result.Error.Error())
+		return false, utils.GenerateError(typeName, result.Error.Error())
 	}
 
 	return true, nil
 }
 
-func (repo *Repository[Entity]) GetList(options map[string]interface{}) (*[]Entity, error) {
+func GetList[Entity any](tableName string, options map[string]interface{}) (*[]Entity, error) {
 	var entities *[]Entity
+	typeName := getGenericName(entities)
 
-	result := repo.db.Instance.Where(options).Find(&entities)
+	result := connection.Instance.Table(tableName).Where(options).Find(&entities)
 
 	if result.Error != nil {
-		return nil, utils.GenerateError(repo.Name, result.Error.Error())
+		return nil, utils.GenerateError(typeName, result.Error.Error())
 	}
 
 	return entities, nil
 }
 
-func (repo *Repository[Entity]) Update(
+func Update[Entity any](
+	tableName string,
 	id string,
 	data Entity,
 	transaction db.DatabaseInstance,
 ) (*Entity, error) {
-	entity, err := repo.GetById(id)
+	entity, err := GetById[Entity](tableName, id)
+	typeName := getGenericName(entity)
 
 	if err != nil {
-		return nil, utils.GenerateError(repo.Name, err.Error())
+		return nil, utils.GenerateError(typeName, err.Error())
 	}
 
-	var instanceForExec = repo.checkTransactionExistance(transaction)
+	var instanceForExec = checkTransactionExistance(transaction, typeName)
 
-	result := instanceForExec.Save(entity)
+	result := instanceForExec.Table(tableName).Save(entity)
 
 	if result.Error != nil {
-		return nil, utils.GenerateError(repo.Name, result.Error.Error())
+		return nil, utils.GenerateError(typeName, result.Error.Error())
 	}
 
 	return entity, nil
-}
-
-func (repo *Repository[Entity]) checkTransactionExistance(transaction db.DatabaseInstance) db.DatabaseInstance {
-	var instanceForExec db.DatabaseInstance
-
-	if reflect.ValueOf(transaction).Elem().IsValid() {
-		log.SetPrefix("INFO ")
-		log.Println(repo.Name + ": " + "transaction coming")
-		instanceForExec = transaction
-	} else {
-		log.SetPrefix("INFO ")
-		log.Println(repo.Name + ": " + "transaction not exist")
-		instanceForExec = repo.db.Instance
-	}
-
-	return instanceForExec
 }

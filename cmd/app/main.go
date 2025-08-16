@@ -2,14 +2,10 @@ package main
 
 import (
 	"context"
-	"events-system/infrastructure/providers/cron"
 	db "events-system/infrastructure/providers/db"
 	"events-system/infrastructure/providers/http/controllers"
 	"events-system/infrastructure/providers/http/server"
-	"events-system/infrastructure/providers/telegram"
-	"events-system/internal/domain"
-	entities "events-system/internal/entity"
-	"events-system/internal/repositories"
+	repository "events-system/internal/repositories"
 	"events-system/internal/services"
 	"fmt"
 	"log"
@@ -34,23 +30,20 @@ func main() {
 	db := db.NewDatabase(os.Getenv("GOOSE_DBSTRING"))
 	server := server.NewEchoInstance()
 
-	// init domain factories
-	userFactory := domain.NewUserFactory()
-	accountFactory := domain.NewAccountFactory()
-	eventFactory := domain.NewEventFactory()
-	taskFactory := domain.NewTaskFactory()
+	// init repository package
+	repository.Init(db)
 
-	// init repositories
-	userRepository := repositories.NewRepository[entities.User]("UserRepository", db)
-	accountRepository := repositories.NewRepository[entities.Account]("AccountRepository", db)
-	eventRepository := repositories.NewRepository[entities.Event]("EventRepository", db)
-	taskRepository := repositories.NewRepository[entities.Task]("TaskRepository", db)
+	// init domain factories
+	// userFactory := domain.NewUserFactory()
+	// accountFactory := domain.NewAccountFactory()
+	// eventFactory := domain.NewEventFactory()
+	// taskFactory := domain.NewTaskFactory()
 
 	// init services
-	userService := services.NewUserService(db, userRepository, accountRepository)
-	accountService := services.NewAccountService(db, accountRepository)
-	eventsService := services.NewEventService(db, eventRepository, taskRepository)
-	tasksService := services.NewTaskService(db, taskRepository, eventRepository, accountRepository)
+	userService := services.NewUserService()
+	// accountService := services.NewAccountService(db, accountRepository)
+	// eventsService := services.NewEventService(db, eventRepository, taskRepository)
+	// tasksService := services.NewTaskService(db, taskRepository, eventRepository, accountRepository)
 
 	// init controllers
 	userController := controllers.NewUserController(
@@ -58,17 +51,17 @@ func main() {
 		userService,
 	)
 
-	tgBotProvider, err := telegram.NewTgBotProvider(os.Getenv("TG_BOT_TOKEN"), userService, accountService, eventsService)
+	// tgBotProvider, err := telegram.NewTgBotProvider(os.Getenv("TG_BOT_TOKEN"), userService, accountService, eventsService)
 
 	if err != nil {
 		panic(err.Error())
 	}
 
-	cronProvider := cron.NewCronProvider(tgBotProvider, tasksService)
+	// cronProvider := cron.NewCronProvider(tgBotProvider, tasksService)
 
-	cronProvider.Bootstrap()
+	// cronProvider.Bootstrap()
 
-	go tgBotProvider.Bootstrap()
+	// go tgBotProvider.Bootstrap()
 
 	// init http routes
 	userController.InitRoutes()
@@ -84,6 +77,6 @@ func main() {
 	defer cancel()
 
 	db.Close()
-	tgBotProvider.Close()
+	// tgBotProvider.Close()
 	server.Close(shutdownCtx)
 }
