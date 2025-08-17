@@ -2,7 +2,7 @@ package repository
 
 import (
 	"events-system/infrastructure/providers/db"
-	"events-system/internal/utils"
+	"events-system/pkg/utils"
 	"log"
 	"reflect"
 )

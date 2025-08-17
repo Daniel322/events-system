@@ -4,7 +4,7 @@ import (
 	"events-system/internal/dto"
 	entities "events-system/internal/entity"
 	repository "events-system/internal/repositories"
-	"events-system/internal/utils"
+	"events-system/pkg/utils"
 	"time"
 
 	"github.com/google/uuid"

@@ -5,7 +5,7 @@ import (
 	"events-system/internal/domain"
 	"events-system/internal/dto"
 	"events-system/internal/interfaces"
-	"events-system/internal/utils"
+	"events-system/pkg/utils"
 	"strings"
 	"time"
 )

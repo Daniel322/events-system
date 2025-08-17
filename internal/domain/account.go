@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"events-system/internal/utils"
+	"events-system/pkg/utils"
 	"reflect"
 	"slices"
 	"time"

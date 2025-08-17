@@ -3,7 +3,7 @@ package telegram
 import (
 	"events-system/internal/dto"
 	"events-system/internal/interfaces"
-	"events-system/internal/utils"
+	"events-system/pkg/utils"
 	"log"
 	"reflect"
 	"strconv"

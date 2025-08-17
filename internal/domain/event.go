@@ -2,7 +2,7 @@ package domain
 
 import (
 	"encoding/json"
-	"events-system/internal/utils"
+	"events-system/pkg/utils"
 	"reflect"
 	"time"
 

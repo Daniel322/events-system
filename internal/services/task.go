@@ -5,7 +5,7 @@ import (
 	"events-system/infrastructure/providers/db"
 	"events-system/internal/domain"
 	"events-system/internal/interfaces"
-	"events-system/internal/utils"
+	"events-system/pkg/utils"
 	"log"
 	"strconv"
 	"time"
