@@ -4,6 +4,7 @@ import (
 	"events-system/internal/dto"
 	entities "events-system/internal/entity"
 	repository "events-system/internal/repositories"
+	dependency_container "events-system/pkg/di"
 	"events-system/pkg/utils"
 	"time"
 
@@ -21,9 +22,13 @@ type UserData struct {
 const USERNAME_CANT_BE_EMPTY_ERR_MSG = "username cant be empty"
 
 func NewUserService() *UserService {
-	return &UserService{
+	service := &UserService{
 		Name: "UserService",
 	}
+
+	dependency_container.Container.Add("userService", service)
+
+	return service
 }
 
 func (us *UserService) create(data UserData) (*entities.User, error) {
@@ -55,6 +60,12 @@ func (us *UserService) update(user *entities.User, data UserData) (*entities.Use
 }
 
 func (us UserService) CreateUser(data dto.UserDataDTO) (*dto.OutputUser, error) {
+	accountService, err := dependency_container.Container.Get("accountService")
+
+	if err != nil {
+		return nil, utils.GenerateError(us.Name, err.Error())
+	}
+
 	transaction := repository.CreateTransaction()
 
 	defer func() {
@@ -77,9 +88,7 @@ func (us UserService) CreateUser(data dto.UserDataDTO) (*dto.OutputUser, error) 
 		return nil, utils.GenerateError(us.Name, err.Error())
 	}
 
-	// TODO: move to service, now no SOLID
-	acc, err := repository.Create("accounts", entities.Account{
-		ID:        uuid.New(),
+	acc, err := accountService.(*AccountService).Create(entities.Account{
 		UserId:    user.ID,
 		AccountId: data.AccountId,
 		Type:      data.Type,

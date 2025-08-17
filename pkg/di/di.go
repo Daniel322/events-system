@@ -6,10 +6,8 @@ type DependencyContainer struct {
 	Services map[string]interface{}
 }
 
-func NewDependencyContainer() *DependencyContainer {
-	return &DependencyContainer{
-		Services: make(map[string]interface{}),
-	}
+var Container = &DependencyContainer{
+	Services: make(map[string]interface{}),
 }
 
 func (cont *DependencyContainer) Add(name string, value interface{}) {

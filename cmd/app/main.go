@@ -41,7 +41,9 @@ func main() {
 
 	// init services
 	userService := services.NewUserService()
-	// accountService := services.NewAccountService(db, accountRepository)
+	accountService := services.NewAccountService()
+
+	fmt.Println(accountService)
 	// eventsService := services.NewEventService(db, eventRepository, taskRepository)
 	// tasksService := services.NewTaskService(db, taskRepository, eventRepository, accountRepository)
 
