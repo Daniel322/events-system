@@ -77,6 +77,7 @@ func (us UserService) CreateUser(data dto.UserDataDTO) (*dto.OutputUser, error) 
 		return nil, utils.GenerateError(us.Name, err.Error())
 	}
 
+	// TODO: move to service, now no SOLID
 	acc, err := repository.Create("accounts", entities.Account{
 		ID:        uuid.New(),
 		UserId:    user.ID,
