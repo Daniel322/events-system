@@ -36,7 +36,7 @@ func NewAccountService() *AccountService {
 		Name: "AccountService",
 	}
 
-	dependency_container.Container.Add("accountsService", service)
+	dependency_container.Container.Add("accountService", service)
 
 	return service
 }
@@ -70,7 +70,7 @@ func (af *AccountService) Create(data entities.Account, tranasction db.DatabaseI
 		UpdatedAt: time.Now(),
 	}
 
-	resAcc, err := repository.Create("accoutns", account, tranasction)
+	resAcc, err := repository.Create("accounts", account, tranasction)
 
 	if err != nil {
 		return nil, utils.GenerateError(af.Name, err.Error())

@@ -81,7 +81,7 @@ func (us UserService) CreateUser(data dto.UserDataDTO) (*dto.OutputUser, error) 
 		return nil, utils.GenerateError(us.Name, err.Error())
 	}
 
-	user, err = repository.Create[entities.User]("users", *user, transaction)
+	user, err = repository.Create("users", *user, transaction)
 
 	if err != nil {
 		transaction.Rollback()
