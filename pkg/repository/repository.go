@@ -41,11 +41,11 @@ func CreateTransaction() db.DatabaseInstance {
 	return tx
 }
 
-func Create[Entity any](tableName string, data Entity, transaction db.DatabaseInstance) (*Entity, error) {
+func Create[Entity any](tableName ModelName, data Entity, transaction db.DatabaseInstance) (*Entity, error) {
 	typeName := getGenericName(data)
 	var instanceForExec = checkTransactionExistance(transaction, typeName)
 
-	result := instanceForExec.Table(tableName).Create(&data)
+	result := instanceForExec.Table(modelNames[tableName]).Create(&data)
 
 	if result.Error != nil {
 		return nil, utils.GenerateError(typeName, result.Error.Error())
@@ -54,11 +54,11 @@ func Create[Entity any](tableName string, data Entity, transaction db.DatabaseIn
 	return &data, nil
 }
 
-func GetById[Entity any](tableName string, id string) (*Entity, error) {
+func GetById[Entity any](tableName ModelName, id string) (*Entity, error) {
 	entity := new(Entity)
 	typeName := getGenericName(entity)
 
-	result := connection.Instance.Table(tableName).First(entity, "id =?", id)
+	result := connection.Instance.Table(modelNames[tableName]).First(entity, "id =?", id)
 
 	if result.Error != nil {
 		return nil, utils.GenerateError(typeName, result.Error.Error())
@@ -67,7 +67,7 @@ func GetById[Entity any](tableName string, id string) (*Entity, error) {
 	return entity, nil
 }
 
-func Delete[Entity any](tableName string, id string, transaction db.DatabaseInstance) (bool, error) {
+func Delete[Entity any](tableName ModelName, id string, transaction db.DatabaseInstance) (bool, error) {
 	entity := new(Entity)
 	typeName := getGenericName(entity)
 	parsedId, _, err := utils.ParseId(id)
@@ -78,7 +78,7 @@ func Delete[Entity any](tableName string, id string, transaction db.DatabaseInst
 
 	var instanceForExec = checkTransactionExistance(transaction, typeName)
 
-	result := instanceForExec.Table(tableName).Where("id = ?", parsedId).Delete(&entity)
+	result := instanceForExec.Table(modelNames[tableName]).Where("id = ?", parsedId).Delete(&entity)
 
 	if result.Error != nil {
 		return false, utils.GenerateError(typeName, result.Error.Error())
@@ -87,11 +87,11 @@ func Delete[Entity any](tableName string, id string, transaction db.DatabaseInst
 	return true, nil
 }
 
-func GetList[Entity any](tableName string, options map[string]interface{}) (*[]Entity, error) {
+func GetList[Entity any](tableName ModelName, options map[string]interface{}) (*[]Entity, error) {
 	var entities *[]Entity
 	typeName := getGenericName(entities)
 
-	result := connection.Instance.Table(tableName).Where(options).Find(&entities)
+	result := connection.Instance.Table(modelNames[tableName]).Where(options).Find(&entities)
 
 	if result.Error != nil {
 		return nil, utils.GenerateError(typeName, result.Error.Error())
@@ -101,7 +101,7 @@ func GetList[Entity any](tableName string, options map[string]interface{}) (*[]E
 }
 
 func Update[Entity any](
-	tableName string,
+	tableName ModelName,
 	id string,
 	data Entity,
 	transaction db.DatabaseInstance,
@@ -115,7 +115,7 @@ func Update[Entity any](
 
 	var instanceForExec = checkTransactionExistance(transaction, typeName)
 
-	result := instanceForExec.Table(tableName).Save(entity)
+	result := instanceForExec.Table(modelNames[tableName]).Save(entity)
 
 	if result.Error != nil {
 		return nil, utils.GenerateError(typeName, result.Error.Error())

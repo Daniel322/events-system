@@ -3,8 +3,8 @@ package services
 import (
 	"events-system/internal/dto"
 	entities "events-system/internal/entity"
-	repository "events-system/internal/repositories"
 	dependency_container "events-system/pkg/di"
+	repository "events-system/pkg/repository"
 	"events-system/pkg/utils"
 	"time"
 
@@ -81,7 +81,7 @@ func (us UserService) CreateUser(data dto.UserDataDTO) (*dto.OutputUser, error) 
 		return nil, utils.GenerateError(us.Name, err.Error())
 	}
 
-	user, err = repository.Create("users", *user, transaction)
+	user, err = repository.Create(repository.Users, *user, transaction)
 
 	if err != nil {
 		transaction.Rollback()
@@ -116,7 +116,7 @@ func (us UserService) CreateUser(data dto.UserDataDTO) (*dto.OutputUser, error) 
 }
 
 func (us UserService) GetUser(id string) (*dto.OutputUser, error) {
-	user, err := repository.GetById[entities.User]("users", id)
+	user, err := repository.GetById[entities.User](repository.Users, id)
 
 	if err != nil {
 		return nil, utils.GenerateError(us.Name, err.Error())
@@ -126,7 +126,7 @@ func (us UserService) GetUser(id string) (*dto.OutputUser, error) {
 
 	options["user_id"] = user.ID
 
-	accs, err := repository.GetList[entities.Account]("accounts", options)
+	accs, err := repository.GetList[entities.Account](repository.Accounts, options)
 
 	if err != nil {
 		return nil, utils.GenerateError(us.Name, err.Error())

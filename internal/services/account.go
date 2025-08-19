@@ -3,8 +3,8 @@ package services
 import (
 	"events-system/infrastructure/providers/db"
 	entities "events-system/internal/entity"
-	repository "events-system/internal/repositories"
 	dependency_container "events-system/pkg/di"
+	repository "events-system/pkg/repository"
 	"events-system/pkg/utils"
 	"slices"
 	"strconv"
@@ -19,6 +19,11 @@ type AccountService struct {
 
 type CreateAccountData struct {
 	UserId    string
+	AccountId string
+	Type      string
+}
+
+type UpdateAccountData struct {
 	AccountId string
 	Type      string
 }
@@ -70,7 +75,7 @@ func (af *AccountService) Create(data entities.Account, tranasction db.DatabaseI
 		UpdatedAt: time.Now(),
 	}
 
-	resAcc, err := repository.Create("accounts", account, tranasction)
+	resAcc, err := repository.Create(repository.Accounts, account, tranasction)
 
 	if err != nil {
 		return nil, utils.GenerateError(af.Name, err.Error())
@@ -82,7 +87,7 @@ func (af *AccountService) Create(data entities.Account, tranasction db.DatabaseI
 func (as *AccountService) CheckAccount(accountId int64) (*entities.Account, error) {
 	var options = map[string]interface{}{}
 	options["account_id"] = strconv.Itoa(int(accountId))
-	currentAccounts, err := repository.GetList[entities.Account]("accounts", options)
+	currentAccounts, err := repository.GetList[entities.Account](repository.Accounts, options)
 
 	if err != nil {
 		return nil, utils.GenerateError(as.Name, err.Error())

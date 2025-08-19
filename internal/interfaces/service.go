@@ -1,8 +1,8 @@
 package interfaces
 
 import (
-	"events-system/internal/domain"
 	"events-system/internal/dto"
+	entities "events-system/internal/entity"
 )
 
 type IUserService interface {
@@ -15,5 +15,5 @@ type IEventService interface {
 }
 
 type IAccountService interface {
-	CheckAccount(accountId int64) (*domain.Account, error)
+	CheckAccount(accountId int64) (*entities.Account, error)
 }
