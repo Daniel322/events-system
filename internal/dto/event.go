@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"events-system/internal/domain"
+	entities "events-system/internal/entity"
 	"time"
 
 	"github.com/google/uuid"
@@ -24,5 +24,5 @@ type OutputEvent struct {
 	Providers    []byte
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
-	Tasks        []domain.Task
+	Tasks        []entities.Task
 }
