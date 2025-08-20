@@ -15,7 +15,7 @@ type IEventService interface {
 	CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, error)
 }
 
-type IAccountService interface {
+type AccountService interface {
 	Create(data entities.Account, transaction db.DatabaseInstance) (*entities.Account, error)
 	CheckAccount(accountId int64) (*entities.Account, error)
 }

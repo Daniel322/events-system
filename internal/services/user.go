@@ -7,9 +7,6 @@ import (
 	dependency_container "events-system/pkg/di"
 	repository "events-system/pkg/repository"
 	"events-system/pkg/utils"
-	"time"
-
-	"github.com/google/uuid"
 )
 
 type UserService struct {
@@ -32,35 +29,13 @@ func NewUserService() *UserService {
 	return service
 }
 
-func (us *UserService) Create(data UserData) (*entities.User, error) {
-	var id uuid.UUID = uuid.New()
-
-	if len(data.Username) == 0 {
-		return nil, utils.GenerateError(us.Name, USERNAME_CANT_BE_EMPTY_ERR_MSG)
-	}
-
-	var user = entities.User{
-		ID:        id,
-		Username:  data.Username,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	return &user, nil
-}
-
-func (us *UserService) Update(user *entities.User, data UserData) (*entities.User, error) {
-	if len(data.Username) == 0 {
-		return nil, utils.GenerateError(us.Name, USERNAME_CANT_BE_EMPTY_ERR_MSG)
-	}
-
-	user.Username = data.Username
-	user.UpdatedAt = time.Now()
-
-	return user, nil
-}
-
 func (us UserService) CreateUserWithAccount(data dto.UserDataDTO) (*dto.OutputUser, error) {
+	userFactory, err := dependency_container.Container.Get("userFactory")
+
+	if err != nil {
+		return nil, utils.GenerateError(us.Name, err.Error())
+	}
+
 	accountService, err := dependency_container.Container.Get("accountService")
 
 	if err != nil {
@@ -75,7 +50,7 @@ func (us UserService) CreateUserWithAccount(data dto.UserDataDTO) (*dto.OutputUs
 		}
 	}()
 
-	user, err := us.Create(UserData{Username: data.Username})
+	user, err := userFactory.(interfaces.UserFactory).Create(data.Username)
 
 	if err != nil {
 		transaction.Rollback()
@@ -89,7 +64,7 @@ func (us UserService) CreateUserWithAccount(data dto.UserDataDTO) (*dto.OutputUs
 		return nil, utils.GenerateError(us.Name, err.Error())
 	}
 
-	acc, err := accountService.(interfaces.IAccountService).Create(entities.Account{
+	acc, err := accountService.(interfaces.AccountService).Create(entities.Account{
 		UserId:    user.ID,
 		AccountId: data.AccountId,
 		Type:      data.Type,
