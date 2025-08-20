@@ -1,6 +1,7 @@
 package services
 
 import (
+	"events-system/interfaces"
 	"events-system/internal/dto"
 	entities "events-system/internal/entity"
 	dependency_container "events-system/pkg/di"
@@ -31,7 +32,7 @@ func NewUserService() *UserService {
 	return service
 }
 
-func (us *UserService) create(data UserData) (*entities.User, error) {
+func (us *UserService) Create(data UserData) (*entities.User, error) {
 	var id uuid.UUID = uuid.New()
 
 	if len(data.Username) == 0 {
@@ -48,7 +49,7 @@ func (us *UserService) create(data UserData) (*entities.User, error) {
 	return &user, nil
 }
 
-func (us *UserService) update(user *entities.User, data UserData) (*entities.User, error) {
+func (us *UserService) Update(user *entities.User, data UserData) (*entities.User, error) {
 	if len(data.Username) == 0 {
 		return nil, utils.GenerateError(us.Name, USERNAME_CANT_BE_EMPTY_ERR_MSG)
 	}
@@ -59,7 +60,7 @@ func (us *UserService) update(user *entities.User, data UserData) (*entities.Use
 	return user, nil
 }
 
-func (us UserService) CreateUser(data dto.UserDataDTO) (*dto.OutputUser, error) {
+func (us UserService) CreateUserWithAccount(data dto.UserDataDTO) (*dto.OutputUser, error) {
 	accountService, err := dependency_container.Container.Get("accountService")
 
 	if err != nil {
@@ -74,7 +75,7 @@ func (us UserService) CreateUser(data dto.UserDataDTO) (*dto.OutputUser, error) 
 		}
 	}()
 
-	user, err := us.create(UserData{Username: data.Username})
+	user, err := us.Create(UserData{Username: data.Username})
 
 	if err != nil {
 		transaction.Rollback()
@@ -88,7 +89,7 @@ func (us UserService) CreateUser(data dto.UserDataDTO) (*dto.OutputUser, error) 
 		return nil, utils.GenerateError(us.Name, err.Error())
 	}
 
-	acc, err := accountService.(*AccountService).Create(entities.Account{
+	acc, err := accountService.(interfaces.IAccountService).Create(entities.Account{
 		UserId:    user.ID,
 		AccountId: data.AccountId,
 		Type:      data.Type,

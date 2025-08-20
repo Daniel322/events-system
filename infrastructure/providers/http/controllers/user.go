@@ -1,8 +1,8 @@
 package controllers
 
 import (
+	"events-system/interfaces"
 	"events-system/internal/dto"
-	"events-system/internal/interfaces"
 	"events-system/pkg/utils"
 	"fmt"
 	"net/http"
@@ -52,7 +52,7 @@ func (uc UserController) ExecRoute(c echo.Context) error {
 			return c.String(http.StatusBadRequest, generatedError.Error())
 		}
 
-		user, err := uc.userService.CreateUser(dto.UserDataDTO{
+		user, err := uc.userService.CreateUserWithAccount(dto.UserDataDTO{
 			Username:  userData.Username,
 			AccountId: userData.AccountId,
 			Type:      userData.Type,

@@ -3,8 +3,8 @@ package services
 import (
 	"errors"
 	"events-system/infrastructure/providers/db"
+	"events-system/interfaces"
 	"events-system/internal/domain"
-	"events-system/internal/interfaces"
 	"events-system/pkg/utils"
 	"log"
 	"strconv"
