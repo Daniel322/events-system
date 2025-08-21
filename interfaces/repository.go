@@ -4,7 +4,7 @@ import (
 	"events-system/infrastructure/providers/db"
 )
 
-type IRepository[Entity any, CreateData any, UpdateData any] interface {
+type Repository[Entity any, CreateData any, UpdateData any] interface {
 	Create(data CreateData, transaction db.DatabaseInstance) (*Entity, error)
 	Update(id string, data UpdateData, transaction db.DatabaseInstance) (*Entity, error)
 	GetById(id string) (*Entity, error)

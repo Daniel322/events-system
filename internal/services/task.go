@@ -14,9 +14,9 @@ import (
 type TaskService struct {
 	Name            string
 	DB              *db.Database
-	taskRepository  interfaces.IRepository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData]
-	eventRepository interfaces.IRepository[domain.Event, domain.CreateEventData, domain.UpdateEventData]
-	accRepository   interfaces.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData]
+	taskRepository  interfaces.Repository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData]
+	eventRepository interfaces.Repository[domain.Event, domain.CreateEventData, domain.UpdateEventData]
+	accRepository   interfaces.Repository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData]
 }
 
 type InfoAboutTaskForTgProvider struct {
@@ -26,9 +26,9 @@ type InfoAboutTaskForTgProvider struct {
 
 func NewTaskService(
 	DB *db.Database,
-	repo interfaces.IRepository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData],
-	eventRepo interfaces.IRepository[domain.Event, domain.CreateEventData, domain.UpdateEventData],
-	accRepository interfaces.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData],
+	repo interfaces.Repository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData],
+	eventRepo interfaces.Repository[domain.Event, domain.CreateEventData, domain.UpdateEventData],
+	accRepository interfaces.Repository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData],
 ) *TaskService {
 	return &TaskService{
 		Name:            "TaskService",

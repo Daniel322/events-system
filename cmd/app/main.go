@@ -5,6 +5,7 @@ import (
 	db "events-system/infrastructure/providers/db"
 	"events-system/infrastructure/providers/http/controllers"
 	"events-system/infrastructure/providers/http/server"
+	entities "events-system/internal/entity"
 	"events-system/internal/services"
 	repository "events-system/pkg/repository"
 	"fmt"
@@ -34,10 +35,10 @@ func main() {
 	repository.Init(db)
 
 	// init domain factories
-	// userFactory := domain.NewUserFactory()
-	// accountFactory := domain.NewAccountFactory()
-	// eventFactory := domain.NewEventFactory()
-	// taskFactory := domain.NewTaskFactory()
+	entities.NewUserFactory()
+	entities.NewAccountFactory()
+	entities.NewEventFactory()
+	entities.NewTaskFactory()
 
 	// init services
 	userService := services.NewUserService()

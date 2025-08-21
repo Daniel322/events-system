@@ -2,39 +2,17 @@ package services
 
 import (
 	"events-system/infrastructure/providers/db"
+	"events-system/interfaces"
 	entities "events-system/internal/entity"
 	dependency_container "events-system/pkg/di"
 	repository "events-system/pkg/repository"
 	"events-system/pkg/utils"
-	"slices"
 	"strconv"
-	"time"
-
-	"github.com/google/uuid"
 )
 
 type AccountService struct {
 	Name string
 }
-
-type CreateAccountData struct {
-	UserId    string
-	AccountId string
-	Type      string
-}
-
-type UpdateAccountData struct {
-	AccountId string
-	Type      string
-}
-
-var SUPPORTED_TYPES = []string{"http", "telegram", "mail"}
-
-const (
-	INVALID_TYPE       = "invalid type"
-	INVALID_ACCOUNT_ID = "invalid accountId"
-	INVALID_USER_ID    = "invalid user id type"
-)
 
 func NewAccountService() *AccountService {
 	service := &AccountService{
@@ -46,36 +24,20 @@ func NewAccountService() *AccountService {
 	return service
 }
 
-// TODO: refactor that method, split entity create (make private) and make public save in repo method
-func (af *AccountService) Create(data entities.Account, tranasction db.DatabaseInstance) (*entities.Account, error) {
-	var id uuid.UUID = uuid.New()
-
-	parsedUserId, _, err := utils.ParseId(data.UserId)
+func (af *AccountService) Create(data entities.CreateAccountData, tranasction db.DatabaseInstance) (*entities.Account, error) {
+	accountFactory, err := dependency_container.Container.Get("accountFactory")
 
 	if err != nil {
-		return nil, utils.GenerateError(af.Name, INVALID_USER_ID)
+		return nil, utils.GenerateError(af.Name, err.Error())
 	}
 
-	if len(data.AccountId) == 0 || len(data.AccountId) > 50 {
-		return nil, utils.GenerateError(af.Name, INVALID_ACCOUNT_ID)
+	account, err := accountFactory.(interfaces.AccountFactory).Create(data)
+
+	if err != nil {
+		return nil, utils.GenerateError(af.Name, err.Error())
 	}
 
-	typeContains := slices.Contains(SUPPORTED_TYPES, data.Type)
-
-	if !typeContains {
-		return nil, utils.GenerateError(af.Name, INVALID_TYPE)
-	}
-
-	var account = entities.Account{
-		ID:        id,
-		UserId:    parsedUserId,
-		AccountId: data.AccountId,
-		Type:      data.Type,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	resAcc, err := repository.Create(repository.Accounts, account, tranasction)
+	resAcc, err := repository.Create(repository.Accounts, *account, tranasction)
 
 	if err != nil {
 		return nil, utils.GenerateError(af.Name, err.Error())

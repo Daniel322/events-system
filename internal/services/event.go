@@ -13,8 +13,8 @@ package services
 // type EventService struct {
 // 	Name            string
 // 	DB              *db.Database
-// 	eventRepository interfaces.IRepository[domain.Event, domain.CreateEventData, domain.UpdateEventData]
-// 	taskRepository  interfaces.IRepository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData]
+// 	eventRepository interfaces.Repository[domain.Event, domain.CreateEventData, domain.UpdateEventData]
+// 	taskRepository  interfaces.Repository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData]
 // }
 
 // type TaskSliceEvent struct {
@@ -24,8 +24,8 @@ package services
 
 // func NewEventService(
 // 	db *db.Database,
-// 	eventRepository interfaces.IRepository[domain.Event, domain.CreateEventData, domain.UpdateEventData],
-// 	taskRepository interfaces.IRepository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData],
+// 	eventRepository interfaces.Repository[domain.Event, domain.CreateEventData, domain.UpdateEventData],
+// 	taskRepository interfaces.Repository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData],
 // ) *EventService {
 // 	return &EventService{
 // 		Name:            "EventService",
