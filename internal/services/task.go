@@ -2,9 +2,9 @@ package services
 
 import (
 	"errors"
-	"events-system/infrastructure/providers/db"
-	"events-system/interfaces"
-	"events-system/internal/domain"
+	entities "events-system/internal/entity"
+	dependency_container "events-system/pkg/di"
+	"events-system/pkg/repository"
 	"events-system/pkg/utils"
 	"log"
 	"strconv"
@@ -12,11 +12,7 @@ import (
 )
 
 type TaskService struct {
-	Name            string
-	DB              *db.Database
-	taskRepository  interfaces.Repository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData]
-	eventRepository interfaces.Repository[domain.Event, domain.CreateEventData, domain.UpdateEventData]
-	accRepository   interfaces.Repository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData]
+	Name string
 }
 
 type InfoAboutTaskForTgProvider struct {
@@ -24,25 +20,20 @@ type InfoAboutTaskForTgProvider struct {
 	Text   string
 }
 
-func NewTaskService(
-	DB *db.Database,
-	repo interfaces.Repository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData],
-	eventRepo interfaces.Repository[domain.Event, domain.CreateEventData, domain.UpdateEventData],
-	accRepository interfaces.Repository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData],
-) *TaskService {
-	return &TaskService{
-		Name:            "TaskService",
-		DB:              DB,
-		taskRepository:  repo,
-		eventRepository: eventRepo,
-		accRepository:   accRepository,
+func NewTaskService() *TaskService {
+	service := &TaskService{
+		Name: "TaskService",
 	}
+
+	dependency_container.Container.Add("taskService", service)
+
+	return service
 }
 
-func (ts *TaskService) GetListOfTodayTasks() (*[]domain.Task, error) {
+func (ts *TaskService) GetListOfTodayTasks() (*[]entities.Task, error) {
 	var options = make(map[string]interface{})
 	options["date"] = time.Now().Format("2006-01-02")
-	tasks, err := ts.taskRepository.GetList(options)
+	tasks, err := repository.GetList[entities.Task](repository.Tasks, options)
 
 	if err != nil {
 		return nil, utils.GenerateError(ts.Name, err.Error())
@@ -52,7 +43,7 @@ func (ts *TaskService) GetListOfTodayTasks() (*[]domain.Task, error) {
 }
 
 func (ts *TaskService) ExecTaskAndGenerateNew(taskId string) (*InfoAboutTaskForTgProvider, error) {
-	currentTask, err := ts.taskRepository.GetById(taskId)
+	currentTask, err := repository.GetById[entities.Task](repository.Tasks, taskId)
 
 	if err != nil {
 		return nil, utils.GenerateError(ts.Name, err.Error())
@@ -70,13 +61,13 @@ func (ts *TaskService) ExecTaskAndGenerateNew(taskId string) (*InfoAboutTaskForT
 		return nil, utils.GenerateError(ts.Name, err.Error())
 	}
 
-	currentEvent, err := ts.eventRepository.GetById(strEventId)
+	currentEvent, err := repository.GetById[entities.Event](repository.Events, strEventId)
 
 	if err != nil {
 		return nil, utils.GenerateError(ts.Name, err.Error())
 	}
 
-	currentAcc, err := ts.accRepository.GetById(strAccId)
+	currentAcc, err := repository.GetById[entities.Account](repository.Accounts, strAccId)
 
 	if err != nil {
 		return nil, utils.GenerateError(ts.Name, err.Error())
@@ -88,9 +79,9 @@ func (ts *TaskService) ExecTaskAndGenerateNew(taskId string) (*InfoAboutTaskForT
 		return nil, utils.GenerateError(ts.Name, err.Error())
 	}
 
-	transaction := ts.DB.CreateTransaction()
+	transaction := repository.CreateTransaction()
 
-	ok, err := ts.taskRepository.Delete(currentTask.ID.String(), transaction)
+	ok, err := repository.Delete[entities.Task](repository.Tasks, currentTask.ID.String(), transaction)
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -106,7 +97,7 @@ func (ts *TaskService) ExecTaskAndGenerateNew(taskId string) (*InfoAboutTaskForT
 		return nil, utils.GenerateError(ts.Name, err.Error())
 	}
 
-	newTask, err := ts.taskRepository.Create(domain.CreateTaskData{
+	newTask, err := repository.Create[entities.Task](repository.Tasks, entities.Task{
 		EventId:   currentEvent.ID,
 		AccountId: currentAcc.ID,
 		Type:      currentTask.Type,
