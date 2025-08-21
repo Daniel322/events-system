@@ -42,17 +42,16 @@ func main() {
 
 	// init services
 	userService := services.NewUserService()
-	accountService := services.NewAccountService()
-
-	fmt.Println(accountService)
-	// eventsService := services.NewEventService(db, eventRepository, taskRepository)
-	// tasksService := services.NewTaskService(db, taskRepository, eventRepository, accountRepository)
+	services.NewAccountService()
+	services.NewEventService()
+	services.NewTaskService()
 
 	// init controllers
 	userController := controllers.NewUserController(
 		server.Instance,
 		userService,
 	)
+	eventController := controllers.NewEventController(server.Instance)
 
 	// tgBotProvider, err := telegram.NewTgBotProvider(os.Getenv("TG_BOT_TOKEN"), userService, accountService, eventsService)
 
@@ -68,6 +67,7 @@ func main() {
 
 	// init http routes
 	userController.InitRoutes()
+	eventController.InitRoutes()
 
 	// start http server
 	go server.Start(os.Getenv("HTTP_PORT"))

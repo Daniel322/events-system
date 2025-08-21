@@ -1,12 +1,13 @@
 package services
 
 import (
+	"events-system/interfaces"
 	"events-system/internal/dto"
 	entities "events-system/internal/entity"
 	dependency_container "events-system/pkg/di"
 	"events-system/pkg/repository"
 	"events-system/pkg/utils"
-	"strings"
+	"log"
 	"time"
 )
 
@@ -30,6 +31,13 @@ func NewEventService() *EventService {
 }
 
 func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, error) {
+	eventFactory, err := dependency_container.Container.Get("eventFactory")
+	taskFactory, err := dependency_container.Container.Get("taskFactory")
+
+	if err != nil {
+		return nil, utils.GenerateError(es.Name, err.Error())
+	}
+
 	transaction := repository.CreateTransaction()
 
 	defer func() {
@@ -38,19 +46,22 @@ func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, 
 		}
 	}()
 
-	userId, _, err := utils.ParseId(data.UserId)
+	event, err := eventFactory.(interfaces.EventFactory).Create(entities.CreateEventData{
+		UserId:       data.UserId,
+		Info:         data.Info,
+		Date:         data.Date,
+		Providers:    data.Providers,
+		NotifyLevels: []string{"month", "week", "tomorrow", "today"},
+	})
 
 	if err != nil {
 		return nil, utils.GenerateError(es.Name, err.Error())
 	}
 
-	event, err := repository.Create[entities.Event](repository.Events, entities.Event{
-		UserId:       userId,
-		Info:         data.Info,
-		Date:         data.Date,
-		Providers:    []byte(data.Providers),
-		NotifyLevels: []byte(strings.Join([]string{"month", "week", "tomorrow", "today"}, ",")),
-	}, transaction)
+	event, err = repository.Create(repository.Events, *event, transaction)
+
+	log.SetPrefix("event service info")
+	log.Println(event)
 
 	if err != nil {
 		transaction.Rollback()
@@ -97,21 +108,32 @@ func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, 
 	timesForTask = append(timesForTask, TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24 * 30)), Type: "month"})
 
 	for _, timeValue := range timesForTask {
+		log.Println("task create start")
 		uuidV, _, err := utils.ParseId(data.AccountId)
+
+		if err != nil {
+			log.Println(err)
+			transaction.Rollback()
+			return nil, utils.GenerateError(es.Name, err.Error())
+		}
+
+		task, err := taskFactory.(interfaces.TaskFactory).Create(entities.CreateTaskData{
+			EventId:   event.ID,
+			AccountId: uuidV,
+			Date:      timeValue.Date,
+			Type:      timeValue.Type,
+			Provider:  "telegram",
+		})
+
+		log.Println(task)
 
 		if err != nil {
 			transaction.Rollback()
 			return nil, utils.GenerateError(es.Name, err.Error())
 		}
 
-		task, err := repository.Create[entities.Task](repository.Tasks,
-			entities.Task{
-				EventId:   event.ID,
-				AccountId: uuidV,
-				Date:      timeValue.Date,
-				Type:      timeValue.Type,
-				Provider:  "telegram",
-			},
+		task, err = repository.Create(repository.Tasks,
+			*task,
 			transaction,
 		)
 
@@ -131,7 +153,7 @@ func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, 
 		Info:         event.Info,
 		Date:         event.Date,
 		NotifyLevels: event.NotifyLevels,
-		Providers:    data.Providers,
+		Providers:    event.Providers,
 		CreatedAt:    event.CreatedAt,
 		UpdatedAt:    event.UpdatedAt,
 		Tasks:        tasks,
