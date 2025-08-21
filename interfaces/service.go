@@ -6,16 +6,20 @@ import (
 	entities "events-system/internal/entity"
 )
 
-type IUserService interface {
+type UserService interface {
 	CreateUserWithAccount(data dto.UserDataDTO) (*dto.OutputUser, error)
 	GetUser(id string) (*dto.OutputUser, error)
 }
 
-type IEventService interface {
+type EventService interface {
 	CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, error)
 }
 
 type AccountService interface {
 	Create(data entities.Account, transaction db.DatabaseInstance) (*entities.Account, error)
 	CheckAccount(accountId int64) (*entities.Account, error)
+}
+
+type TaskService interface {
+	GetListOfTodayTasks() (*[]entities.Task, error)
 }

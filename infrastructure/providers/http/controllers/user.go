@@ -13,10 +13,10 @@ import (
 type UserController struct {
 	Name        string
 	server      *echo.Echo
-	userService interfaces.IUserService
+	userService interfaces.UserService
 }
 
-func NewUserController(server *echo.Echo, service interfaces.IUserService) *UserController {
+func NewUserController(server *echo.Echo, service interfaces.UserService) *UserController {
 	return &UserController{
 		Name:        "UserController",
 		server:      server,

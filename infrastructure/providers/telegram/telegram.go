@@ -21,17 +21,17 @@ type TgEvent struct {
 type TgBotProvider struct {
 	Name                 string
 	Bot                  *tgbotapi.BotAPI
-	UserService          interfaces.IUserService
+	UserService          interfaces.UserService
 	AccountService       interfaces.AccountService
-	EventService         interfaces.IEventService
+	EventService         interfaces.EventService
 	NotCompletedEventMap map[int64]*TgEvent
 }
 
 func NewTgBotProvider(
 	token string,
-	userService interfaces.IUserService,
+	userService interfaces.UserService,
 	accService interfaces.AccountService,
-	eventService interfaces.IEventService,
+	eventService interfaces.EventService,
 ) (*TgBotProvider, error) {
 	bot, err := tgbotapi.NewBotAPI(token)
 
