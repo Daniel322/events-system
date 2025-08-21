@@ -32,6 +32,11 @@ func NewEventService() *EventService {
 
 func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, error) {
 	eventFactory, err := dependency_container.Container.Get("eventFactory")
+
+	if err != nil {
+		return nil, utils.GenerateError(es.Name, err.Error())
+	}
+
 	taskFactory, err := dependency_container.Container.Get("taskFactory")
 
 	if err != nil {

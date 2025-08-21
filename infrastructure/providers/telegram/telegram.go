@@ -108,7 +108,7 @@ func (tg *TgBotProvider) Bootstrap() {
 
 					// strAccId := strconv.Itoa(int(update.Message.From.ID))
 					currentEvent.Date = &timeVar
-
+					// TODO: fix providers var
 					event, err := tg.EventService.CreateEvent(dto.CreateEventDTO{
 						AccountId: currentAcc.ID.String(),
 						Date:      *currentEvent.Date,
