@@ -22,4 +22,8 @@ type AccountService interface {
 
 type TaskService interface {
 	GetListOfTodayTasks() (*[]entities.Task, error)
+	Create(
+		data entities.CreateTaskData,
+		transaction db.DatabaseInstance,
+	) (*entities.Task, error)
 }

@@ -2,6 +2,8 @@ package services
 
 import (
 	"errors"
+	"events-system/infrastructure/providers/db"
+	"events-system/interfaces"
 	entities "events-system/internal/entity"
 	dependency_container "events-system/pkg/di"
 	"events-system/pkg/repository"
@@ -28,6 +30,36 @@ func NewTaskService() *TaskService {
 	dependency_container.Container.Add("taskService", service)
 
 	return service
+}
+
+func (service *TaskService) Create(
+	data entities.CreateTaskData,
+	transaction db.DatabaseInstance,
+) (*entities.Task, error) {
+	taskFactory, err := dependency_container.Container.Get("taskFactory")
+
+	if err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	task, err := taskFactory.(interfaces.TaskFactory).Create(data)
+
+	if err != nil {
+		transaction.Rollback()
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	task, err = repository.Create(repository.Tasks,
+		*task,
+		transaction,
+	)
+
+	if err != nil {
+		transaction.Rollback()
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	return task, nil
 }
 
 func (ts *TaskService) GetListOfTodayTasks() (*[]entities.Task, error) {

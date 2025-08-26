@@ -37,7 +37,7 @@ func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, 
 		return nil, utils.GenerateError(es.Name, err.Error())
 	}
 
-	taskFactory, err := dependency_container.Container.Get("taskFactory")
+	taskService, err := dependency_container.Container.Get("taskService")
 
 	if err != nil {
 		return nil, utils.GenerateError(es.Name, err.Error())
@@ -122,25 +122,13 @@ func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, 
 			return nil, utils.GenerateError(es.Name, err.Error())
 		}
 
-		task, err := taskFactory.(interfaces.TaskFactory).Create(entities.CreateTaskData{
+		task, err := taskService.(interfaces.TaskService).Create(entities.CreateTaskData{
 			EventId:   event.ID,
 			AccountId: uuidV,
 			Date:      timeValue.Date,
 			Type:      timeValue.Type,
 			Provider:  "telegram",
-		})
-
-		log.Println(task)
-
-		if err != nil {
-			transaction.Rollback()
-			return nil, utils.GenerateError(es.Name, err.Error())
-		}
-
-		task, err = repository.Create(repository.Tasks,
-			*task,
-			transaction,
-		)
+		}, transaction)
 
 		if err != nil {
 			transaction.Rollback()
