@@ -22,3 +22,16 @@ func (cont *DependencyContainer) Get(name string) (interface{}, error) {
 
 	return currentService, nil
 }
+
+func (cont *DependencyContainer) MultiGet(names []string) ([]interface{}, error) {
+	var services []interface{}
+	for _, name := range names {
+		currentService := cont.Services[name]
+		if currentService == nil {
+			return nil, fmt.Errorf("service %s not found", name)
+		}
+		services = append(services, currentService)
+	}
+
+	return services, nil
+}
