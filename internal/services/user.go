@@ -64,8 +64,8 @@ func (us UserService) CreateUserWithAccount(data dto.UserDataDTO) (*dto.OutputUs
 		return nil, utils.GenerateError(us.Name, err.Error())
 	}
 
-	acc, err := accountService.(interfaces.AccountService).Create(entities.Account{
-		UserId:    user.ID,
+	acc, err := accountService.(interfaces.AccountService).Create(entities.CreateAccountData{
+		UserId:    user.ID.String(),
 		AccountId: data.AccountId,
 		Type:      data.Type,
 	}, transaction)

@@ -32,6 +32,46 @@ func NewTaskService() *TaskService {
 	return service
 }
 
+func (service *TaskService) GenerateTimesForTasks(eventDate time.Time) []entities.TaskSliceEvent {
+	today := time.Now()
+	todayYear := today.Year()
+	eventDateYear := eventDate.Year()
+	currentEventInThatYear := eventDate
+	tasks := make([]entities.TaskSliceEvent, 0)
+	// TODO: check flow and fix bug with next case: если создать евент с таском в текущий день, таск создастся на следующий год
+	if eventDateYear < todayYear {
+		currentEventInThatYear = time.Date(
+			todayYear,
+			eventDate.Month(),
+			eventDate.Day(),
+			eventDate.Hour(),
+			eventDate.Minute(),
+			eventDate.Second(),
+			eventDate.Nanosecond(),
+			eventDate.Location(),
+		)
+		// if event in that year before today
+		if currentEventInThatYear.Compare(today) == -1 {
+			currentEventInThatYear = time.Date(
+				todayYear+1,
+				eventDate.Month(),
+				eventDate.Day(),
+				eventDate.Hour(),
+				eventDate.Minute(),
+				eventDate.Second(),
+				eventDate.Nanosecond(),
+				eventDate.Location(),
+			)
+		}
+	}
+	tasks = append(tasks, entities.TaskSliceEvent{Date: currentEventInThatYear, Type: "today"})
+	tasks = append(tasks, entities.TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24)), Type: "tomorrow"})
+	tasks = append(tasks, entities.TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24 * 7)), Type: "week"})
+	tasks = append(tasks, entities.TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24 * 30)), Type: "month"})
+
+	return tasks
+}
+
 func (service *TaskService) Create(
 	data entities.CreateTaskData,
 	transaction db.DatabaseInstance,

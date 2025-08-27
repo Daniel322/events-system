@@ -4,6 +4,7 @@ import (
 	"events-system/infrastructure/providers/db"
 	"events-system/internal/dto"
 	entities "events-system/internal/entity"
+	"time"
 )
 
 type UserService interface {
@@ -16,7 +17,7 @@ type EventService interface {
 }
 
 type AccountService interface {
-	Create(data entities.Account, transaction db.DatabaseInstance) (*entities.Account, error)
+	Create(data entities.CreateAccountData, transaction db.DatabaseInstance) (*entities.Account, error)
 	CheckAccount(accountId int64) (*entities.Account, error)
 }
 
@@ -26,4 +27,5 @@ type TaskService interface {
 		data entities.CreateTaskData,
 		transaction db.DatabaseInstance,
 	) (*entities.Task, error)
+	GenerateTimesForTasks(eventDate time.Time) []entities.TaskSliceEvent
 }

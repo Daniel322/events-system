@@ -7,17 +7,10 @@ import (
 	dependency_container "events-system/pkg/di"
 	"events-system/pkg/repository"
 	"events-system/pkg/utils"
-	"log"
-	"time"
 )
 
 type EventService struct {
 	Name string
-}
-
-type TaskSliceEvent struct {
-	Date time.Time
-	Type string
 }
 
 func NewEventService() *EventService {
@@ -31,17 +24,16 @@ func NewEventService() *EventService {
 }
 
 func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, error) {
-	eventFactory, err := dependency_container.Container.Get("eventFactory")
+	dependencies := []string{"eventFactory", "taskService"}
+	diServices, err := dependency_container.Container.MultiGet(dependencies)
 
 	if err != nil {
 		return nil, utils.GenerateError(es.Name, err.Error())
 	}
 
-	taskService, err := dependency_container.Container.Get("taskService")
+	eventFactory := diServices["eventFactory"]
 
-	if err != nil {
-		return nil, utils.GenerateError(es.Name, err.Error())
-	}
+	taskService := diServices["taskService"]
 
 	transaction := repository.CreateTransaction()
 
@@ -65,59 +57,19 @@ func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, 
 
 	event, err = repository.Create(repository.Events, *event, transaction)
 
-	log.SetPrefix("event service info")
-	log.Println(event)
-
 	if err != nil {
 		transaction.Rollback()
 		return nil, utils.GenerateError(es.Name, err.Error())
 	}
 
-	timesForTask := make([]TaskSliceEvent, 0)
+	timesForTask := taskService.(interfaces.TaskService).GenerateTimesForTasks(data.Date)
 
 	tasks := make([]entities.Task, 0)
 
-	today := time.Now()
-	todayYear := today.Year()
-	eventDateYear := data.Date.Year()
-	currentEventInThatYear := data.Date
-	// TODO: check flow and fix bug with next case: если создать евент с таском в текущий день, таск создастся на следующий год
-	if eventDateYear < todayYear {
-		currentEventInThatYear = time.Date(
-			todayYear,
-			data.Date.Month(),
-			data.Date.Day(),
-			data.Date.Hour(),
-			data.Date.Minute(),
-			data.Date.Second(),
-			data.Date.Nanosecond(),
-			data.Date.Location(),
-		)
-		// if event in that year before today
-		if currentEventInThatYear.Compare(today) == -1 {
-			currentEventInThatYear = time.Date(
-				todayYear+1,
-				data.Date.Month(),
-				data.Date.Day(),
-				data.Date.Hour(),
-				data.Date.Minute(),
-				data.Date.Second(),
-				data.Date.Nanosecond(),
-				data.Date.Location(),
-			)
-		}
-	}
-	timesForTask = append(timesForTask, TaskSliceEvent{Date: currentEventInThatYear, Type: "today"})
-	timesForTask = append(timesForTask, TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24)), Type: "tomorrow"})
-	timesForTask = append(timesForTask, TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24 * 7)), Type: "week"})
-	timesForTask = append(timesForTask, TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24 * 30)), Type: "month"})
-
 	for _, timeValue := range timesForTask {
-		log.Println("task create start")
 		uuidV, _, err := utils.ParseId(data.AccountId)
 
 		if err != nil {
-			log.Println(err)
 			transaction.Rollback()
 			return nil, utils.GenerateError(es.Name, err.Error())
 		}

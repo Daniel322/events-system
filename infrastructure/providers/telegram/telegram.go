@@ -7,7 +7,6 @@ import (
 	"log"
 	"reflect"
 	"strconv"
-	"strings"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -114,7 +113,7 @@ func (tg *TgBotProvider) Bootstrap() {
 						Date:      *currentEvent.Date,
 						Info:      currentEvent.Name,
 						UserId:    currentAcc.UserId.String(),
-						Providers: []byte(strings.Join([]string{"telegram"}, " ")),
+						Providers: []string{"telegram"},
 					})
 
 					if err != nil {
