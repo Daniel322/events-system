@@ -1,35 +1,48 @@
 package services
 
 import (
-	"events-system/infrastructure/providers/db"
-	"events-system/internal/domain"
+	"events-system/interfaces"
 	"events-system/internal/dto"
-	"events-system/internal/interfaces"
-	"events-system/internal/utils"
+	entities "events-system/internal/entity"
+	dependency_container "events-system/pkg/di"
+	repository "events-system/pkg/repository"
+	"events-system/pkg/utils"
 )
 
 type UserService struct {
-	Name           string
-	DB             *db.Database
-	userRepository interfaces.IRepository[domain.User, domain.UserData, domain.UserData]
-	accRepository  interfaces.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData]
+	Name string
 }
 
-func NewUserService(
-	db *db.Database,
-	userRepository interfaces.IRepository[domain.User, domain.UserData, domain.UserData],
-	accRepository interfaces.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData],
-) *UserService {
-	return &UserService{
-		Name:           "UserService",
-		DB:             db,
-		userRepository: userRepository,
-		accRepository:  accRepository,
+type UserData struct {
+	Username string
+}
+
+const USERNAME_CANT_BE_EMPTY_ERR_MSG = "username cant be empty"
+
+func NewUserService() *UserService {
+	service := &UserService{
+		Name: "UserService",
 	}
+
+	dependency_container.Container.Add("userService", service)
+
+	return service
 }
 
-func (us UserService) CreateUser(data dto.UserDataDTO) (*dto.OutputUser, error) {
-	transaction := us.DB.CreateTransaction()
+func (us UserService) CreateUserWithAccount(data dto.UserDataDTO) (*dto.OutputUser, error) {
+	userFactory, err := dependency_container.Container.Get("userFactory")
+
+	if err != nil {
+		return nil, utils.GenerateError(us.Name, err.Error())
+	}
+
+	accountService, err := dependency_container.Container.Get("accountService")
+
+	if err != nil {
+		return nil, utils.GenerateError(us.Name, err.Error())
+	}
+
+	transaction := repository.CreateTransaction()
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -37,14 +50,21 @@ func (us UserService) CreateUser(data dto.UserDataDTO) (*dto.OutputUser, error) 
 		}
 	}()
 
-	user, err := us.userRepository.Create(domain.UserData{Username: data.Username}, transaction)
+	user, err := userFactory.(interfaces.UserFactory).Create(data.Username)
 
 	if err != nil {
 		transaction.Rollback()
 		return nil, utils.GenerateError(us.Name, err.Error())
 	}
 
-	acc, err := us.accRepository.Create(domain.CreateAccountData{
+	user, err = repository.Create(repository.Users, *user, transaction)
+
+	if err != nil {
+		transaction.Rollback()
+		return nil, utils.GenerateError(us.Name, err.Error())
+	}
+
+	acc, err := accountService.(interfaces.AccountService).Create(entities.CreateAccountData{
 		UserId:    user.ID.String(),
 		AccountId: data.AccountId,
 		Type:      data.Type,
@@ -55,7 +75,7 @@ func (us UserService) CreateUser(data dto.UserDataDTO) (*dto.OutputUser, error) 
 		return nil, utils.GenerateError(us.Name, err.Error())
 	}
 
-	var accs []domain.Account
+	var accs []entities.Account
 	accs = append(accs, *acc)
 
 	if trRes := transaction.Commit(); trRes.Error != nil {
@@ -72,7 +92,7 @@ func (us UserService) CreateUser(data dto.UserDataDTO) (*dto.OutputUser, error) 
 }
 
 func (us UserService) GetUser(id string) (*dto.OutputUser, error) {
-	user, err := us.userRepository.GetById(id)
+	user, err := repository.GetById[entities.User](repository.Users, id)
 
 	if err != nil {
 		return nil, utils.GenerateError(us.Name, err.Error())
@@ -82,7 +102,7 @@ func (us UserService) GetUser(id string) (*dto.OutputUser, error) {
 
 	options["user_id"] = user.ID
 
-	accs, err := us.accRepository.GetList(options)
+	accs, err := repository.GetList[entities.Account](repository.Accounts, options)
 
 	if err != nil {
 		return nil, utils.GenerateError(us.Name, err.Error())

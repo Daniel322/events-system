@@ -1,8 +1,8 @@
-package domain
+package entities
 
 import (
-	"events-system/internal/utils"
-	"log"
+	dependency_container "events-system/pkg/di"
+	"events-system/pkg/utils"
 	"reflect"
 	"time"
 
@@ -36,6 +36,11 @@ type UpdateTaskData struct {
 	Date time.Time
 }
 
+type TaskSliceEvent struct {
+	Date time.Time
+	Type string
+}
+
 const (
 	EVENT_ID_IS_REQUIRED   = "event id is required"
 	ACCOUNT_ID_IS_REQUIRED = "account id is required"
@@ -43,13 +48,16 @@ const (
 )
 
 func NewTaskFactory() *TaskFactory {
-	return &TaskFactory{
+	factory := &TaskFactory{
 		Name: "TaskFactory",
 	}
+
+	dependency_container.Container.Add("taskFactory", factory)
+
+	return factory
 }
 
 func (tf *TaskFactory) Create(data CreateTaskData) (*Task, error) {
-	log.Println("CREATE TASK DATA", data)
 	// TODO: add validation for type and provider
 	var reflectData = reflect.ValueOf(&data).Elem()
 
@@ -67,8 +75,6 @@ func (tf *TaskFactory) Create(data CreateTaskData) (*Task, error) {
 
 	var id uuid.UUID = uuid.New()
 
-	log.Println("Cid", id)
-
 	task := Task{
 		ID:        id,
 		EventId:   data.EventId,
@@ -79,8 +85,6 @@ func (tf *TaskFactory) Create(data CreateTaskData) (*Task, error) {
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
-
-	log.Println("task", task)
 
 	return &task, nil
 }

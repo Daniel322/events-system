@@ -1,42 +1,41 @@
 package services
 
 import (
-	"events-system/infrastructure/providers/db"
-	"events-system/internal/domain"
+	"events-system/interfaces"
 	"events-system/internal/dto"
-	"events-system/internal/interfaces"
-	"events-system/internal/utils"
-	"strings"
-	"time"
+	entities "events-system/internal/entity"
+	dependency_container "events-system/pkg/di"
+	"events-system/pkg/repository"
+	"events-system/pkg/utils"
 )
 
 type EventService struct {
-	Name            string
-	DB              *db.Database
-	eventRepository interfaces.IRepository[domain.Event, domain.CreateEventData, domain.UpdateEventData]
-	taskRepository  interfaces.IRepository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData]
+	Name string
 }
 
-type TaskSliceEvent struct {
-	Date time.Time
-	Type string
-}
-
-func NewEventService(
-	db *db.Database,
-	eventRepository interfaces.IRepository[domain.Event, domain.CreateEventData, domain.UpdateEventData],
-	taskRepository interfaces.IRepository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData],
-) *EventService {
-	return &EventService{
-		Name:            "EventService",
-		DB:              db,
-		eventRepository: eventRepository,
-		taskRepository:  taskRepository,
+func NewEventService() *EventService {
+	service := &EventService{
+		Name: "EventService",
 	}
+
+	dependency_container.Container.Add("eventService", service)
+
+	return service
 }
 
 func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, error) {
-	transaction := es.DB.CreateTransaction()
+	dependencies := []string{"eventFactory", "taskService"}
+	diServices, err := dependency_container.Container.MultiGet(dependencies)
+
+	if err != nil {
+		return nil, utils.GenerateError(es.Name, err.Error())
+	}
+
+	eventFactory := diServices["eventFactory"]
+
+	taskService := diServices["taskService"]
+
+	transaction := repository.CreateTransaction()
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -44,57 +43,28 @@ func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, 
 		}
 	}()
 
-	event, err := es.eventRepository.Create(domain.CreateEventData{
+	event, err := eventFactory.(interfaces.EventFactory).Create(entities.CreateEventData{
 		UserId:       data.UserId,
 		Info:         data.Info,
 		Date:         data.Date,
-		Providers:    strings.Split(string(data.Providers), ","),
+		Providers:    data.Providers,
 		NotifyLevels: []string{"month", "week", "tomorrow", "today"},
-	}, transaction)
+	})
+
+	if err != nil {
+		return nil, utils.GenerateError(es.Name, err.Error())
+	}
+
+	event, err = repository.Create(repository.Events, *event, transaction)
 
 	if err != nil {
 		transaction.Rollback()
 		return nil, utils.GenerateError(es.Name, err.Error())
 	}
 
-	timesForTask := make([]TaskSliceEvent, 0)
+	timesForTask := taskService.(interfaces.TaskService).GenerateTimesForTasks(data.Date)
 
-	tasks := make([]domain.Task, 0)
-
-	today := time.Now()
-	todayYear := today.Year()
-	eventDateYear := data.Date.Year()
-	currentEventInThatYear := data.Date
-	// TODO: check flow and fix bug with next case: если создать евент с таском в текущий день, таск создастся на следующий год
-	if eventDateYear < todayYear {
-		currentEventInThatYear = time.Date(
-			todayYear,
-			data.Date.Month(),
-			data.Date.Day(),
-			data.Date.Hour(),
-			data.Date.Minute(),
-			data.Date.Second(),
-			data.Date.Nanosecond(),
-			data.Date.Location(),
-		)
-		// if event in that year before today
-		if currentEventInThatYear.Compare(today) == -1 {
-			currentEventInThatYear = time.Date(
-				todayYear+1,
-				data.Date.Month(),
-				data.Date.Day(),
-				data.Date.Hour(),
-				data.Date.Minute(),
-				data.Date.Second(),
-				data.Date.Nanosecond(),
-				data.Date.Location(),
-			)
-		}
-	}
-	timesForTask = append(timesForTask, TaskSliceEvent{Date: currentEventInThatYear, Type: "today"})
-	timesForTask = append(timesForTask, TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24)), Type: "tomorrow"})
-	timesForTask = append(timesForTask, TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24 * 7)), Type: "week"})
-	timesForTask = append(timesForTask, TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24 * 30)), Type: "month"})
+	tasks := make([]entities.Task, 0)
 
 	for _, timeValue := range timesForTask {
 		uuidV, _, err := utils.ParseId(data.AccountId)
@@ -104,16 +74,13 @@ func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, 
 			return nil, utils.GenerateError(es.Name, err.Error())
 		}
 
-		task, err := es.taskRepository.Create(
-			domain.CreateTaskData{
-				EventId:   event.ID,
-				AccountId: uuidV,
-				Date:      timeValue.Date,
-				Type:      timeValue.Type,
-				Provider:  "telegram",
-			},
-			transaction,
-		)
+		task, err := taskService.(interfaces.TaskService).Create(entities.CreateTaskData{
+			EventId:   event.ID,
+			AccountId: uuidV,
+			Date:      timeValue.Date,
+			Type:      timeValue.Type,
+			Provider:  "telegram",
+		}, transaction)
 
 		if err != nil {
 			transaction.Rollback()
@@ -131,7 +98,7 @@ func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, 
 		Info:         event.Info,
 		Date:         event.Date,
 		NotifyLevels: event.NotifyLevels,
-		Providers:    data.Providers,
+		Providers:    event.Providers,
 		CreatedAt:    event.CreatedAt,
 		UpdatedAt:    event.UpdatedAt,
 		Tasks:        tasks,

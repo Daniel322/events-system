@@ -3,20 +3,18 @@ package services
 import (
 	"errors"
 	"events-system/infrastructure/providers/db"
-	"events-system/internal/domain"
-	"events-system/internal/interfaces"
-	"events-system/internal/utils"
+	"events-system/interfaces"
+	entities "events-system/internal/entity"
+	dependency_container "events-system/pkg/di"
+	"events-system/pkg/repository"
+	"events-system/pkg/utils"
 	"log"
 	"strconv"
 	"time"
 )
 
 type TaskService struct {
-	Name            string
-	DB              *db.Database
-	taskRepository  interfaces.IRepository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData]
-	eventRepository interfaces.IRepository[domain.Event, domain.CreateEventData, domain.UpdateEventData]
-	accRepository   interfaces.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData]
+	Name string
 }
 
 type InfoAboutTaskForTgProvider struct {
@@ -24,25 +22,90 @@ type InfoAboutTaskForTgProvider struct {
 	Text   string
 }
 
-func NewTaskService(
-	DB *db.Database,
-	repo interfaces.IRepository[domain.Task, domain.CreateTaskData, domain.UpdateTaskData],
-	eventRepo interfaces.IRepository[domain.Event, domain.CreateEventData, domain.UpdateEventData],
-	accRepository interfaces.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData],
-) *TaskService {
-	return &TaskService{
-		Name:            "TaskService",
-		DB:              DB,
-		taskRepository:  repo,
-		eventRepository: eventRepo,
-		accRepository:   accRepository,
+func NewTaskService() *TaskService {
+	service := &TaskService{
+		Name: "TaskService",
 	}
+
+	dependency_container.Container.Add("taskService", service)
+
+	return service
 }
 
-func (ts *TaskService) GetListOfTodayTasks() (*[]domain.Task, error) {
+func (service *TaskService) GenerateTimesForTasks(eventDate time.Time) []entities.TaskSliceEvent {
+	today := time.Now()
+	todayYear := today.Year()
+	eventDateYear := eventDate.Year()
+	currentEventInThatYear := eventDate
+	tasks := make([]entities.TaskSliceEvent, 0)
+	// TODO: check flow and fix bug with next case: если создать евент с таском в текущий день, таск создастся на следующий год
+	if eventDateYear < todayYear {
+		currentEventInThatYear = time.Date(
+			todayYear,
+			eventDate.Month(),
+			eventDate.Day(),
+			eventDate.Hour(),
+			eventDate.Minute(),
+			eventDate.Second(),
+			eventDate.Nanosecond(),
+			eventDate.Location(),
+		)
+		// if event in that year before today
+		if currentEventInThatYear.Compare(today) == -1 {
+			currentEventInThatYear = time.Date(
+				todayYear+1,
+				eventDate.Month(),
+				eventDate.Day(),
+				eventDate.Hour(),
+				eventDate.Minute(),
+				eventDate.Second(),
+				eventDate.Nanosecond(),
+				eventDate.Location(),
+			)
+		}
+	}
+	tasks = append(tasks, entities.TaskSliceEvent{Date: currentEventInThatYear, Type: "today"})
+	tasks = append(tasks, entities.TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24)), Type: "tomorrow"})
+	tasks = append(tasks, entities.TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24 * 7)), Type: "week"})
+	tasks = append(tasks, entities.TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24 * 30)), Type: "month"})
+
+	return tasks
+}
+
+func (service *TaskService) Create(
+	data entities.CreateTaskData,
+	transaction db.DatabaseInstance,
+) (*entities.Task, error) {
+	taskFactory, err := dependency_container.Container.Get("taskFactory")
+
+	if err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	task, err := taskFactory.(interfaces.TaskFactory).Create(data)
+
+	if err != nil {
+		transaction.Rollback()
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	task, err = repository.Create(repository.Tasks,
+		*task,
+		transaction,
+	)
+
+	if err != nil {
+		transaction.Rollback()
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	return task, nil
+}
+
+func (ts *TaskService) GetListOfTodayTasks() (*[]entities.Task, error) {
 	var options = make(map[string]interface{})
 	options["date"] = time.Now().Format("2006-01-02")
-	tasks, err := ts.taskRepository.GetList(options)
+	tasks, err := repository.GetList[entities.Task](repository.Tasks, options)
 
 	if err != nil {
 		return nil, utils.GenerateError(ts.Name, err.Error())
@@ -52,7 +115,7 @@ func (ts *TaskService) GetListOfTodayTasks() (*[]domain.Task, error) {
 }
 
 func (ts *TaskService) ExecTaskAndGenerateNew(taskId string) (*InfoAboutTaskForTgProvider, error) {
-	currentTask, err := ts.taskRepository.GetById(taskId)
+	currentTask, err := repository.GetById[entities.Task](repository.Tasks, taskId)
 
 	if err != nil {
 		return nil, utils.GenerateError(ts.Name, err.Error())
@@ -70,13 +133,13 @@ func (ts *TaskService) ExecTaskAndGenerateNew(taskId string) (*InfoAboutTaskForT
 		return nil, utils.GenerateError(ts.Name, err.Error())
 	}
 
-	currentEvent, err := ts.eventRepository.GetById(strEventId)
+	currentEvent, err := repository.GetById[entities.Event](repository.Events, strEventId)
 
 	if err != nil {
 		return nil, utils.GenerateError(ts.Name, err.Error())
 	}
 
-	currentAcc, err := ts.accRepository.GetById(strAccId)
+	currentAcc, err := repository.GetById[entities.Account](repository.Accounts, strAccId)
 
 	if err != nil {
 		return nil, utils.GenerateError(ts.Name, err.Error())
@@ -88,9 +151,9 @@ func (ts *TaskService) ExecTaskAndGenerateNew(taskId string) (*InfoAboutTaskForT
 		return nil, utils.GenerateError(ts.Name, err.Error())
 	}
 
-	transaction := ts.DB.CreateTransaction()
+	transaction := repository.CreateTransaction()
 
-	ok, err := ts.taskRepository.Delete(currentTask.ID.String(), transaction)
+	ok, err := repository.Delete[entities.Task](repository.Tasks, currentTask.ID.String(), transaction)
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -106,7 +169,7 @@ func (ts *TaskService) ExecTaskAndGenerateNew(taskId string) (*InfoAboutTaskForT
 		return nil, utils.GenerateError(ts.Name, err.Error())
 	}
 
-	newTask, err := ts.taskRepository.Create(domain.CreateTaskData{
+	newTask, err := repository.Create[entities.Task](repository.Tasks, entities.Task{
 		EventId:   currentEvent.ID,
 		AccountId: currentAcc.ID,
 		Type:      currentTask.Type,

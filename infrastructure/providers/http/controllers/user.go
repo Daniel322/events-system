@@ -1,9 +1,9 @@
 package controllers
 
 import (
+	"events-system/interfaces"
 	"events-system/internal/dto"
-	"events-system/internal/interfaces"
-	"events-system/internal/utils"
+	"events-system/pkg/utils"
 	"fmt"
 	"net/http"
 
@@ -13,10 +13,10 @@ import (
 type UserController struct {
 	Name        string
 	server      *echo.Echo
-	userService interfaces.IUserService
+	userService interfaces.UserService
 }
 
-func NewUserController(server *echo.Echo, service interfaces.IUserService) *UserController {
+func NewUserController(server *echo.Echo, service interfaces.UserService) *UserController {
 	return &UserController{
 		Name:        "UserController",
 		server:      server,
@@ -52,7 +52,7 @@ func (uc UserController) ExecRoute(c echo.Context) error {
 			return c.String(http.StatusBadRequest, generatedError.Error())
 		}
 
-		user, err := uc.userService.CreateUser(dto.UserDataDTO{
+		user, err := uc.userService.CreateUserWithAccount(dto.UserDataDTO{
 			Username:  userData.Username,
 			AccountId: userData.AccountId,
 			Type:      userData.Type,
@@ -64,9 +64,9 @@ func (uc UserController) ExecRoute(c echo.Context) error {
 
 		return c.JSON(http.StatusCreated, user)
 	case "PATCH":
-		fmt.Println("PATCH method")
+		fmt.Println("PATCH method not implemented")
 	case "DELETE":
-		fmt.Println("DELETE method")
+		fmt.Println("DELETE method not implemented")
 	}
 	return c.JSON(200, "ok")
 }

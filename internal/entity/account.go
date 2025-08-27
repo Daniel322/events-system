@@ -1,7 +1,8 @@
-package domain
+package entities
 
 import (
-	"events-system/internal/utils"
+	dependency_container "events-system/pkg/di"
+	"events-system/pkg/utils"
 	"reflect"
 	"slices"
 	"time"
@@ -42,9 +43,13 @@ const (
 )
 
 func NewAccountFactory() *AccountFactory {
-	return &AccountFactory{
+	service := &AccountFactory{
 		Name: "AccountFactory",
 	}
+
+	dependency_container.Container.Add("accountFactory", service)
+
+	return service
 }
 
 func (af *AccountFactory) Create(data CreateAccountData) (*Account, error) {

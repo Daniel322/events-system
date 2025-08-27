@@ -1,13 +1,12 @@
 package telegram
 
 import (
+	"events-system/interfaces"
 	"events-system/internal/dto"
-	"events-system/internal/interfaces"
-	"events-system/internal/utils"
+	"events-system/pkg/utils"
 	"log"
 	"reflect"
 	"strconv"
-	"strings"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -21,17 +20,17 @@ type TgEvent struct {
 type TgBotProvider struct {
 	Name                 string
 	Bot                  *tgbotapi.BotAPI
-	UserService          interfaces.IUserService
-	AccountService       interfaces.IAccountService
-	EventService         interfaces.IEventService
+	UserService          interfaces.UserService
+	AccountService       interfaces.AccountService
+	EventService         interfaces.EventService
 	NotCompletedEventMap map[int64]*TgEvent
 }
 
 func NewTgBotProvider(
 	token string,
-	userService interfaces.IUserService,
-	accService interfaces.IAccountService,
-	eventService interfaces.IEventService,
+	userService interfaces.UserService,
+	accService interfaces.AccountService,
+	eventService interfaces.EventService,
 ) (*TgBotProvider, error) {
 	bot, err := tgbotapi.NewBotAPI(token)
 
@@ -108,13 +107,13 @@ func (tg *TgBotProvider) Bootstrap() {
 
 					// strAccId := strconv.Itoa(int(update.Message.From.ID))
 					currentEvent.Date = &timeVar
-
+					// TODO: fix providers var
 					event, err := tg.EventService.CreateEvent(dto.CreateEventDTO{
 						AccountId: currentAcc.ID.String(),
 						Date:      *currentEvent.Date,
 						Info:      currentEvent.Name,
 						UserId:    currentAcc.UserId.String(),
-						Providers: []byte(strings.Join([]string{"telegram"}, " ")),
+						Providers: []string{"telegram"},
 					})
 
 					if err != nil {
@@ -143,7 +142,7 @@ func (tg *TgBotProvider) Bootstrap() {
 				if currentAccount == nil {
 					strAccId := strconv.Itoa(int(update.Message.From.ID))
 
-					newUser, err := tg.UserService.CreateUser(dto.UserDataDTO{
+					newUser, err := tg.UserService.CreateUserWithAccount(dto.UserDataDTO{
 						Username:  update.Message.From.UserName,
 						AccountId: strAccId,
 						Type:      "telegram",

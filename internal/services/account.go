@@ -2,33 +2,54 @@ package services
 
 import (
 	"events-system/infrastructure/providers/db"
-	"events-system/internal/domain"
-	"events-system/internal/interfaces"
-	"events-system/internal/utils"
+	"events-system/interfaces"
+	entities "events-system/internal/entity"
+	dependency_container "events-system/pkg/di"
+	repository "events-system/pkg/repository"
+	"events-system/pkg/utils"
 	"strconv"
 )
 
 type AccountService struct {
-	Name              string
-	DB                *db.Database
-	accountRepository interfaces.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData]
+	Name string
 }
 
-func NewAccountService(
-	db *db.Database,
-	accountRepository interfaces.IRepository[domain.Account, domain.CreateAccountData, domain.UpdateAccountData],
-) *AccountService {
-	return &AccountService{
-		Name:              "AccountService",
-		DB:                db,
-		accountRepository: accountRepository,
+func NewAccountService() *AccountService {
+	service := &AccountService{
+		Name: "AccountService",
 	}
+
+	dependency_container.Container.Add("accountService", service)
+
+	return service
 }
 
-func (as *AccountService) CheckAccount(accountId int64) (*domain.Account, error) {
+func (af *AccountService) Create(data entities.CreateAccountData, tranasction db.DatabaseInstance) (*entities.Account, error) {
+	accountFactory, err := dependency_container.Container.Get("accountFactory")
+
+	if err != nil {
+		return nil, utils.GenerateError(af.Name, err.Error())
+	}
+
+	account, err := accountFactory.(interfaces.AccountFactory).Create(data)
+
+	if err != nil {
+		return nil, utils.GenerateError(af.Name, err.Error())
+	}
+
+	resAcc, err := repository.Create(repository.Accounts, *account, tranasction)
+
+	if err != nil {
+		return nil, utils.GenerateError(af.Name, err.Error())
+	}
+
+	return resAcc, nil
+}
+
+func (as *AccountService) CheckAccount(accountId int64) (*entities.Account, error) {
 	var options = map[string]interface{}{}
 	options["account_id"] = strconv.Itoa(int(accountId))
-	currentAccounts, err := as.accountRepository.GetList(options)
+	currentAccounts, err := repository.GetList[entities.Account](repository.Accounts, options)
 
 	if err != nil {
 		return nil, utils.GenerateError(as.Name, err.Error())

@@ -7,9 +7,9 @@ import (
 	"events-system/infrastructure/providers/http/controllers"
 	"events-system/infrastructure/providers/http/server"
 	"events-system/infrastructure/providers/telegram"
-	"events-system/internal/domain"
-	"events-system/internal/repositories"
+	entities "events-system/internal/entity"
 	"events-system/internal/services"
+	repository "events-system/pkg/repository"
 	"fmt"
 	"log"
 	"os"
@@ -33,29 +33,27 @@ func main() {
 	db := db.NewDatabase(os.Getenv("GOOSE_DBSTRING"))
 	server := server.NewEchoInstance()
 
-	// init domain factories
-	userFactory := domain.NewUserFactory()
-	accountFactory := domain.NewAccountFactory()
-	eventFactory := domain.NewEventFactory()
-	taskFactory := domain.NewTaskFactory()
+	// init repository package
+	repository.Init(db)
 
-	// init repositories
-	userRepository := repositories.NewRepository("UserRepository", db, userFactory)
-	accountRepository := repositories.NewRepository("AccountRepository", db, accountFactory)
-	eventRepository := repositories.NewRepository("EventRepository", db, eventFactory)
-	taskRepository := repositories.NewRepository("TaskRepository", db, taskFactory)
+	// init domain factories
+	entities.NewUserFactory()
+	entities.NewAccountFactory()
+	entities.NewEventFactory()
+	entities.NewTaskFactory()
 
 	// init services
-	userService := services.NewUserService(db, userRepository, accountRepository)
-	accountService := services.NewAccountService(db, accountRepository)
-	eventsService := services.NewEventService(db, eventRepository, taskRepository)
-	tasksService := services.NewTaskService(db, taskRepository, eventRepository, accountRepository)
+	userService := services.NewUserService()
+	accountService := services.NewAccountService()
+	eventsService := services.NewEventService()
+	tasksService := services.NewTaskService()
 
 	// init controllers
 	userController := controllers.NewUserController(
 		server.Instance,
 		userService,
 	)
+	eventController := controllers.NewEventController(server.Instance)
 
 	tgBotProvider, err := telegram.NewTgBotProvider(os.Getenv("TG_BOT_TOKEN"), userService, accountService, eventsService)
 
@@ -71,6 +69,7 @@ func main() {
 
 	// init http routes
 	userController.InitRoutes()
+	eventController.InitRoutes()
 
 	// start http server
 	go server.Start(os.Getenv("HTTP_PORT"))
@@ -83,6 +82,6 @@ func main() {
 	defer cancel()
 
 	db.Close()
-	tgBotProvider.Close()
+	// tgBotProvider.Close()
 	server.Close(shutdownCtx)
 }
