@@ -116,3 +116,20 @@ func (us UserService) GetUser(id string) (*dto.OutputUser, error) {
 		Accounts:  *accs,
 	}, nil
 }
+
+func (us UserService) UpdateUser(id string, username string) (*dto.OutputUser, error) {
+	_, err := repository.Update(repository.Users, id, entities.User{Username: username}, nil)
+
+	if err != nil {
+		return nil, utils.GenerateError(us.Name, err.Error())
+	}
+
+	currentUser, err := us.GetUser(id)
+
+	if err != nil {
+		return nil, utils.GenerateError(us.Name, err.Error())
+	}
+
+	return currentUser, nil
+
+}
