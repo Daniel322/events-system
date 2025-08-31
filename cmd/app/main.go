@@ -36,7 +36,6 @@ func main() {
 	repository.NewBaseRepository(db)
 
 	// init domain factories
-	entities.NewUserFactory()
 	entities.NewAccountFactory()
 	entities.NewEventFactory()
 	entities.NewTaskFactory()

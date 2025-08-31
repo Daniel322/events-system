@@ -35,7 +35,7 @@ func NewUserService() error {
 			Repository: userRepo,
 		})
 
-	return nil
+	return err
 }
 
 func (us *UserService) checkUsername(username string) error {
@@ -104,7 +104,9 @@ func (service *UserService) Update(id string, username string, transaction db.Da
 }
 
 func (service *UserService) Delete(id string, transaction db.DatabaseInstance) (bool, error) {
+	result, err := service.Repository.Destroy(id, transaction)
 
+	return result, err
 }
 
 // func (us UserService) CreateUserWithAccount(data dto.UserDataDTO) (*dto.OutputUser, error) {
