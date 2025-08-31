@@ -2,13 +2,9 @@ package main
 
 import (
 	"context"
-	"events-system/infrastructure/providers/cron"
 	db "events-system/infrastructure/providers/db"
-	"events-system/infrastructure/providers/http/controllers"
 	"events-system/infrastructure/providers/http/server"
-	"events-system/infrastructure/providers/telegram"
 	entities "events-system/internal/entity"
-	"events-system/internal/services"
 	repository "events-system/pkg/repository"
 	"fmt"
 	"log"
@@ -46,33 +42,33 @@ func main() {
 	entities.NewTaskFactory()
 
 	// init services
-	userService := services.NewUserService()
-	accountService := services.NewAccountService()
-	eventsService := services.NewEventService()
-	tasksService := services.NewTaskService()
+	// userService := services.NewUserService()
+	// accountService := services.NewAccountService()
+	// eventsService := services.NewEventService()
+	// tasksService := services.NewTaskService()
 
 	// init controllers
-	userController := controllers.NewUserController(
-		server.Instance,
-		userService,
-	)
-	eventController := controllers.NewEventController(server.Instance)
+	// userController := controllers.NewUserController(
+	// 	server.Instance,
+	// 	userService,
+	// )
+	// eventController := controllers.NewEventController(server.Instance)
 
-	tgBotProvider, err := telegram.NewTgBotProvider(os.Getenv("TG_BOT_TOKEN"), userService, accountService, eventsService)
+	// tgBotProvider, err := telegram.NewTgBotProvider(os.Getenv("TG_BOT_TOKEN"), userService, accountService, eventsService)
 
-	if err != nil {
-		panic(err.Error())
-	}
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
 
-	cronProvider := cron.NewCronProvider(tgBotProvider, tasksService)
+	// cronProvider := cron.NewCronProvider(tgBotProvider, tasksService)
 
-	cronProvider.Bootstrap()
+	// cronProvider.Bootstrap()
 
-	go tgBotProvider.Bootstrap()
+	// go tgBotProvider.Bootstrap()
 
-	// init http routes
-	userController.InitRoutes()
-	eventController.InitRoutes()
+	// // init http routes
+	// userController.InitRoutes()
+	// eventController.InitRoutes()
 
 	// start http server
 	go server.Start(os.Getenv("HTTP_PORT"))

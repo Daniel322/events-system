@@ -1,6 +1,7 @@
 package services
 
 import (
+	"events-system/infrastructure/providers/db"
 	entities "events-system/internal/entity"
 	dependency_container "events-system/pkg/di"
 	repository "events-system/pkg/repository"
@@ -45,7 +46,7 @@ func (us *UserService) checkUsername(username string) error {
 	return nil
 }
 
-func (service *UserService) Create(username string) (*entities.User, error) {
+func (service *UserService) Create(username string, transaction db.DatabaseInstance) (*entities.User, error) {
 	var id uuid.UUID = uuid.New()
 
 	err := service.checkUsername(username)
@@ -61,7 +62,7 @@ func (service *UserService) Create(username string) (*entities.User, error) {
 		UpdatedAt: time.Now(),
 	}
 
-	user, err = service.Repository.Save(*user, nil)
+	user, err = service.Repository.Save(*user, transaction)
 
 	if err != nil {
 		return nil, utils.GenerateError(service.Name, err.Error())
@@ -70,13 +71,41 @@ func (service *UserService) Create(username string) (*entities.User, error) {
 	return user, nil
 }
 
-func (service *UserService) Find(options map[string]interface{}) {
+func (service *UserService) Find(options map[string]interface{}) (*[]entities.User, error) {
+	users, err := service.Repository.Find(options)
 
+	return users, err
 }
 
-func (service *UserService) Update() {}
+func (service *UserService) Update(id string, username string, transaction db.DatabaseInstance) (*entities.User, error) {
+	err := service.checkUsername(username)
 
-func (service *UserService) Delete() {}
+	if err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	findOptions := make(map[string]interface{})
+	findOptions["id"] = id
+
+	findResult, err := service.Find(findOptions)
+
+	if err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	currentUser := &(*findResult)[0]
+
+	(*currentUser).Username = username
+	(*currentUser).UpdatedAt = time.Now()
+
+	currentUser, err = service.Repository.Save(*currentUser, transaction)
+
+	return currentUser, err
+}
+
+func (service *UserService) Delete(id string, transaction db.DatabaseInstance) (bool, error) {
+
+}
 
 // func (us UserService) CreateUserWithAccount(data dto.UserDataDTO) (*dto.OutputUser, error) {
 // 	userFactory, err := dependency_container.Container.Get("userFactory")
