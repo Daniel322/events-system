@@ -14,13 +14,13 @@ func (cont *DependencyContainer) Add(name string, value interface{}) {
 	cont.Services[name] = value
 }
 
-func (cont *DependencyContainer) Get(name string) (interface{}, error) {
+func (cont *DependencyContainer) Get(name string) (*interface{}, error) {
 	currentService := cont.Services[name]
 	if currentService == nil {
 		return nil, fmt.Errorf("service %s not found", name)
 	}
 
-	return currentService, nil
+	return &currentService, nil
 }
 
 func (cont *DependencyContainer) MultiGet(names []string) (map[string]interface{}, error) {

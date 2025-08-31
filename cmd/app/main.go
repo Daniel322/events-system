@@ -36,6 +36,9 @@ func main() {
 	// init repository package
 	repository.Init(db)
 
+	// init base repository v2
+	repository.NewBaseRepository(db)
+
 	// init domain factories
 	entities.NewUserFactory()
 	entities.NewAccountFactory()
