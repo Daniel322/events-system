@@ -2,17 +2,24 @@ package services
 
 import (
 	entities "events-system/internal/entity"
-	dependency_container "events-system/pkg/di"
 	repository "events-system/pkg/repository"
-	"events-system/pkg/utils"
 )
+
+type CreateAccountData struct {
+	UserId    string
+	AccountId string
+	Type      string
+}
+
+type UpdateAccountData struct {
+	AccountId string
+	Type      string
+}
 
 type AccountService struct {
 	Name       string
 	Repository *repository.Repository[entities.Account]
 }
-
-var SUPPORTED_TYPES = []string{"http", "telegram", "mail"}
 
 const (
 	INVALID_TYPE       = "invalid type"
@@ -20,19 +27,13 @@ const (
 	INVALID_USER_ID    = "invalid user id type"
 )
 
-func NewAccountService() error {
-	accRepo, err := repository.NewRepository[entities.Account](repository.Accounts)
+func NewAccountService(base_repository *repository.BaseRepository) *AccountService {
+	accRepo := repository.NewRepository[entities.Account](repository.Accounts, base_repository)
 
-	if err != nil {
-		return utils.GenerateError("AccountService", err.Error())
-	}
-
-	dependency_container.Container.Add("accountService", AccountService{
+	return &AccountService{
 		Name:       "AccountService",
 		Repository: accRepo,
-	})
-
-	return err
+	}
 }
 
 // func (af *AccountService) Create(data entities.CreateAccountData, tranasction db.DatabaseInstance) (*entities.Account, error) {

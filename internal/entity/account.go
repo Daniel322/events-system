@@ -15,38 +15,23 @@ type Account struct {
 	UpdatedAt time.Time
 }
 
-type AccountFactory struct {
-	Name string
-}
-
-type CreateAccountData struct {
-	UserId    string
-	AccountId string
-	Type      string
-}
-
-type UpdateAccountData struct {
-	AccountId string
-	Type      string
-}
-
-var SUPPORTED_TYPES = []string{"http", "telegram", "mail"}
+type AccountType int
 
 const (
-	INVALID_TYPE       = "invalid type"
-	INVALID_ACCOUNT_ID = "invalid accountId"
-	INVALID_USER_ID    = "invalid user id type"
+	Http AccountType = iota
+	Telegram
+	Mail
 )
 
-// func NewAccountFactory() *AccountFactory {
-// 	service := &AccountFactory{
-// 		Name: "AccountFactory",
-// 	}
+var supportedAccountTypes = map[AccountType]string{
+	Http:     "http",
+	Telegram: "telegram",
+	Mail:     "mail",
+}
 
-// 	dependency_container.Container.Add("accountFactory", service)
-
-// 	return service
-// }
+func (acc AccountType) String() string {
+	return supportedAccountTypes[acc]
+}
 
 // func (af *AccountFactory) Create(data CreateAccountData) (*Account, error) {
 // 	var id uuid.UUID = uuid.New()

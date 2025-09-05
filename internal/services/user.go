@@ -3,7 +3,6 @@ package services
 import (
 	"events-system/infrastructure/providers/db"
 	entities "events-system/internal/entity"
-	dependency_container "events-system/pkg/di"
 	repository "events-system/pkg/repository"
 	"events-system/pkg/utils"
 	"time"
@@ -22,20 +21,13 @@ type UserData struct {
 
 const USERNAME_CANT_BE_EMPTY_ERR_MSG = "username cant be empty"
 
-func NewUserService() error {
-	userRepo, err := repository.NewRepository[entities.User](repository.Users)
+func NewUserService(base_repository *repository.BaseRepository) *UserService {
+	userRepo := repository.NewRepository[entities.User](repository.Users, base_repository)
 
-	if err != nil {
-		return utils.GenerateError("UserService", err.Error())
+	return &UserService{
+		Name:       "UserService",
+		Repository: userRepo,
 	}
-
-	dependency_container.Container.Add("userService",
-		UserService{
-			Name:       "UserService",
-			Repository: userRepo,
-		})
-
-	return err
 }
 
 func (us *UserService) checkUsername(username string) error {

@@ -13,12 +13,12 @@ type Repository[Entity any] struct {
 	TableName string
 }
 
-func NewRepository[Entity any](table_name ModelName, base_repository *BaseRepository) (*Repository[Entity], error) {
+func NewRepository[Entity any](table_name ModelName, base_repository *BaseRepository) *Repository[Entity] {
 	return &Repository[Entity]{
 		Name:           strings.Title(modelNames[table_name]) + " repository",
 		TableName:      modelNames[table_name],
 		BaseRepository: base_repository,
-	}, nil
+	}
 }
 
 func (repo *Repository[Entity]) checkTransactionExistance(transaction db.DatabaseInstance) db.DatabaseInstance {
