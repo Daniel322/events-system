@@ -130,21 +130,3 @@ func (service *AccountService) Delete(id string, transaction db.DatabaseInstance
 
 	return result, err
 }
-
-// -------- move to use cases ------
-
-// func (as *AccountService) CheckAccount(accountId int64) (*entities.Account, error) {
-// 	var options = map[string]interface{}{}
-// 	options["account_id"] = strconv.Itoa(int(accountId))
-// 	currentAccounts, err := repository.GetList[entities.Account](repository.Accounts, options)
-
-// 	if err != nil {
-// 		return nil, utils.GenerateError(as.Name, err.Error())
-// 	}
-
-// 	if len(*currentAccounts) == 0 {
-// 		return nil, nil
-// 	}
-
-// 	return &(*currentAccounts)[0], nil
-// }

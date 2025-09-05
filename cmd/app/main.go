@@ -6,6 +6,7 @@ import (
 	"events-system/infrastructure/providers/http/server"
 	entities "events-system/internal/entity"
 	"events-system/internal/services"
+	"events-system/internal/usecases"
 	dependency_container "events-system/pkg/di"
 	"events-system/pkg/repository"
 	"fmt"
@@ -29,36 +30,21 @@ func initDependencies(di *dependency_container.DependencyContainer, db *db.Datab
 	event_repository := repository.NewRepository[entities.Event](repository.Events, base_repository)
 	task_repository := repository.NewRepository[entities.Task](repository.Tasks, base_repository)
 
+	// init services
 	user_service := services.NewUserService(user_repository)
 	account_service := services.NewAccountService(account_repository)
 	event_service := services.NewEventService(event_repository)
 	task_service := services.NewTaskService(task_repository)
 
-	di.Add(
-		"baseRepository",
+	internalUseCases := usecases.NewInternalUseCases(
 		base_repository,
-	)
-
-	di.Add(
-		"userService",
 		user_service,
-	)
-
-	di.Add(
-		"accountService",
 		account_service,
-	)
-
-	di.Add(
-		"eventService",
 		event_service,
-	)
-
-	di.Add(
-		"taskService",
 		task_service,
 	)
 
+	di.Add("useCases", internalUseCases)
 }
 
 func main() {
@@ -79,20 +65,6 @@ func main() {
 	dependency_container := dependency_container.NewDIContainer()
 
 	initDependencies(dependency_container, database_instance)
-
-	// init domain factories
-	// entities.NewAccountFactory()
-	// entities.NewEventFactory()
-	// entities.NewTaskFactory()
-
-	// init services v2
-	// services.NewUserService()
-
-	// init services
-	// userService := services.NewUserService()
-	// accountService := services.NewAccountService()
-	// eventsService := services.NewEventService()
-	// tasksService := services.NewTaskService()
 
 	// init controllers
 	// userController := controllers.NewUserController(

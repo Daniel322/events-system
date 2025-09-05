@@ -15,9 +15,9 @@ type UserService interface {
 }
 
 type AccountService interface {
-	Create(data dto.CreateAccountData, transaction db.DatabaseInstance) (*entities.User, error)
-	Find(options map[string]interface{}) (*[]entities.User, error)
-	Update(id string, data dto.UpdateAccountData, transaction db.DatabaseInstance) (*entities.User, error)
+	Create(data dto.CreateAccountData, transaction db.DatabaseInstance) (*entities.Account, error)
+	Find(options map[string]interface{}) (*[]entities.Account, error)
+	Update(id string, data dto.UpdateAccountData, transaction db.DatabaseInstance) (*entities.Account, error)
 	Delete(id string, transaction db.DatabaseInstance) (bool, error)
 }
 
@@ -31,6 +31,6 @@ type EventService interface {
 type TaskService interface {
 	Find(options map[string]interface{}) (*[]entities.Task, error)
 	Delete(id string, transaction db.DatabaseInstance) (bool, error)
-	Create(data dto.CreateTaskData, transaction db.DatabaseInstance) (*entities.Event, error)
-	Update(id string, date time.Time, transaction db.DatabaseInstance) (*entities.Event, error)
+	Create(data dto.CreateTaskData, transaction db.DatabaseInstance) (*entities.Task, error)
+	Update(id string, date time.Time, transaction db.DatabaseInstance) (*entities.Task, error)
 }

@@ -13,6 +13,12 @@ type UserDataDTO struct {
 	AccountId string `json:"accountId" validate:"required_if=Type mail"`
 }
 
+type CreateUserInput struct {
+	Username  string
+	Type      entities.AccountType
+	AccountId string
+}
+
 type OutputUser struct {
 	ID        uuid.UUID          `json:"id"`
 	Username  string             `json:"username"`
