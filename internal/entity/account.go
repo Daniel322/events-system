@@ -1,10 +1,6 @@
 package entities
 
 import (
-	dependency_container "events-system/pkg/di"
-	"events-system/pkg/utils"
-	"reflect"
-	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -42,70 +38,70 @@ const (
 	INVALID_USER_ID    = "invalid user id type"
 )
 
-func NewAccountFactory() *AccountFactory {
-	service := &AccountFactory{
-		Name: "AccountFactory",
-	}
+// func NewAccountFactory() *AccountFactory {
+// 	service := &AccountFactory{
+// 		Name: "AccountFactory",
+// 	}
 
-	dependency_container.Container.Add("accountFactory", service)
+// 	dependency_container.Container.Add("accountFactory", service)
 
-	return service
-}
+// 	return service
+// }
 
-func (af *AccountFactory) Create(data CreateAccountData) (*Account, error) {
-	var id uuid.UUID = uuid.New()
+// func (af *AccountFactory) Create(data CreateAccountData) (*Account, error) {
+// 	var id uuid.UUID = uuid.New()
 
-	parsedUserId, _, err := utils.ParseId(data.UserId)
+// 	parsedUserId, _, err := utils.ParseId(data.UserId)
 
-	if err != nil {
-		return nil, utils.GenerateError(af.Name, INVALID_USER_ID)
-	}
+// 	if err != nil {
+// 		return nil, utils.GenerateError(af.Name, INVALID_USER_ID)
+// 	}
 
-	if len(data.AccountId) == 0 || len(data.AccountId) > 50 {
-		return nil, utils.GenerateError(af.Name, INVALID_ACCOUNT_ID)
-	}
+// 	if len(data.AccountId) == 0 || len(data.AccountId) > 50 {
+// 		return nil, utils.GenerateError(af.Name, INVALID_ACCOUNT_ID)
+// 	}
 
-	typeContains := slices.Contains(SUPPORTED_TYPES, data.Type)
+// 	typeContains := slices.Contains(SUPPORTED_TYPES, data.Type)
 
-	if !typeContains {
-		return nil, utils.GenerateError(af.Name, INVALID_TYPE)
-	}
+// 	if !typeContains {
+// 		return nil, utils.GenerateError(af.Name, INVALID_TYPE)
+// 	}
 
-	var account = Account{
-		ID:        id,
-		UserId:    parsedUserId,
-		AccountId: data.AccountId,
-		Type:      data.Type,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+// 	var account = Account{
+// 		ID:        id,
+// 		UserId:    parsedUserId,
+// 		AccountId: data.AccountId,
+// 		Type:      data.Type,
+// 		CreatedAt: time.Now(),
+// 		UpdatedAt: time.Now(),
+// 	}
 
-	return &account, nil
-}
+// 	return &account, nil
+// }
 
-func (af *AccountFactory) Update(acc *Account, data UpdateAccountData) (*Account, error) {
-	var reflectData = reflect.ValueOf(&data).Elem()
-	var fieldsAccount = 0
+// func (af *AccountFactory) Update(acc *Account, data UpdateAccountData) (*Account, error) {
+// 	var reflectData = reflect.ValueOf(&data).Elem()
+// 	var fieldsAccount = 0
 
-	if accountId := reflectData.FieldByName("AccountId"); !accountId.IsValid() || len(data.AccountId) > 50 {
-		return nil, utils.GenerateError(af.Name, INVALID_ACCOUNT_ID)
-	} else {
-		acc.AccountId = data.AccountId
-		fieldsAccount++
-	}
+// 	if accountId := reflectData.FieldByName("AccountId"); !accountId.IsValid() || len(data.AccountId) > 50 {
+// 		return nil, utils.GenerateError(af.Name, INVALID_ACCOUNT_ID)
+// 	} else {
+// 		acc.AccountId = data.AccountId
+// 		fieldsAccount++
+// 	}
 
-	typeContains := slices.Contains(SUPPORTED_TYPES, data.Type)
+// 	typeContains := slices.Contains(SUPPORTED_TYPES, data.Type)
 
-	if !typeContains {
-		return nil, utils.GenerateError(af.Name, INVALID_TYPE)
-	} else {
-		acc.Type = data.Type
-		fieldsAccount++
-	}
+// 	if !typeContains {
+// 		return nil, utils.GenerateError(af.Name, INVALID_TYPE)
+// 	} else {
+// 		acc.Type = data.Type
+// 		fieldsAccount++
+// 	}
 
-	if fieldsAccount > 0 {
-		acc.UpdatedAt = time.Now()
-	}
+// 	if fieldsAccount > 0 {
+// 		acc.UpdatedAt = time.Now()
+// 	}
 
-	return acc, nil
-}
+// 	return acc, nil
+// }

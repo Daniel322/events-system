@@ -12,6 +12,14 @@ type AccountService struct {
 	Repository *repository.Repository[entities.Account]
 }
 
+var SUPPORTED_TYPES = []string{"http", "telegram", "mail"}
+
+const (
+	INVALID_TYPE       = "invalid type"
+	INVALID_ACCOUNT_ID = "invalid accountId"
+	INVALID_USER_ID    = "invalid user id type"
+)
+
 func NewAccountService() error {
 	accRepo, err := repository.NewRepository[entities.Account](repository.Accounts)
 

@@ -3,123 +3,64 @@ package repository
 import (
 	"events-system/infrastructure/providers/db"
 	"events-system/pkg/utils"
-	"log"
 	"reflect"
+	"strings"
 )
 
-var connection *db.Database
-
-func Init(conn *db.Database) {
-	connection = conn
+type Repository[Entity any] struct {
+	*BaseRepository
+	Name      string
+	TableName string
 }
 
-func getGenericName[Entity any](value Entity) string {
-	typeName := reflect.TypeOf(value).String()
-
-	return typeName + " repository:"
+func NewRepository[Entity any](table_name ModelName, base_repository *BaseRepository) (*Repository[Entity], error) {
+	return &Repository[Entity]{
+		Name:           strings.Title(modelNames[table_name]) + " repository",
+		TableName:      modelNames[table_name],
+		BaseRepository: base_repository,
+	}, nil
 }
 
-func checkTransactionExistance(transaction db.DatabaseInstance, name string) db.DatabaseInstance {
+func (repo *Repository[Entity]) checkTransactionExistance(transaction db.DatabaseInstance) db.DatabaseInstance {
 	var instanceForExec db.DatabaseInstance
-
 	if reflect.ValueOf(transaction).Elem().IsValid() {
-		log.SetPrefix("INFO ")
-		log.Println(name + "transaction coming")
 		instanceForExec = transaction
 	} else {
-		log.SetPrefix("INFO ")
-		log.Println(name + "transaction not exist")
-		instanceForExec = connection.Instance
+		instanceForExec = repo.BaseRepository.DB.Instance
 	}
 
 	return instanceForExec
 }
 
-func CreateTransaction() db.DatabaseInstance {
-	tx := connection.Instance.Begin()
+func (repo *Repository[Entity]) Save(entity Entity, transaction db.DatabaseInstance) (*Entity, error) {
+	dbTransactionForQueryExec := repo.checkTransactionExistance(transaction)
+	savedEntity := dbTransactionForQueryExec.Table(repo.TableName).Save(entity)
 
-	return tx
-}
-
-func Create[Entity any](tableName ModelName, data Entity, transaction db.DatabaseInstance) (*Entity, error) {
-	typeName := getGenericName(data)
-	var instanceForExec = checkTransactionExistance(transaction, typeName)
-
-	result := instanceForExec.Table(modelNames[tableName]).Create(&data)
-
-	if result.Error != nil {
-		return nil, utils.GenerateError(typeName, result.Error.Error())
+	if savedEntity.Error != nil {
+		return nil, utils.GenerateError(repo.Name, savedEntity.Error.Error())
 	}
 
-	return &data, nil
+	return &entity, nil
 }
 
-func GetById[Entity any](tableName ModelName, id string) (*Entity, error) {
-	entity := new(Entity)
-	typeName := getGenericName(entity)
-
-	result := connection.Instance.Table(modelNames[tableName]).First(entity, "id =?", id)
+func (repo *Repository[Entity]) Destroy(id string, transaction db.DatabaseInstance) (bool, error) {
+	dbTransactionForQueryExec := repo.checkTransactionExistance(transaction)
+	result := dbTransactionForQueryExec.Table(repo.TableName).Delete(id)
 
 	if result.Error != nil {
-		return nil, utils.GenerateError(typeName, result.Error.Error())
-	}
-
-	return entity, nil
-}
-
-func Delete[Entity any](tableName ModelName, id string, transaction db.DatabaseInstance) (bool, error) {
-	entity := new(Entity)
-	typeName := getGenericName(entity)
-	parsedId, _, err := utils.ParseId(id)
-
-	if err != nil {
-		return false, utils.GenerateError(typeName, err.Error())
-	}
-
-	var instanceForExec = checkTransactionExistance(transaction, typeName)
-
-	result := instanceForExec.Table(modelNames[tableName]).Where("id = ?", parsedId).Delete(&entity)
-
-	if result.Error != nil {
-		return false, utils.GenerateError(typeName, result.Error.Error())
+		return false, utils.GenerateError(repo.Name, result.Error.Error())
 	}
 
 	return true, nil
 }
 
-func GetList[Entity any](tableName ModelName, options map[string]interface{}) (*[]Entity, error) {
+func (repo *Repository[Entity]) Find(options map[string]interface{}) (*[]Entity, error) {
 	var entities *[]Entity
-	typeName := getGenericName(entities)
-
-	result := connection.Instance.Table(modelNames[tableName]).Where(options).Find(&entities)
+	result := repo.BaseRepository.DB.Instance.Table(repo.TableName).Find(entities, options)
 
 	if result.Error != nil {
-		return nil, utils.GenerateError(typeName, result.Error.Error())
+		return nil, utils.GenerateError(repo.Name, result.Error.Error())
 	}
 
 	return entities, nil
-}
-
-func Update[Entity any](
-	tableName ModelName,
-	id string,
-	data Entity,
-	transaction db.DatabaseInstance,
-) (*Entity, error) {
-	entity, err := GetById[Entity](tableName, id)
-	typeName := getGenericName(entity)
-
-	if err != nil {
-		return nil, utils.GenerateError(typeName, err.Error())
-	}
-
-	var instanceForExec = checkTransactionExistance(transaction, typeName)
-
-	result := instanceForExec.Table(modelNames[tableName]).Save(entity)
-
-	if result.Error != nil {
-		return nil, utils.GenerateError(typeName, result.Error.Error())
-	}
-
-	return entity, nil
 }

@@ -4,8 +4,7 @@ import (
 	"context"
 	db "events-system/infrastructure/providers/db"
 	"events-system/infrastructure/providers/http/server"
-	entities "events-system/internal/entity"
-	repository "events-system/pkg/repository"
+	dependency_container "events-system/pkg/di"
 	"fmt"
 	"log"
 	"os"
@@ -17,28 +16,31 @@ import (
 )
 
 func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
+	defer stop()
+
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Println("Error loading .env file")
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
-	defer stop()
-
 	// init external providers
-	db := db.NewDatabase(os.Getenv("GOOSE_DBSTRING"))
+	database_instance := db.NewDatabase(os.Getenv("GOOSE_DBSTRING"))
 	server := server.NewEchoInstance()
 
-	// init repository package
-	repository.Init(db)
+	// init di container
 
-	// init base repository v2
-	repository.NewBaseRepository(db)
+	dependency_container := dependency_container.NewDIContainer()
+
+	InitDependencies(dependency_container, database_instance)
 
 	// init domain factories
-	entities.NewAccountFactory()
-	entities.NewEventFactory()
-	entities.NewTaskFactory()
+	// entities.NewAccountFactory()
+	// entities.NewEventFactory()
+	// entities.NewTaskFactory()
+
+	// init services v2
+	// services.NewUserService()
 
 	// init services
 	// userService := services.NewUserService()
@@ -79,7 +81,7 @@ func main() {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	db.Close()
+	database_instance.Close()
 	// tgBotProvider.Close()
 	server.Close(shutdownCtx)
 }
