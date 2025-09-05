@@ -1,27 +1,204 @@
 package services
 
-// import (
-// 	"events-system/interfaces"
-// 	"events-system/internal/dto"
-// 	entities "events-system/internal/entity"
-// 	dependency_container "events-system/pkg/di"
-// 	"events-system/pkg/repository"
-// 	"events-system/pkg/utils"
-// )
+import (
+	"events-system/infrastructure/providers/db"
+	"events-system/interfaces"
+	entities "events-system/internal/entity"
+	"events-system/pkg/utils"
+	"time"
 
-// type EventService struct {
-// 	Name string
-// }
+	"github.com/google/uuid"
+)
 
-// func NewEventService() *EventService {
-// 	service := &EventService{
-// 		Name: "EventService",
-// 	}
+type EventService struct {
+	Name       string
+	Repository interfaces.Repository[entities.Event]
+}
 
-// 	dependency_container.Container.Add("eventService", service)
+type CreateEventData struct {
+	UserId       string
+	Info         string
+	Date         time.Time
+	NotifyLevels entities.NotifyLevel
+	Providers    entities.Providers
+}
 
-// 	return service
-// }
+type UpdateEventData struct {
+	Info         string
+	Date         time.Time
+	NotifyLevels entities.NotifyLevel
+	Providers    entities.Providers
+}
+
+const (
+	INVALID_INFO          = "invalid info"
+	INVALID_DATE          = "invalid date"
+	INVALID_NOTIFY_LEVELS = "error on parse notify levels"
+	INVALID_PROVIDERS     = "error on parse providers"
+)
+
+func NewEventService(repository interfaces.Repository[entities.Event]) *EventService {
+	return &EventService{
+		Name:       "EventService",
+		Repository: repository,
+	}
+}
+
+func (service *EventService) checkInfo(value string) error {
+	if len(value) == 0 {
+		return utils.GenerateError(service.Name, INVALID_INFO)
+	}
+
+	return nil
+}
+
+func (service *EventService) checkDate(value time.Time) error {
+	if value.IsZero() {
+		return utils.GenerateError(service.Name, INVALID_DATE)
+	}
+	return nil
+}
+
+// TODO: use DRY and optimize code in that and next funcs
+func (service *EventService) checkProviders(value entities.Providers) error {
+	var dest interface{}
+	err := value.Scan(dest)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = value.Value()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (service *EventService) checkNotifyLevels(value entities.NotifyLevel) (entities.NotifyLevel, error) {
+	if len(value) == 0 {
+		return entities.NOTIFY_LEVELS, nil
+	} else {
+		var dest interface{}
+		err := value.Scan(dest)
+
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = value.Value()
+
+		if err != nil {
+			return nil, err
+		}
+	}
+	return value, nil
+}
+
+func (service *EventService) Find(options map[string]interface{}) (*[]entities.Event, error) {
+	results, err := service.Repository.Find(options)
+
+	return results, err
+}
+
+func (service *EventService) Delete(id string, transaction db.DatabaseInstance) (bool, error) {
+	result, err := service.Repository.Destroy(id, transaction)
+
+	return result, err
+}
+
+func (service *EventService) Create(data CreateEventData, transaction db.DatabaseInstance) (*entities.Event, error) {
+	var id uuid.UUID = uuid.New()
+
+	parsedUserId, _, err := utils.ParseId(data.UserId)
+
+	if err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	err = service.checkInfo(data.Info)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = service.checkDate(data.Date)
+
+	if err != nil {
+		return nil, err
+	}
+
+	notifyLevels, err := service.checkNotifyLevels(data.NotifyLevels)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = service.checkProviders(data.Providers)
+
+	if err != nil {
+		return nil, err
+	}
+
+	event := &entities.Event{
+		ID:           id,
+		UserId:       parsedUserId,
+		Info:         data.Info,
+		Date:         data.Date,
+		NotifyLevels: notifyLevels,
+		Providers:    data.Providers,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+
+	event, err = service.Repository.Save(*event, transaction)
+
+	return event, err
+}
+
+func (service *EventService) Update(
+	id string,
+	data UpdateEventData,
+	transaction db.DatabaseInstance,
+) (*entities.Event, error) {
+	findOptions := make(map[string]interface{})
+	findOptions["id"] = id
+
+	eventsSlice, err := service.Repository.Find(findOptions)
+
+	if err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	if len(*eventsSlice) == 0 {
+		return nil, utils.GenerateError(service.Name, "current event with id "+id+" not found")
+	}
+
+	currentEvent := (*eventsSlice)[0]
+
+	if isInvalidInfo := service.checkInfo(data.Info); isInvalidInfo == nil {
+		currentEvent.Info = data.Info
+	}
+	if isInvalidDate := service.checkDate(data.Date); isInvalidDate == nil {
+		currentEvent.Date = data.Date
+	}
+	if notifyLevels, isInvalidNotifyLevels := service.checkNotifyLevels(data.NotifyLevels); isInvalidNotifyLevels == nil {
+		currentEvent.NotifyLevels = notifyLevels
+	}
+	if isInvalidProviders := service.checkProviders(data.Providers); isInvalidProviders == nil {
+		currentEvent.Providers = data.Providers
+	}
+
+	currentEvent.UpdatedAt = time.Now()
+
+	updatedEvent, err := service.Repository.Save(currentEvent, transaction)
+
+	return updatedEvent, err
+}
+
+// ------ move to use cases -----
 
 // func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, error) {
 // 	dependencies := []string{"eventFactory", "taskService"}

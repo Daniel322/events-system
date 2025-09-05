@@ -26,9 +26,15 @@ func initDependencies(di *dependency_container.DependencyContainer, db *db.Datab
 	// init repos
 	user_repository := repository.NewRepository[entities.User](repository.Users, base_repository)
 	account_repository := repository.NewRepository[entities.Account](repository.Accounts, base_repository)
+	event_repository := repository.NewRepository[entities.Event](repository.Events, base_repository)
 
 	user_service := services.NewUserService(user_repository)
 	account_service := services.NewAccountService(account_repository)
+	event_service := services.NewEventService(event_repository)
+
+	events, _ := event_service.Find(map[string]interface{}{})
+
+	fmt.Println(events)
 
 	di.Add(
 		"baseRepository",
@@ -43,6 +49,11 @@ func initDependencies(di *dependency_container.DependencyContainer, db *db.Datab
 	di.Add(
 		"accountService",
 		account_service,
+	)
+
+	di.Add(
+		"eventService",
+		event_service,
 	)
 
 }

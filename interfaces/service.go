@@ -14,13 +14,15 @@ type UserService interface {
 	Delete(id string, transaction db.DatabaseInstance) (bool, error)
 }
 
-type EventService interface {
-	CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, error)
+type AccountService interface {
+	Create(data dto.CreateAccountData, transaction db.DatabaseInstance) (*entities.User, error)
+	Find(options map[string]interface{}) (*[]entities.User, error)
+	Update(id string, data dto.UpdateAccountData, transaction db.DatabaseInstance) (*entities.User, error)
+	Delete(id string, transaction db.DatabaseInstance) (bool, error)
 }
 
-type AccountService interface {
-	Create(data any, transaction db.DatabaseInstance) (*entities.Account, error)
-	CheckAccount(accountId int64) (*entities.Account, error)
+type EventService interface {
+	CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, error)
 }
 
 type TaskService interface {

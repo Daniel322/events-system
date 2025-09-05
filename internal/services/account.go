@@ -3,23 +3,13 @@ package services
 import (
 	"events-system/infrastructure/providers/db"
 	"events-system/interfaces"
+	"events-system/internal/dto"
 	entities "events-system/internal/entity"
 	"events-system/pkg/utils"
 	"time"
 
 	"github.com/google/uuid"
 )
-
-type CreateAccountData struct {
-	UserId    string
-	AccountId string
-	Type      entities.AccountType
-}
-
-type UpdateAccountData struct {
-	AccountId string
-	Type      entities.AccountType
-}
 
 type AccountService struct {
 	Name       string
@@ -56,7 +46,7 @@ func (service *AccountService) checkType(value entities.AccountType) error {
 }
 
 func (service *AccountService) Create(
-	data CreateAccountData,
+	data dto.CreateAccountData,
 	transaction db.DatabaseInstance,
 ) (*entities.Account, error) {
 	var id uuid.UUID = uuid.New()
@@ -105,7 +95,7 @@ func (service *AccountService) Find(options map[string]interface{}) (*[]entities
 
 func (service *AccountService) Update(
 	id string,
-	data UpdateAccountData,
+	data dto.UpdateAccountData,
 	transaction db.DatabaseInstance,
 ) (*entities.Account, error) {
 	findOptions := make(map[string]interface{})
@@ -129,6 +119,8 @@ func (service *AccountService) Update(
 	if isInvalidType := service.checkType(data.Type); isInvalidType == nil {
 		currentAccount.Type = entities.SUPPORTED_ACCOUNT_TYPES[data.Type]
 	}
+
+	currentAccount.UpdatedAt = time.Now()
 
 	updatedAcc, err := service.Repository.Save(currentAccount, transaction)
 
