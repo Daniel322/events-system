@@ -1,9 +1,15 @@
 package interfaces
 
-// type Repository[Entity any, CreateData any, UpdateData any] interface {
-// 	Create(data CreateData, transaction db.DatabaseInstance) (*Entity, error)
-// 	Update(id string, data UpdateData, transaction db.DatabaseInstance) (*Entity, error)
-// 	GetById(id string) (*Entity, error)
-// 	GetList(options map[string]interface{}) (*[]Entity, error)
-// 	Delete(id string, transaction db.DatabaseInstance) (bool, error)
-// }
+import "events-system/infrastructure/providers/db"
+
+type BaseRepository interface {
+	CreateTransaction() db.DatabaseInstance
+}
+
+// TODO: find sol for change any
+type Repository[Entity any] interface {
+	BaseRepository
+	Save(entity Entity, transaction db.DatabaseInstance) (*Entity, error)
+	Destroy(id string, transaction db.DatabaseInstance) (bool, error)
+	Find(options map[string]interface{}) (*[]Entity, error)
+}

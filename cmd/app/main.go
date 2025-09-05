@@ -4,7 +4,10 @@ import (
 	"context"
 	db "events-system/infrastructure/providers/db"
 	"events-system/infrastructure/providers/http/server"
+	entities "events-system/internal/entity"
+	"events-system/internal/services"
 	dependency_container "events-system/pkg/di"
+	"events-system/pkg/repository"
 	"fmt"
 	"log"
 	"os"
@@ -14,6 +17,35 @@ import (
 
 	"github.com/joho/godotenv"
 )
+
+func initDependencies(di *dependency_container.DependencyContainer, db *db.Database) {
+
+	// init base repository
+	base_repository := repository.NewBaseRepository(db)
+
+	// init repos
+	user_repository := repository.NewRepository[entities.User](repository.Users, base_repository)
+	account_repository := repository.NewRepository[entities.Account](repository.Accounts, base_repository)
+
+	user_service := services.NewUserService(user_repository)
+	account_service := services.NewAccountService(account_repository)
+
+	di.Add(
+		"baseRepository",
+		base_repository,
+	)
+
+	di.Add(
+		"userService",
+		user_service,
+	)
+
+	di.Add(
+		"accountService",
+		account_service,
+	)
+
+}
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
@@ -32,7 +64,7 @@ func main() {
 
 	dependency_container := dependency_container.NewDIContainer()
 
-	InitDependencies(dependency_container, database_instance)
+	initDependencies(dependency_container, database_instance)
 
 	// init domain factories
 	// entities.NewAccountFactory()

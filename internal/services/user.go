@@ -2,8 +2,8 @@ package services
 
 import (
 	"events-system/infrastructure/providers/db"
+	"events-system/interfaces"
 	entities "events-system/internal/entity"
-	repository "events-system/pkg/repository"
 	"events-system/pkg/utils"
 	"time"
 
@@ -12,7 +12,7 @@ import (
 
 type UserService struct {
 	Name       string
-	Repository *repository.Repository[entities.User]
+	Repository interfaces.Repository[entities.User]
 }
 
 type UserData struct {
@@ -21,12 +21,10 @@ type UserData struct {
 
 const USERNAME_CANT_BE_EMPTY_ERR_MSG = "username cant be empty"
 
-func NewUserService(base_repository *repository.BaseRepository) *UserService {
-	userRepo := repository.NewRepository[entities.User](repository.Users, base_repository)
-
+func NewUserService(repository interfaces.Repository[entities.User]) *UserService {
 	return &UserService{
 		Name:       "UserService",
-		Repository: userRepo,
+		Repository: repository,
 	}
 }
 
@@ -85,14 +83,18 @@ func (service *UserService) Update(id string, username string, transaction db.Da
 		return nil, utils.GenerateError(service.Name, err.Error())
 	}
 
-	currentUser := &(*findResult)[0]
+	if len(*findResult) == 0 {
+		return nil, utils.GenerateError(service.Name, "current user with id "+id+" not found")
+	}
 
-	(*currentUser).Username = username
-	(*currentUser).UpdatedAt = time.Now()
+	currentUser := (*findResult)[0]
 
-	currentUser, err = service.Repository.Save(*currentUser, transaction)
+	currentUser.Username = username
+	currentUser.UpdatedAt = time.Now()
 
-	return currentUser, err
+	updatedUser, err := service.Repository.Save(currentUser, transaction)
+
+	return updatedUser, err
 }
 
 func (service *UserService) Delete(id string, transaction db.DatabaseInstance) (bool, error) {
@@ -100,6 +102,8 @@ func (service *UserService) Delete(id string, transaction db.DatabaseInstance) (
 
 	return result, err
 }
+
+// ---------- MOVE THAT CODE TO USE CASES ------------
 
 // func (us UserService) CreateUserWithAccount(data dto.UserDataDTO) (*dto.OutputUser, error) {
 // 	userFactory, err := dependency_container.Container.Get("userFactory")

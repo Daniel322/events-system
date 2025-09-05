@@ -1,24 +1,29 @@
 package services
 
 import (
+	"events-system/infrastructure/providers/db"
+	"events-system/interfaces"
 	entities "events-system/internal/entity"
-	repository "events-system/pkg/repository"
+	"events-system/pkg/utils"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type CreateAccountData struct {
 	UserId    string
 	AccountId string
-	Type      string
+	Type      entities.AccountType
 }
 
 type UpdateAccountData struct {
 	AccountId string
-	Type      string
+	Type      entities.AccountType
 }
 
 type AccountService struct {
 	Name       string
-	Repository *repository.Repository[entities.Account]
+	Repository interfaces.Repository[entities.Account]
 }
 
 const (
@@ -27,36 +32,116 @@ const (
 	INVALID_USER_ID    = "invalid user id type"
 )
 
-func NewAccountService(base_repository *repository.BaseRepository) *AccountService {
-	accRepo := repository.NewRepository[entities.Account](repository.Accounts, base_repository)
-
+func NewAccountService(repository interfaces.Repository[entities.Account]) *AccountService {
 	return &AccountService{
 		Name:       "AccountService",
-		Repository: accRepo,
+		Repository: repository,
 	}
 }
 
-// func (af *AccountService) Create(data entities.CreateAccountData, tranasction db.DatabaseInstance) (*entities.Account, error) {
-// 	accountFactory, err := dependency_container.Container.Get("accountFactory")
+func (service *AccountService) checkAccountId(value string) error {
+	if len(value) == 0 || len(value) > 50 {
+		return utils.GenerateError(service.Name, INVALID_ACCOUNT_ID)
+	}
 
-// 	if err != nil {
-// 		return nil, utils.GenerateError(af.Name, err.Error())
-// 	}
+	return nil
+}
 
-// 	account, err := accountFactory.(interfaces.AccountFactory).Create(data)
+func (service *AccountService) checkType(value entities.AccountType) error {
+	if isValidType := entities.SUPPORTED_ACCOUNT_TYPES[value]; len(isValidType) == 0 {
+		return utils.GenerateError(service.Name, INVALID_TYPE)
+	}
 
-// 	if err != nil {
-// 		return nil, utils.GenerateError(af.Name, err.Error())
-// 	}
+	return nil
+}
 
-// 	resAcc, err := repository.Create(repository.Accounts, *account, tranasction)
+func (service *AccountService) Create(
+	data CreateAccountData,
+	transaction db.DatabaseInstance,
+) (*entities.Account, error) {
+	var id uuid.UUID = uuid.New()
 
-// 	if err != nil {
-// 		return nil, utils.GenerateError(af.Name, err.Error())
-// 	}
+	parsedUserId, _, err := utils.ParseId(data.UserId)
 
-// 	return resAcc, nil
-// }
+	if err != nil {
+		return nil, utils.GenerateError(service.Name, INVALID_USER_ID)
+	}
+
+	err = service.checkAccountId(data.AccountId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = service.checkType(data.Type)
+
+	if err != nil {
+		return nil, err
+	}
+
+	account := &entities.Account{
+		ID:        id,
+		UserId:    parsedUserId,
+		AccountId: data.AccountId,
+		Type:      entities.SUPPORTED_ACCOUNT_TYPES[data.Type],
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	account, err = service.Repository.Save(*account, transaction)
+
+	if err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	return account, nil
+}
+
+func (service *AccountService) Find(options map[string]interface{}) (*[]entities.Account, error) {
+	results, err := service.Repository.Find(options)
+
+	return results, err
+}
+
+func (service *AccountService) Update(
+	id string,
+	data UpdateAccountData,
+	transaction db.DatabaseInstance,
+) (*entities.Account, error) {
+	findOptions := make(map[string]interface{})
+	findOptions["id"] = id
+
+	accounts, err := service.Find(findOptions)
+
+	if err != nil || len(*accounts) == 0 {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	if len(*accounts) == 0 {
+		return nil, utils.GenerateError(service.Name, "current acc with id "+id+" not found")
+	}
+
+	currentAccount := (*accounts)[0]
+
+	if isInvalidAccountId := service.checkAccountId(data.AccountId); isInvalidAccountId == nil {
+		currentAccount.AccountId = data.AccountId
+	}
+	if isInvalidType := service.checkType(data.Type); isInvalidType == nil {
+		currentAccount.Type = entities.SUPPORTED_ACCOUNT_TYPES[data.Type]
+	}
+
+	updatedAcc, err := service.Repository.Save(currentAccount, transaction)
+
+	return updatedAcc, err
+}
+
+func (service *AccountService) Delete(id string, transaction db.DatabaseInstance) (bool, error) {
+	result, err := service.Repository.Destroy(id, transaction)
+
+	return result, err
+}
+
+// -------- move to use cases ------
 
 // func (as *AccountService) CheckAccount(accountId int64) (*entities.Account, error) {
 // 	var options = map[string]interface{}{}

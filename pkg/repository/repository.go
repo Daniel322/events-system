@@ -55,12 +55,13 @@ func (repo *Repository[Entity]) Destroy(id string, transaction db.DatabaseInstan
 }
 
 func (repo *Repository[Entity]) Find(options map[string]interface{}) (*[]Entity, error) {
-	var entities *[]Entity
-	result := repo.BaseRepository.DB.Instance.Table(repo.TableName).Find(entities, options)
+	entities := make([]Entity, 0)
+
+	result := repo.BaseRepository.DB.Instance.Table(repo.TableName).Find(&entities, options)
 
 	if result.Error != nil {
 		return nil, utils.GenerateError(repo.Name, result.Error.Error())
 	}
 
-	return entities, nil
+	return &entities, nil
 }

@@ -8,8 +8,10 @@ import (
 )
 
 type UserService interface {
-	CreateUserWithAccount(data dto.UserDataDTO) (*dto.OutputUser, error)
-	GetUser(id string) (*dto.OutputUser, error)
+	Create(username string, transaction db.DatabaseInstance) (*entities.User, error)
+	Find(options map[string]interface{}) (*[]entities.User, error)
+	Update(id string, username string, transaction db.DatabaseInstance) (*entities.User, error)
+	Delete(id string, transaction db.DatabaseInstance) (bool, error)
 }
 
 type EventService interface {
@@ -17,7 +19,7 @@ type EventService interface {
 }
 
 type AccountService interface {
-	Create(data entities.CreateAccountData, transaction db.DatabaseInstance) (*entities.Account, error)
+	Create(data any, transaction db.DatabaseInstance) (*entities.Account, error)
 	CheckAccount(accountId int64) (*entities.Account, error)
 }
 
