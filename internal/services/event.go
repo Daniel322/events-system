@@ -3,6 +3,7 @@ package services
 import (
 	"events-system/infrastructure/providers/db"
 	"events-system/interfaces"
+	"events-system/internal/dto"
 	entities "events-system/internal/entity"
 	"events-system/pkg/utils"
 	"time"
@@ -13,21 +14,6 @@ import (
 type EventService struct {
 	Name       string
 	Repository interfaces.Repository[entities.Event]
-}
-
-type CreateEventData struct {
-	UserId       string
-	Info         string
-	Date         time.Time
-	NotifyLevels entities.NotifyLevel
-	Providers    entities.Providers
-}
-
-type UpdateEventData struct {
-	Info         string
-	Date         time.Time
-	NotifyLevels entities.NotifyLevel
-	Providers    entities.Providers
 }
 
 const (
@@ -109,16 +95,14 @@ func (service *EventService) Delete(id string, transaction db.DatabaseInstance) 
 	return result, err
 }
 
-func (service *EventService) Create(data CreateEventData, transaction db.DatabaseInstance) (*entities.Event, error) {
+func (service *EventService) Create(data dto.CreateEventData, transaction db.DatabaseInstance) (*entities.Event, error) {
 	var id uuid.UUID = uuid.New()
 
-	parsedUserId, _, err := utils.ParseId(data.UserId)
-
-	if err != nil {
+	if err := uuid.Validate(data.UserId.String()); err != nil {
 		return nil, utils.GenerateError(service.Name, err.Error())
 	}
 
-	err = service.checkInfo(data.Info)
+	err := service.checkInfo(data.Info)
 
 	if err != nil {
 		return nil, err
@@ -144,7 +128,7 @@ func (service *EventService) Create(data CreateEventData, transaction db.Databas
 
 	event := &entities.Event{
 		ID:           id,
-		UserId:       parsedUserId,
+		UserId:       data.UserId,
 		Info:         data.Info,
 		Date:         data.Date,
 		NotifyLevels: notifyLevels,
@@ -160,7 +144,7 @@ func (service *EventService) Create(data CreateEventData, transaction db.Databas
 
 func (service *EventService) Update(
 	id string,
-	data UpdateEventData,
+	data dto.UpdateEventData,
 	transaction db.DatabaseInstance,
 ) (*entities.Event, error) {
 	findOptions := make(map[string]interface{})

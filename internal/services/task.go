@@ -1,36 +1,143 @@
 package services
 
-// import (
-// 	"errors"
-// 	"events-system/infrastructure/providers/db"
-// 	"events-system/interfaces"
-// 	entities "events-system/internal/entity"
-// 	dependency_container "events-system/pkg/di"
-// 	"events-system/pkg/repository"
-// 	"events-system/pkg/utils"
-// 	"log"
-// 	"strconv"
-// 	"time"
-// )
+import (
+	"events-system/infrastructure/providers/db"
+	"events-system/interfaces"
+	"events-system/internal/dto"
+	entities "events-system/internal/entity"
+	"events-system/pkg/utils"
+	"slices"
+	"time"
 
-// type TaskService struct {
-// 	Name string
-// }
+	"github.com/google/uuid"
+)
 
-// type InfoAboutTaskForTgProvider struct {
-// 	ChatId int64
-// 	Text   string
-// }
+type TaskService struct {
+	Name       string
+	Repository interfaces.Repository[entities.Task]
+}
 
-// func NewTaskService() *TaskService {
-// 	service := &TaskService{
-// 		Name: "TaskService",
-// 	}
+const (
+	DATE_IS_REQUIRED      = "date is required"
+	INVALID_TASK_TYPE     = "type is invalid"
+	INVALID_TASK_PROVIDER = "provider is invalid"
+)
 
-// 	dependency_container.Container.Add("taskService", service)
+func NewTaskService(repository interfaces.Repository[entities.Task]) *TaskService {
+	return &TaskService{
+		Name:       "TaskService",
+		Repository: repository,
+	}
+}
 
-// 	return service
-// }
+func (service *TaskService) checkDate(value time.Time) error {
+	if value.IsZero() {
+		return utils.GenerateError(service.Name, INVALID_DATE)
+	}
+	return nil
+}
+
+func (service *TaskService) checkContainsOfSupportedvalues(value string, slice []string, err string) error {
+	if isContains := slices.Contains(slice, value); !isContains {
+		return utils.GenerateError(service.Name, err)
+	}
+
+	return nil
+}
+
+func (service *TaskService) Find(options map[string]interface{}) (*[]entities.Task, error) {
+	results, err := service.Repository.Find(options)
+
+	return results, err
+}
+
+func (service *TaskService) Delete(id string, transaction db.DatabaseInstance) (bool, error) {
+	result, err := service.Repository.Destroy(id, transaction)
+
+	return result, err
+}
+
+func (service *TaskService) Create(
+	data dto.CreateTaskData,
+	transaction db.DatabaseInstance,
+) (*entities.Task, error) {
+	var id uuid.UUID = uuid.New()
+
+	if err := uuid.Validate(data.AccountId.String()); err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	if err := uuid.Validate(data.EventId.String()); err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	err := service.checkDate(data.Date)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = service.checkContainsOfSupportedvalues(data.Type, entities.SUPPORTED_TYPES, INVALID_TASK_TYPE)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = service.checkContainsOfSupportedvalues(data.Provider, entities.SUPPORTED_PROVIDERS, INVALID_TASK_PROVIDER)
+
+	if err != nil {
+		return nil, err
+	}
+
+	task := &entities.Task{
+		ID:        id,
+		EventId:   data.EventId,
+		AccountId: data.AccountId,
+		Type:      data.Type,
+		Provider:  data.Provider,
+		Date:      data.Date,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	task, err = service.Repository.Save(*task, transaction)
+
+	return task, err
+}
+
+func (service *TaskService) Update(
+	id string,
+	date time.Time,
+	transaction db.DatabaseInstance,
+) (*entities.Task, error) {
+	findOptions := make(map[string]interface{})
+	findOptions["id"] = id
+
+	tasks, err := service.Repository.Find(findOptions)
+
+	if err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	if len(*tasks) == 0 {
+		return nil, utils.GenerateError(service.Name, "current task with id "+id+" not found")
+	}
+
+	currentTask := (*tasks)[0]
+
+	if IsInvalidDate := service.checkDate(date); IsInvalidDate == nil {
+		currentTask.Date = date
+		currentTask.UpdatedAt = time.Now()
+
+		updatedTask, err := service.Repository.Save(currentTask, transaction)
+
+		return updatedTask, err
+	}
+
+	return &currentTask, nil
+}
+
+// ------ move to use cases --------
 
 // func (service *TaskService) GenerateTimesForTasks(eventDate time.Time) []entities.TaskSliceEvent {
 // 	today := time.Now()

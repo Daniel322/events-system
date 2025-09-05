@@ -22,3 +22,5 @@ func (value NotifyLevel) Value() (driver.Value, error) {
 	}
 	return json.Marshal(value)
 }
+
+var NOTIFY_LEVELS = NotifyLevel{"month", "week", "tomorrow", "today"}

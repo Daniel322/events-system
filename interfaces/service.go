@@ -22,14 +22,15 @@ type AccountService interface {
 }
 
 type EventService interface {
-	CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, error)
+	Create(data dto.CreateEventData, transaction db.DatabaseInstance) (*entities.Event, error)
+	Find(options map[string]interface{}) (*[]entities.Event, error)
+	Update(id string, data dto.UpdateEventData, transaction db.DatabaseInstance) (*entities.Event, error)
+	Delete(id string, transaction db.DatabaseInstance) (bool, error)
 }
 
 type TaskService interface {
-	GetListOfTodayTasks() (*[]entities.Task, error)
-	Create(
-		data entities.CreateTaskData,
-		transaction db.DatabaseInstance,
-	) (*entities.Task, error)
-	GenerateTimesForTasks(eventDate time.Time) []entities.TaskSliceEvent
+	Find(options map[string]interface{}) (*[]entities.Task, error)
+	Delete(id string, transaction db.DatabaseInstance) (bool, error)
+	Create(data dto.CreateTaskData, transaction db.DatabaseInstance) (*entities.Event, error)
+	Update(id string, date time.Time, transaction db.DatabaseInstance) (*entities.Event, error)
 }

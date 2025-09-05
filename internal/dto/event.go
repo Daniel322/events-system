@@ -15,6 +15,21 @@ type CreateEventDTO struct {
 	Providers []string  `json:"providers"`
 }
 
+type CreateEventData struct {
+	UserId       uuid.UUID
+	Info         string
+	Date         time.Time
+	NotifyLevels entities.NotifyLevel
+	Providers    entities.Providers
+}
+
+type UpdateEventData struct {
+	Info         string
+	Date         time.Time
+	NotifyLevels entities.NotifyLevel
+	Providers    entities.Providers
+}
+
 type OutputEvent struct {
 	ID           uuid.UUID
 	UserId       uuid.UUID

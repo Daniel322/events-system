@@ -1,9 +1,13 @@
 package dto
 
-import entities "events-system/internal/entity"
+import (
+	entities "events-system/internal/entity"
+
+	"github.com/google/uuid"
+)
 
 type CreateAccountData struct {
-	UserId    string
+	UserId    uuid.UUID
 	AccountId string
 	Type      entities.AccountType
 }

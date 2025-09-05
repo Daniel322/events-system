@@ -17,42 +17,9 @@ type Task struct {
 	UpdatedAt time.Time
 }
 
-type TaskFactory struct {
-	Name string
-}
+var SUPPORTED_TYPES = []string{"month", "week", "tomorrow", "today"}
 
-type CreateTaskData struct {
-	EventId   uuid.UUID
-	AccountId uuid.UUID
-	Date      time.Time
-	Type      string
-	Provider  string
-}
-
-type UpdateTaskData struct {
-	Date time.Time
-}
-
-type TaskSliceEvent struct {
-	Date time.Time
-	Type string
-}
-
-const (
-	EVENT_ID_IS_REQUIRED   = "event id is required"
-	ACCOUNT_ID_IS_REQUIRED = "account id is required"
-	DATE_IS_REQUIRED       = "date is required"
-)
-
-// func NewTaskFactory() *TaskFactory {
-// 	factory := &TaskFactory{
-// 		Name: "TaskFactory",
-// 	}
-
-// 	dependency_container.Container.Add("taskFactory", factory)
-
-// 	return factory
-// }
+var SUPPORTED_PROVIDERS = []string{"mail", "http", "telegram"}
 
 // func (tf *TaskFactory) Create(data CreateTaskData) (*Task, error) {
 // 	// TODO: add validation for type and provider

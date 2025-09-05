@@ -51,13 +51,11 @@ func (service *AccountService) Create(
 ) (*entities.Account, error) {
 	var id uuid.UUID = uuid.New()
 
-	parsedUserId, _, err := utils.ParseId(data.UserId)
-
-	if err != nil {
-		return nil, utils.GenerateError(service.Name, INVALID_USER_ID)
+	if err := uuid.Validate(data.UserId.String()); err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
 	}
 
-	err = service.checkAccountId(data.AccountId)
+	err := service.checkAccountId(data.AccountId)
 
 	if err != nil {
 		return nil, err
@@ -71,7 +69,7 @@ func (service *AccountService) Create(
 
 	account := &entities.Account{
 		ID:        id,
-		UserId:    parsedUserId,
+		UserId:    data.UserId,
 		AccountId: data.AccountId,
 		Type:      entities.SUPPORTED_ACCOUNT_TYPES[data.Type],
 		CreatedAt: time.Now(),
