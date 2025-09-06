@@ -185,43 +185,6 @@ func (service *EventService) Update(
 // ------ move to use cases -----
 
 // func (es *EventService) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, error) {
-// 	dependencies := []string{"eventFactory", "taskService"}
-// 	diServices, err := dependency_container.Container.MultiGet(dependencies)
-
-// 	if err != nil {
-// 		return nil, utils.GenerateError(es.Name, err.Error())
-// 	}
-
-// 	eventFactory := diServices["eventFactory"]
-
-// 	taskService := diServices["taskService"]
-
-// 	transaction := repository.CreateTransaction()
-
-// 	defer func() {
-// 		if r := recover(); r != nil {
-// 			transaction.Rollback()
-// 		}
-// 	}()
-
-// 	event, err := eventFactory.(interfaces.EventFactory).Create(entities.CreateEventData{
-// 		UserId:       data.UserId,
-// 		Info:         data.Info,
-// 		Date:         data.Date,
-// 		Providers:    data.Providers,
-// 		NotifyLevels: []string{"month", "week", "tomorrow", "today"},
-// 	})
-
-// 	if err != nil {
-// 		return nil, utils.GenerateError(es.Name, err.Error())
-// 	}
-
-// 	event, err = repository.Create(repository.Events, *event, transaction)
-
-// 	if err != nil {
-// 		transaction.Rollback()
-// 		return nil, utils.GenerateError(es.Name, err.Error())
-// 	}
 
 // 	timesForTask := taskService.(interfaces.TaskService).GenerateTimesForTasks(data.Date)
 

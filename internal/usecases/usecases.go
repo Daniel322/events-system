@@ -5,6 +5,7 @@ import (
 	"events-system/internal/dto"
 	entities "events-system/internal/entity"
 	"events-system/pkg/utils"
+	"fmt"
 	"strconv"
 )
 
@@ -124,4 +125,35 @@ func (usecase *InternalUseCases) CheckTGAccount(accountId int64) (*entities.Acco
 	}
 
 	return &(*currentAccounts)[0], nil
+}
+
+func (usecase *InternalUseCases) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, error) {
+	transaction := usecase.BaseRepository.CreateTransaction()
+
+	defer func() {
+		if r := recover(); r != nil {
+			transaction.Rollback()
+		}
+	}()
+
+	event, err := usecase.EventService.Create(
+		dto.CreateEventData{
+			UserId:    data.UserId,
+			Info:      data.Info,
+			Date:      data.Date,
+			Providers: data.Providers,
+		},
+		transaction,
+	)
+
+	if err != nil {
+		transaction.Rollback()
+		return nil, utils.GenerateError("CreateEvent", err.Error())
+	}
+
+	fmt.Println(event)
+
+	// TODO: write private method for generate tasks time and create tasks for that event
+
+	return &dto.OutputEvent{}, nil
 }
