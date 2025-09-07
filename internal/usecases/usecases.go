@@ -5,8 +5,8 @@ import (
 	"events-system/internal/dto"
 	entities "events-system/internal/entity"
 	"events-system/pkg/utils"
-	"fmt"
 	"strconv"
+	"time"
 )
 
 type InternalUseCases struct {
@@ -127,6 +127,53 @@ func (usecase *InternalUseCases) CheckTGAccount(accountId int64) (*entities.Acco
 	return &(*currentAccounts)[0], nil
 }
 
+func (usecase *InternalUseCases) GetListOfTodayTasks() (*[]entities.Task, error) {
+	options := make(map[string]interface{})
+	options["date"] = time.Now().Format("2006-01-02")
+
+	tasks, err := usecase.TaskService.Find(options)
+
+	if err != nil {
+		return nil, utils.GenerateError("GetListOfTodayTasks", err.Error())
+	}
+
+	return tasks, nil
+}
+
+func (usecase *InternalUseCases) GenerateTimesForTasks(eventDate time.Time) []dto.TaskSliceEvent {
+	today := time.Now()
+	todayYear := today.Year()
+	eventDateYear := eventDate.Year()
+	currentEventInThatYear := eventDate
+	tasks := make([]dto.TaskSliceEvent, 0)
+	// TODO: check flow and fix bug with next case: если создать евент с таском в текущий день, таск создастся на следующий год
+
+	// if event in that year before today
+	if currentEventInThatYear.Compare(today) == -1 {
+		todayYear += 1
+	}
+
+	if eventDateYear < todayYear {
+		currentEventInThatYear = time.Date(
+			todayYear,
+			eventDate.Month(),
+			eventDate.Day(),
+			eventDate.Hour(),
+			eventDate.Minute(),
+			eventDate.Second(),
+			eventDate.Nanosecond(),
+			eventDate.Location(),
+		)
+	}
+
+	tasks = append(tasks, dto.TaskSliceEvent{Date: currentEventInThatYear, Type: "today"})
+	tasks = append(tasks, dto.TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24)), Type: "tomorrow"})
+	tasks = append(tasks, dto.TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24 * 7)), Type: "week"})
+	tasks = append(tasks, dto.TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24 * 30)), Type: "month"})
+
+	return tasks
+}
+
 func (usecase *InternalUseCases) CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, error) {
 	transaction := usecase.BaseRepository.CreateTransaction()
 
@@ -150,8 +197,6 @@ func (usecase *InternalUseCases) CreateEvent(data dto.CreateEventDTO) (*dto.Outp
 		transaction.Rollback()
 		return nil, utils.GenerateError("CreateEvent", err.Error())
 	}
-
-	fmt.Println(event)
 
 	// TODO: write private method for generate tasks time and create tasks for that event
 
