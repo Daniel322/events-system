@@ -8,7 +8,7 @@ import (
 )
 
 type CreateEventDTO struct {
-	AccountId string             `json:"account_id" validate:"required"`
+	AccountId uuid.UUID          `json:"account_id" validate:"required"`
 	UserId    uuid.UUID          `json:"user_id" validate:"required"`
 	Info      string             `json:"info" validate:"required"`
 	Date      time.Time          `json:"date" validate:"required"`

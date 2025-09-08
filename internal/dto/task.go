@@ -16,8 +16,9 @@ type CreateTaskData struct {
 
 // need in use case
 type TaskSliceEvent struct {
-	Date time.Time
-	Type string
+	Date     time.Time
+	Type     string
+	Provider string
 }
 
 // need in use case

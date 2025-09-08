@@ -17,6 +17,13 @@ type InternalUseCases struct {
 	TaskService    interfaces.TaskService
 }
 
+var TASKS_TYPES = map[string]time.Duration{
+	"today":    0,
+	"tommorow": time.Hour * 24,
+	"week":     time.Hour * 168,
+	"month":    time.Hour * 720,
+}
+
 func NewInternalUseCases(
 	repository interfaces.BaseRepository,
 	user_service interfaces.UserService,
@@ -140,21 +147,16 @@ func (usecase *InternalUseCases) GetListOfTodayTasks() (*[]entities.Task, error)
 	return tasks, nil
 }
 
-func (usecase *InternalUseCases) GenerateTimesForTasks(eventDate time.Time) []dto.TaskSliceEvent {
+func (usecase *InternalUseCases) generateTimesForTasks(
+	eventDate time.Time,
+	providers entities.Providers,
+) []dto.TaskSliceEvent {
 	today := time.Now()
 	todayYear := today.Year()
-	eventDateYear := eventDate.Year()
-	currentEventInThatYear := eventDate
 	tasks := make([]dto.TaskSliceEvent, 0)
-	// TODO: check flow and fix bug with next case: если создать евент с таском в текущий день, таск создастся на следующий год
 
-	// if event in that year before today
-	if currentEventInThatYear.Compare(today) == -1 {
-		todayYear += 1
-	}
-
-	if eventDateYear < todayYear {
-		currentEventInThatYear = time.Date(
+	for key, value := range TASKS_TYPES {
+		currentEventInThatYear := time.Date(
 			todayYear,
 			eventDate.Month(),
 			eventDate.Day(),
@@ -163,13 +165,20 @@ func (usecase *InternalUseCases) GenerateTimesForTasks(eventDate time.Time) []dt
 			eventDate.Second(),
 			eventDate.Nanosecond(),
 			eventDate.Location(),
-		)
-	}
+		).Add(-value)
 
-	tasks = append(tasks, dto.TaskSliceEvent{Date: currentEventInThatYear, Type: "today"})
-	tasks = append(tasks, dto.TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24)), Type: "tomorrow"})
-	tasks = append(tasks, dto.TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24 * 7)), Type: "week"})
-	tasks = append(tasks, dto.TaskSliceEvent{Date: currentEventInThatYear.Add(-(time.Hour * 24 * 30)), Type: "month"})
+		if currentEventInThatYear.Compare(today) == -1 {
+			currentEventInThatYear = currentEventInThatYear.AddDate(1, 0, 0)
+		}
+
+		for _, provider := range providers {
+			tasks = append(tasks, dto.TaskSliceEvent{
+				Type:     key,
+				Date:     currentEventInThatYear,
+				Provider: provider,
+			})
+		}
+	}
 
 	return tasks
 }
@@ -198,7 +207,45 @@ func (usecase *InternalUseCases) CreateEvent(data dto.CreateEventDTO) (*dto.Outp
 		return nil, utils.GenerateError("CreateEvent", err.Error())
 	}
 
-	// TODO: write private method for generate tasks time and create tasks for that event
+	tasks_dates := usecase.generateTimesForTasks(event.Date, data.Providers)
 
-	return &dto.OutputEvent{}, nil
+	tasks := make([]entities.Task, 0)
+
+	for _, value := range tasks_dates {
+		task, err := usecase.TaskService.Create(
+			dto.CreateTaskData{
+				EventId:   event.ID,
+				AccountId: data.AccountId,
+				Type:      value.Type,
+				Date:      value.Date,
+				Provider:  value.Provider,
+			},
+			transaction,
+		)
+
+		if err != nil {
+			transaction.Rollback()
+			return nil, utils.GenerateError("CreateEvent", err.Error())
+		}
+
+		tasks = append(tasks, *task)
+	}
+
+	// unreal error case
+	notifyLevels, _ := event.NotifyLevels.Value()
+
+	// unreal error case
+	providers, _ := event.Providers.Value()
+
+	return &dto.OutputEvent{
+		ID:           event.ID,
+		UserId:       event.UserId,
+		Info:         event.Info,
+		Date:         event.Date,
+		NotifyLevels: notifyLevels.(string),
+		Providers:    providers.(string),
+		CreatedAt:    event.CreatedAt,
+		UpdatedAt:    event.UpdatedAt,
+		Tasks:        tasks,
+	}, nil
 }
