@@ -67,7 +67,25 @@ func (service *UserService) Find(options map[string]interface{}) (*[]entities.Us
 	return users, err
 }
 
-func (service *UserService) Update(id string, username string, transaction db.DatabaseInstance) (*entities.User, error) {
+func (service *UserService) FindOne(options map[string]interface{}) (*entities.User, error) {
+	users, err := service.Find(options)
+
+	if err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	if len(*users) == 0 {
+		return nil, utils.GenerateError(service.Name, "current user not found")
+	}
+
+	return &(*users)[0], nil
+}
+
+func (service *UserService) Update(
+	id string,
+	username string,
+	transaction db.DatabaseInstance,
+) (*entities.User, error) {
 	err := service.checkUsername(username)
 
 	if err != nil {
@@ -77,24 +95,18 @@ func (service *UserService) Update(id string, username string, transaction db.Da
 	findOptions := make(map[string]interface{})
 	findOptions["id"] = id
 
-	findResult, err := service.Find(findOptions)
+	currentUser, err := service.FindOne(findOptions)
 
 	if err != nil {
 		return nil, utils.GenerateError(service.Name, err.Error())
 	}
 
-	if len(*findResult) == 0 {
-		return nil, utils.GenerateError(service.Name, "current user with id "+id+" not found")
-	}
-
-	currentUser := (*findResult)[0]
-
 	currentUser.Username = username
 	currentUser.UpdatedAt = time.Now()
 
-	updatedUser, err := service.Repository.Save(currentUser, transaction)
+	currentUser, err = service.Repository.Save(*currentUser, transaction)
 
-	return updatedUser, err
+	return currentUser, err
 }
 
 func (service *UserService) Delete(id string, transaction db.DatabaseInstance) (bool, error) {

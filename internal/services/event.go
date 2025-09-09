@@ -89,6 +89,20 @@ func (service *EventService) Find(options map[string]interface{}) (*[]entities.E
 	return results, err
 }
 
+func (service *EventService) FindOne(options map[string]interface{}) (*entities.Event, error) {
+	events, err := service.Find(options)
+
+	if err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	if len(*events) == 0 {
+		return nil, utils.GenerateError(service.Name, "current account not found")
+	}
+
+	return &(*events)[0], nil
+}
+
 func (service *EventService) Delete(id string, transaction db.DatabaseInstance) (bool, error) {
 	result, err := service.Repository.Destroy(id, transaction)
 
@@ -150,17 +164,11 @@ func (service *EventService) Update(
 	findOptions := make(map[string]interface{})
 	findOptions["id"] = id
 
-	eventsSlice, err := service.Repository.Find(findOptions)
+	currentEvent, err := service.FindOne(findOptions)
 
 	if err != nil {
 		return nil, utils.GenerateError(service.Name, err.Error())
 	}
-
-	if len(*eventsSlice) == 0 {
-		return nil, utils.GenerateError(service.Name, "current event with id "+id+" not found")
-	}
-
-	currentEvent := (*eventsSlice)[0]
 
 	if isInvalidInfo := service.checkInfo(data.Info); isInvalidInfo == nil {
 		currentEvent.Info = data.Info
@@ -177,7 +185,7 @@ func (service *EventService) Update(
 
 	currentEvent.UpdatedAt = time.Now()
 
-	updatedEvent, err := service.Repository.Save(currentEvent, transaction)
+	currentEvent, err = service.Repository.Save(*currentEvent, transaction)
 
-	return updatedEvent, err
+	return currentEvent, err
 }

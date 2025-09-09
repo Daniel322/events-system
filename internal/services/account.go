@@ -91,6 +91,20 @@ func (service *AccountService) Find(options map[string]interface{}) (*[]entities
 	return results, err
 }
 
+func (service *AccountService) FindOne(options map[string]interface{}) (*entities.Account, error) {
+	accs, err := service.Find(options)
+
+	if err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	if len(*accs) == 0 {
+		return nil, utils.GenerateError(service.Name, "current account not found")
+	}
+
+	return &(*accs)[0], nil
+}
+
 func (service *AccountService) Update(
 	id string,
 	data dto.UpdateAccountData,
@@ -99,17 +113,11 @@ func (service *AccountService) Update(
 	findOptions := make(map[string]interface{})
 	findOptions["id"] = id
 
-	accounts, err := service.Find(findOptions)
+	currentAccount, err := service.FindOne(findOptions)
 
-	if err != nil || len(*accounts) == 0 {
+	if err != nil {
 		return nil, utils.GenerateError(service.Name, err.Error())
 	}
-
-	if len(*accounts) == 0 {
-		return nil, utils.GenerateError(service.Name, "current acc with id "+id+" not found")
-	}
-
-	currentAccount := (*accounts)[0]
 
 	if isInvalidAccountId := service.checkAccountId(data.AccountId); isInvalidAccountId == nil {
 		currentAccount.AccountId = data.AccountId
@@ -120,9 +128,9 @@ func (service *AccountService) Update(
 
 	currentAccount.UpdatedAt = time.Now()
 
-	updatedAcc, err := service.Repository.Save(currentAccount, transaction)
+	currentAccount, err = service.Repository.Save(*currentAccount, transaction)
 
-	return updatedAcc, err
+	return currentAccount, err
 }
 
 func (service *AccountService) Delete(id string, transaction db.DatabaseInstance) (bool, error) {

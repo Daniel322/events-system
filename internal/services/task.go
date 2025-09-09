@@ -51,6 +51,20 @@ func (service *TaskService) Find(options map[string]interface{}) (*[]entities.Ta
 	return results, err
 }
 
+func (service *TaskService) FindOne(options map[string]interface{}) (*entities.Task, error) {
+	tasks, err := service.Find(options)
+
+	if err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	if len(*tasks) == 0 {
+		return nil, utils.GenerateError(service.Name, "current account not found")
+	}
+
+	return &(*tasks)[0], nil
+}
+
 func (service *TaskService) Delete(id string, transaction db.DatabaseInstance) (bool, error) {
 	result, err := service.Repository.Destroy(id, transaction)
 
@@ -113,109 +127,20 @@ func (service *TaskService) Update(
 	findOptions := make(map[string]interface{})
 	findOptions["id"] = id
 
-	tasks, err := service.Repository.Find(findOptions)
+	currentTask, err := service.FindOne(findOptions)
 
 	if err != nil {
 		return nil, utils.GenerateError(service.Name, err.Error())
 	}
 
-	if len(*tasks) == 0 {
-		return nil, utils.GenerateError(service.Name, "current task with id "+id+" not found")
-	}
-
-	currentTask := (*tasks)[0]
-
 	if IsInvalidDate := service.checkDate(date); IsInvalidDate == nil {
 		currentTask.Date = date
 		currentTask.UpdatedAt = time.Now()
 
-		updatedTask, err := service.Repository.Save(currentTask, transaction)
+		currentTask, err := service.Repository.Save(*currentTask, transaction)
 
-		return updatedTask, err
+		return currentTask, err
 	}
 
-	return &currentTask, nil
+	return currentTask, nil
 }
-
-// ------ move to use cases --------
-
-// func (ts *TaskService) ExecTaskAndGenerateNew(taskId string) (*InfoAboutTaskForTgProvider, error) {
-// 	currentTask, err := repository.GetById[entities.Task](repository.Tasks, taskId)
-
-// 	if err != nil {
-// 		return nil, utils.GenerateError(ts.Name, err.Error())
-// 	}
-
-// 	_, strEventId, err := utils.ParseId(currentTask.EventId)
-
-// 	if err != nil {
-// 		return nil, utils.GenerateError(ts.Name, err.Error())
-// 	}
-
-// 	_, strAccId, err := utils.ParseId(currentTask.AccountId)
-
-// 	if err != nil {
-// 		return nil, utils.GenerateError(ts.Name, err.Error())
-// 	}
-
-// 	currentEvent, err := repository.GetById[entities.Event](repository.Events, strEventId)
-
-// 	if err != nil {
-// 		return nil, utils.GenerateError(ts.Name, err.Error())
-// 	}
-
-// 	currentAcc, err := repository.GetById[entities.Account](repository.Accounts, strAccId)
-
-// 	if err != nil {
-// 		return nil, utils.GenerateError(ts.Name, err.Error())
-// 	}
-
-// 	chatId, err := strconv.ParseInt(currentAcc.AccountId, 10, 64)
-
-// 	if err != nil {
-// 		return nil, utils.GenerateError(ts.Name, err.Error())
-// 	}
-
-// 	transaction := repository.CreateTransaction()
-
-// 	ok, err := repository.Delete[entities.Task](repository.Tasks, currentTask.ID.String(), transaction)
-
-// 	defer func() {
-// 		if r := recover(); r != nil {
-// 			transaction.Rollback()
-// 		}
-// 	}()
-
-// 	if !ok || err != nil {
-// 		if err == nil {
-// 			err = errors.New("something went wrong on delete task")
-// 		}
-// 		transaction.Rollback()
-// 		return nil, utils.GenerateError(ts.Name, err.Error())
-// 	}
-
-// 	newTask, err := repository.Create[entities.Task](repository.Tasks, entities.Task{
-// 		EventId:   currentEvent.ID,
-// 		AccountId: currentAcc.ID,
-// 		Type:      currentTask.Type,
-// 		Provider:  currentTask.Provider,
-// 		Date:      currentTask.Date.AddDate(1, 0, 0),
-// 	}, transaction)
-
-// 	if err != nil {
-// 		transaction.Rollback()
-// 		return nil, utils.GenerateError(ts.Name, err.Error())
-// 	}
-
-// 	log.Println("task creted from cron" + newTask.ID.String())
-
-// 	textMsg := "Attention!" + " For " + currentTask.Type + " in " + currentEvent.Date.Format("01-02") + " will be event " + currentEvent.Info
-
-// 	transaction.Commit()
-
-// 	return &InfoAboutTaskForTgProvider{
-// 		ChatId: chatId,
-// 		Text:   textMsg,
-// 	}, nil
-
-// }
