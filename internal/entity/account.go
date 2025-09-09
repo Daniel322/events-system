@@ -32,30 +32,3 @@ var SUPPORTED_ACCOUNT_TYPES = map[AccountType]string{
 func (acc AccountType) String() string {
 	return SUPPORTED_ACCOUNT_TYPES[acc]
 }
-
-// func (af *AccountFactory) Update(acc *Account, data UpdateAccountData) (*Account, error) {
-// 	var reflectData = reflect.ValueOf(&data).Elem()
-// 	var fieldsAccount = 0
-
-// 	if accountId := reflectData.FieldByName("AccountId"); !accountId.IsValid() || len(data.AccountId) > 50 {
-// 		return nil, utils.GenerateError(af.Name, INVALID_ACCOUNT_ID)
-// 	} else {
-// 		acc.AccountId = data.AccountId
-// 		fieldsAccount++
-// 	}
-
-// 	typeContains := slices.Contains(SUPPORTED_TYPES, data.Type)
-
-// 	if !typeContains {
-// 		return nil, utils.GenerateError(af.Name, INVALID_TYPE)
-// 	} else {
-// 		acc.Type = data.Type
-// 		fieldsAccount++
-// 	}
-
-// 	if fieldsAccount > 0 {
-// 		acc.UpdatedAt = time.Now()
-// 	}
-
-// 	return acc, nil
-// }
