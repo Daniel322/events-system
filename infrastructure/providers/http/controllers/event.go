@@ -49,5 +49,5 @@ func (controller *EventController) CreateEvent(c echo.Context) error {
 
 // TODO: add get and patch methods in s-2.0
 func (controller *EventController) InitRoutes() {
-	controller.server.POST("/event", controller.CreateEvent)
+	controller.server.POST("/events", controller.CreateEvent)
 }
