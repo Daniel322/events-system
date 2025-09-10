@@ -78,7 +78,7 @@ func main() {
 		server.Instance,
 		internalUseCases,
 	)
-	// eventController := controllers.NewEventController(server.Instance)
+	eventController := controllers.NewEventController(server.Instance, internalUseCases)
 
 	// tgBotProvider, err := telegram.NewTgBotProvider(os.Getenv("TG_BOT_TOKEN"), userService, accountService, eventsService)
 
@@ -94,7 +94,7 @@ func main() {
 
 	// init http routes
 	userController.InitRoutes()
-	// eventController.InitRoutes()
+	eventController.InitRoutes()
 
 	// start http server
 	go server.Start(os.Getenv("HTTP_PORT"))
