@@ -3,6 +3,7 @@ package telegram
 import (
 	"events-system/interfaces"
 	"events-system/internal/dto"
+	entities "events-system/internal/entity"
 	"events-system/pkg/utils"
 	"log"
 	"reflect"
@@ -20,17 +21,13 @@ type TgEvent struct {
 type TgBotProvider struct {
 	Name                 string
 	Bot                  *tgbotapi.BotAPI
-	UserService          interfaces.UserService
-	AccountService       interfaces.AccountService
-	EventService         interfaces.EventService
+	Service              interfaces.InternalUsecase
 	NotCompletedEventMap map[int64]*TgEvent
 }
 
 func NewTgBotProvider(
 	token string,
-	userService interfaces.UserService,
-	accService interfaces.AccountService,
-	eventService interfaces.EventService,
+	service interfaces.InternalUsecase,
 ) (*TgBotProvider, error) {
 	bot, err := tgbotapi.NewBotAPI(token)
 
@@ -41,9 +38,7 @@ func NewTgBotProvider(
 	return &TgBotProvider{
 		Name:                 "TgBotProvider",
 		Bot:                  bot,
-		UserService:          userService,
-		AccountService:       accService,
-		EventService:         eventService,
+		Service:              service,
 		NotCompletedEventMap: make(map[int64]*TgEvent, 10),
 	}, nil
 }
@@ -69,7 +64,7 @@ func (tg *TgBotProvider) Bootstrap() {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 
 		if !update.Message.IsCommand() {
-			currentAcc, err := tg.AccountService.CheckAccount(update.Message.Chat.ID)
+			currentAcc, err := tg.Service.CheckTGAccount(update.Message.Chat.ID)
 
 			if err != nil {
 				msg.Text = err.Error()
@@ -107,13 +102,12 @@ func (tg *TgBotProvider) Bootstrap() {
 
 					// strAccId := strconv.Itoa(int(update.Message.From.ID))
 					currentEvent.Date = &timeVar
-					// TODO: fix providers var
-					event, err := tg.EventService.CreateEvent(dto.CreateEventDTO{
-						AccountId: currentAcc.ID.String(),
+					event, err := tg.Service.CreateEvent(dto.CreateEventDTO{
+						AccountId: currentAcc.ID,
 						Date:      *currentEvent.Date,
 						Info:      currentEvent.Name,
-						UserId:    currentAcc.UserId.String(),
-						Providers: []string{"telegram"},
+						UserId:    currentAcc.UserId,
+						Providers: entities.JsonField{"telegram"},
 					})
 
 					if err != nil {
@@ -132,7 +126,7 @@ func (tg *TgBotProvider) Bootstrap() {
 			switch update.Message.Command() {
 			case "start":
 				accountId := update.Message.From.ID
-				currentAccount, err := tg.AccountService.CheckAccount(accountId)
+				currentAccount, err := tg.Service.CheckTGAccount(accountId)
 
 				if err != nil {
 					utils.GenerateError(tg.Name, err.Error())
@@ -142,10 +136,10 @@ func (tg *TgBotProvider) Bootstrap() {
 				if currentAccount == nil {
 					strAccId := strconv.Itoa(int(update.Message.From.ID))
 
-					newUser, err := tg.UserService.CreateUserWithAccount(dto.UserDataDTO{
+					newUser, err := tg.Service.CreateUser(dto.CreateUserInput{
 						Username:  update.Message.From.UserName,
 						AccountId: strAccId,
-						Type:      "telegram",
+						Type:      entities.AccountType(1),
 					})
 
 					if err != nil {
@@ -155,7 +149,7 @@ func (tg *TgBotProvider) Bootstrap() {
 
 					msg.Text = "account " + newUser.Username + " created"
 				} else {
-					currentUser, err := tg.UserService.GetUser(currentAccount.UserId.String())
+					currentUser, err := tg.Service.GetUser(currentAccount.UserId.String())
 
 					if err != nil || currentUser == nil {
 						utils.GenerateError(tg.Name, err.Error())

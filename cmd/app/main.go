@@ -5,6 +5,7 @@ import (
 	db "events-system/infrastructure/providers/db"
 	"events-system/infrastructure/providers/http/controllers"
 	"events-system/infrastructure/providers/http/server"
+	"events-system/infrastructure/providers/telegram"
 	"events-system/interfaces"
 	entities "events-system/internal/entity"
 	"events-system/internal/services"
@@ -81,17 +82,17 @@ func main() {
 	eventController := controllers.NewEventController(server.Instance, internalUseCases)
 	taskController := controllers.NewTaskController(server.Instance, internalUseCases)
 
-	// tgBotProvider, err := telegram.NewTgBotProvider(os.Getenv("TG_BOT_TOKEN"), userService, accountService, eventsService)
+	tgBotProvider, err := telegram.NewTgBotProvider(os.Getenv("TG_BOT_TOKEN"), internalUseCases)
 
-	// if err != nil {
-	// 	panic(err.Error())
-	// }
+	if err != nil {
+		panic(err.Error())
+	}
 
 	// cronProvider := cron.NewCronProvider(tgBotProvider, tasksService)
 
 	// cronProvider.Bootstrap()
 
-	// go tgBotProvider.Bootstrap()
+	go tgBotProvider.Bootstrap()
 
 	// init http routes
 	userController.InitRoutes()
@@ -109,6 +110,6 @@ func main() {
 	defer cancel()
 
 	database_instance.Close()
-	// tgBotProvider.Close()
+	tgBotProvider.Close()
 	server.Close(shutdownCtx)
 }
