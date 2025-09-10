@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	db "events-system/infrastructure/providers/db"
+	"events-system/infrastructure/providers/http/controllers"
 	"events-system/infrastructure/providers/http/server"
+	"events-system/interfaces"
 	entities "events-system/internal/entity"
 	"events-system/internal/services"
 	"events-system/internal/usecases"
@@ -19,7 +21,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func initDependencies(di *dependency_container.DependencyContainer, db *db.Database) {
+func initInternalDependencies(
+	di *dependency_container.DependencyContainer,
+	db *db.Database,
+) interfaces.InternalUsecase {
 
 	// init base repository
 	base_repository := repository.NewBaseRepository(db)
@@ -45,6 +50,8 @@ func initDependencies(di *dependency_container.DependencyContainer, db *db.Datab
 	)
 
 	di.Add("useCases", internalUseCases)
+
+	return internalUseCases
 }
 
 func main() {
@@ -64,13 +71,13 @@ func main() {
 
 	dependency_container := dependency_container.NewDIContainer()
 
-	initDependencies(dependency_container, database_instance)
+	internalUseCases := initInternalDependencies(dependency_container, database_instance)
 
 	// init controllers
-	// userController := controllers.NewUserController(
-	// 	server.Instance,
-	// 	userService,
-	// )
+	userController := controllers.NewUserController(
+		server.Instance,
+		internalUseCases,
+	)
 	// eventController := controllers.NewEventController(server.Instance)
 
 	// tgBotProvider, err := telegram.NewTgBotProvider(os.Getenv("TG_BOT_TOKEN"), userService, accountService, eventsService)
@@ -85,8 +92,8 @@ func main() {
 
 	// go tgBotProvider.Bootstrap()
 
-	// // init http routes
-	// userController.InitRoutes()
+	// init http routes
+	userController.InitRoutes()
 	// eventController.InitRoutes()
 
 	// start http server

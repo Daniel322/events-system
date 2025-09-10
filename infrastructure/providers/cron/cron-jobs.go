@@ -16,6 +16,9 @@ func (cron *CronProvider) TaskJob() error {
 	for _, task := range *tasksList {
 		msgInfo, err := cron.tasksService.ExecTaskAndGenerateNew(task.ID.String())
 
+		// need to parse acc id to int64 for tg
+		// chatId, err := strconv.ParseInt(currentAcc.AccountId, 10, 64)
+
 		if err != nil {
 			return utils.GenerateError(cron.Name, err.Error())
 		}

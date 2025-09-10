@@ -279,12 +279,6 @@ func (usecase *InternalUseCases) ExecTask(taskId string) (*dto.InfoAboutTaskForT
 		return nil, utils.GenerateError("ExecTask", err.Error())
 	}
 
-	chatId, err := strconv.ParseInt(currentAcc.AccountId, 10, 64)
-
-	if err != nil {
-		return nil, utils.GenerateError("ExecTask", err.Error())
-	}
-
 	transaction := usecase.BaseRepository.CreateTransaction()
 
 	defer func() {
@@ -325,7 +319,7 @@ func (usecase *InternalUseCases) ExecTask(taskId string) (*dto.InfoAboutTaskForT
 	transaction.Commit()
 
 	return &dto.InfoAboutTaskForTgProvider{
-		ChatId: chatId,
+		ChatId: currentAcc.AccountId,
 		Text:   textMsg,
 	}, nil
 }

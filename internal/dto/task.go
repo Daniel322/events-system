@@ -21,6 +21,6 @@ type TaskSliceEvent struct {
 }
 
 type InfoAboutTaskForTgProvider struct {
-	ChatId int64
+	ChatId string
 	Text   string
 }
