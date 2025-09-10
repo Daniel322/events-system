@@ -2,7 +2,7 @@ package cron
 
 import (
 	"events-system/infrastructure/providers/telegram"
-	"events-system/internal/services"
+	"events-system/interfaces"
 	"events-system/pkg/utils"
 	"log"
 	"os"
@@ -10,17 +10,19 @@ import (
 	"time"
 )
 
+const ONE_TIME_IN_24_HOURS = 86400
+
 type CronProvider struct {
-	Name         string
-	TG           *telegram.TgBotProvider
-	tasksService *services.TaskService
+	Name    string
+	TG      *telegram.TgBotProvider
+	Service interfaces.InternalUsecase
 }
 
-func NewCronProvider(TG *telegram.TgBotProvider, service *services.TaskService) *CronProvider {
+func NewCronProvider(TG *telegram.TgBotProvider, service interfaces.InternalUsecase) *CronProvider {
 	return &CronProvider{
-		Name:         "CronProvider",
-		TG:           TG,
-		tasksService: service,
+		Name:    "CronProvider",
+		TG:      TG,
+		Service: service,
 	}
 }
 
@@ -29,7 +31,7 @@ func (cron *CronProvider) Bootstrap() {
 	duration, err := strconv.Atoi(os.Getenv("CRON_INTERVAL"))
 	if err != nil {
 		utils.GenerateError(cron.Name, "invalid cron interval in env, use hardcode value")
-		duration = 86400
+		duration = ONE_TIME_IN_24_HOURS
 	}
 	utils.SetInterval(cron.TaskJob, time.Duration(duration)*time.Second)
 }

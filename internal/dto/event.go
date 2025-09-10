@@ -8,11 +8,26 @@ import (
 )
 
 type CreateEventDTO struct {
-	AccountId string    `json:"account_id" validate:"required"`
-	UserId    string    `json:"user_id" validate:"required"`
-	Info      string    `json:"info" validate:"required"`
-	Date      time.Time `json:"date" validate:"required"`
-	Providers []string  `json:"providers"`
+	AccountId uuid.UUID          `json:"account_id" validate:"required"`
+	UserId    uuid.UUID          `json:"user_id" validate:"required"`
+	Info      string             `json:"info" validate:"required"`
+	Date      time.Time          `json:"date" validate:"required"`
+	Providers entities.JsonField `json:"providers"`
+}
+
+type CreateEventData struct {
+	UserId       uuid.UUID
+	Info         string
+	Date         time.Time
+	NotifyLevels entities.JsonField
+	Providers    entities.JsonField
+}
+
+type UpdateEventData struct {
+	Info         string
+	Date         time.Time
+	NotifyLevels entities.JsonField
+	Providers    entities.JsonField
 }
 
 type OutputEvent struct {

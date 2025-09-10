@@ -1,16 +1,18 @@
 package services
 
 import (
+	"events-system/infrastructure/providers/db"
 	"events-system/interfaces"
-	"events-system/internal/dto"
 	entities "events-system/internal/entity"
-	dependency_container "events-system/pkg/di"
-	repository "events-system/pkg/repository"
 	"events-system/pkg/utils"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type UserService struct {
-	Name string
+	Name       string
+	Repository interfaces.Repository[entities.User]
 }
 
 type UserData struct {
@@ -19,100 +21,96 @@ type UserData struct {
 
 const USERNAME_CANT_BE_EMPTY_ERR_MSG = "username cant be empty"
 
-func NewUserService() *UserService {
-	service := &UserService{
-		Name: "UserService",
+func NewUserService(repository interfaces.Repository[entities.User]) *UserService {
+	return &UserService{
+		Name:       "UserService",
+		Repository: repository,
 	}
-
-	dependency_container.Container.Add("userService", service)
-
-	return service
 }
 
-func (us UserService) CreateUserWithAccount(data dto.UserDataDTO) (*dto.OutputUser, error) {
-	userFactory, err := dependency_container.Container.Get("userFactory")
-
-	if err != nil {
-		return nil, utils.GenerateError(us.Name, err.Error())
+func (us *UserService) checkUsername(username string) error {
+	if len(username) == 0 {
+		return utils.GenerateError(us.Name, USERNAME_CANT_BE_EMPTY_ERR_MSG)
 	}
 
-	accountService, err := dependency_container.Container.Get("accountService")
-
-	if err != nil {
-		return nil, utils.GenerateError(us.Name, err.Error())
-	}
-
-	transaction := repository.CreateTransaction()
-
-	defer func() {
-		if r := recover(); r != nil {
-			transaction.Rollback()
-		}
-	}()
-
-	user, err := userFactory.(interfaces.UserFactory).Create(data.Username)
-
-	if err != nil {
-		transaction.Rollback()
-		return nil, utils.GenerateError(us.Name, err.Error())
-	}
-
-	user, err = repository.Create(repository.Users, *user, transaction)
-
-	if err != nil {
-		transaction.Rollback()
-		return nil, utils.GenerateError(us.Name, err.Error())
-	}
-
-	acc, err := accountService.(interfaces.AccountService).Create(entities.CreateAccountData{
-		UserId:    user.ID.String(),
-		AccountId: data.AccountId,
-		Type:      data.Type,
-	}, transaction)
-
-	if err != nil {
-		transaction.Rollback()
-		return nil, utils.GenerateError(us.Name, err.Error())
-	}
-
-	var accs []entities.Account
-	accs = append(accs, *acc)
-
-	if trRes := transaction.Commit(); trRes.Error != nil {
-		return nil, utils.GenerateError(us.Name, trRes.Error.Error())
-	}
-
-	return &dto.OutputUser{
-		ID:        user.ID,
-		Username:  user.Username,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-		Accounts:  accs,
-	}, nil
+	return nil
 }
 
-func (us UserService) GetUser(id string) (*dto.OutputUser, error) {
-	user, err := repository.GetById[entities.User](repository.Users, id)
+func (service *UserService) Create(username string, transaction db.DatabaseInstance) (*entities.User, error) {
+	var id uuid.UUID = uuid.New()
+
+	err := service.checkUsername(username)
 
 	if err != nil {
-		return nil, utils.GenerateError(us.Name, err.Error())
+		return nil, utils.GenerateError(service.Name, err.Error())
 	}
 
-	options := make(map[string]interface{})
+	user := &entities.User{
+		ID:        id,
+		Username:  username,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
 
-	options["user_id"] = user.ID
-
-	accs, err := repository.GetList[entities.Account](repository.Accounts, options)
+	user, err = service.Repository.Save(*user, transaction)
 
 	if err != nil {
-		return nil, utils.GenerateError(us.Name, err.Error())
+		return nil, utils.GenerateError(service.Name, err.Error())
 	}
 
-	return &dto.OutputUser{
-		ID:        user.ID,
-		Username:  user.Username,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-		Accounts:  *accs,
-	}, nil
+	return user, nil
+}
+
+func (service *UserService) Find(options map[string]interface{}) (*[]entities.User, error) {
+	users, err := service.Repository.Find(options)
+
+	return users, err
+}
+
+func (service *UserService) FindOne(options map[string]interface{}) (*entities.User, error) {
+	users, err := service.Find(options)
+
+	if err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	if len(*users) == 0 {
+		return nil, utils.GenerateError(service.Name, "current user not found")
+	}
+
+	return &(*users)[0], nil
+}
+
+func (service *UserService) Update(
+	id string,
+	username string,
+	transaction db.DatabaseInstance,
+) (*entities.User, error) {
+	err := service.checkUsername(username)
+
+	if err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	findOptions := make(map[string]interface{})
+	findOptions["id"] = id
+
+	currentUser, err := service.FindOne(findOptions)
+
+	if err != nil {
+		return nil, utils.GenerateError(service.Name, err.Error())
+	}
+
+	currentUser.Username = username
+	currentUser.UpdatedAt = time.Now()
+
+	currentUser, err = service.Repository.Save(*currentUser, transaction)
+
+	return currentUser, err
+}
+
+func (service *UserService) Delete(id string, transaction db.DatabaseInstance) (bool, error) {
+	result, err := service.Repository.Destroy(id, transaction)
+
+	return result, err
 }

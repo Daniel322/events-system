@@ -6,8 +6,10 @@ type DependencyContainer struct {
 	Services map[string]interface{}
 }
 
-var Container = &DependencyContainer{
-	Services: make(map[string]interface{}),
+func NewDIContainer() *DependencyContainer {
+	return &DependencyContainer{
+		Services: make(map[string]interface{}),
+	}
 }
 
 func (cont *DependencyContainer) Add(name string, value interface{}) {
@@ -20,7 +22,7 @@ func (cont *DependencyContainer) Get(name string) (interface{}, error) {
 		return nil, fmt.Errorf("service %s not found", name)
 	}
 
-	return currentService, nil
+	return &currentService, nil
 }
 
 func (cont *DependencyContainer) MultiGet(names []string) (map[string]interface{}, error) {

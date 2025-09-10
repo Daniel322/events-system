@@ -8,24 +8,33 @@ import (
 )
 
 type UserService interface {
-	CreateUserWithAccount(data dto.UserDataDTO) (*dto.OutputUser, error)
-	GetUser(id string) (*dto.OutputUser, error)
-}
-
-type EventService interface {
-	CreateEvent(data dto.CreateEventDTO) (*dto.OutputEvent, error)
+	Create(username string, transaction db.DatabaseInstance) (*entities.User, error)
+	Find(options map[string]interface{}) (*[]entities.User, error)
+	FindOne(options map[string]interface{}) (*entities.User, error)
+	Update(id string, username string, transaction db.DatabaseInstance) (*entities.User, error)
+	Delete(id string, transaction db.DatabaseInstance) (bool, error)
 }
 
 type AccountService interface {
-	Create(data entities.CreateAccountData, transaction db.DatabaseInstance) (*entities.Account, error)
-	CheckAccount(accountId int64) (*entities.Account, error)
+	Create(data dto.CreateAccountData, transaction db.DatabaseInstance) (*entities.Account, error)
+	Find(options map[string]interface{}) (*[]entities.Account, error)
+	FindOne(options map[string]interface{}) (*entities.Account, error)
+	Update(id string, data dto.UpdateAccountData, transaction db.DatabaseInstance) (*entities.Account, error)
+	Delete(id string, transaction db.DatabaseInstance) (bool, error)
+}
+
+type EventService interface {
+	Create(data dto.CreateEventData, transaction db.DatabaseInstance) (*entities.Event, error)
+	Find(options map[string]interface{}) (*[]entities.Event, error)
+	FindOne(options map[string]interface{}) (*entities.Event, error)
+	Update(id string, data dto.UpdateEventData, transaction db.DatabaseInstance) (*entities.Event, error)
+	Delete(id string, transaction db.DatabaseInstance) (bool, error)
 }
 
 type TaskService interface {
-	GetListOfTodayTasks() (*[]entities.Task, error)
-	Create(
-		data entities.CreateTaskData,
-		transaction db.DatabaseInstance,
-	) (*entities.Task, error)
-	GenerateTimesForTasks(eventDate time.Time) []entities.TaskSliceEvent
+	Find(options map[string]interface{}) (*[]entities.Task, error)
+	FindOne(options map[string]interface{}) (*entities.Task, error)
+	Delete(id string, transaction db.DatabaseInstance) (bool, error)
+	Create(data dto.CreateTaskData, transaction db.DatabaseInstance) (*entities.Task, error)
+	Update(id string, date time.Time, transaction db.DatabaseInstance) (*entities.Task, error)
 }
