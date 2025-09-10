@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"events-system/infrastructure/providers/cron"
 	db "events-system/infrastructure/providers/db"
 	"events-system/infrastructure/providers/http/controllers"
 	"events-system/infrastructure/providers/http/server"
@@ -88,9 +89,9 @@ func main() {
 		panic(err.Error())
 	}
 
-	// cronProvider := cron.NewCronProvider(tgBotProvider, tasksService)
+	cronProvider := cron.NewCronProvider(tgBotProvider, internalUseCases)
 
-	// cronProvider.Bootstrap()
+	cronProvider.Bootstrap()
 
 	go tgBotProvider.Bootstrap()
 
