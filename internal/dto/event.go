@@ -12,22 +12,22 @@ type CreateEventDTO struct {
 	UserId    uuid.UUID          `json:"user_id" validate:"required"`
 	Info      string             `json:"info" validate:"required"`
 	Date      time.Time          `json:"date" validate:"required"`
-	Providers entities.Providers `json:"providers"`
+	Providers entities.JsonField `json:"providers"`
 }
 
 type CreateEventData struct {
 	UserId       uuid.UUID
 	Info         string
 	Date         time.Time
-	NotifyLevels entities.NotifyLevel
-	Providers    entities.Providers
+	NotifyLevels entities.JsonField
+	Providers    entities.JsonField
 }
 
 type UpdateEventData struct {
 	Info         string
 	Date         time.Time
-	NotifyLevels entities.NotifyLevel
-	Providers    entities.Providers
+	NotifyLevels entities.JsonField
+	Providers    entities.JsonField
 }
 
 type OutputEvent struct {

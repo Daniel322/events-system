@@ -23,6 +23,11 @@ const (
 	INVALID_PROVIDERS     = "error on parse providers"
 )
 
+const (
+	PROVIDERS     = "providers"
+	NOTIFY_LEVELS = "notify_levels"
+)
+
 func NewEventService(repository interfaces.Repository[entities.Event]) *EventService {
 	return &EventService{
 		Name:       "EventService",
@@ -45,26 +50,11 @@ func (service *EventService) checkDate(value time.Time) error {
 	return nil
 }
 
-// TODO: use DRY and optimize code in that and next funcs
-func (service *EventService) checkProviders(value entities.Providers) error {
-	var dest interface{}
-	err := value.Scan(dest)
-
-	if err != nil {
-		return err
-	}
-
-	_, err = value.Value()
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (service *EventService) checkNotifyLevels(value entities.NotifyLevel) (entities.NotifyLevel, error) {
-	if len(value) == 0 {
+func (service *EventService) checkJSONField(
+	value entities.JsonField,
+	name string,
+) (entities.JsonField, error) {
+	if len(value) == 0 && name == NOTIFY_LEVELS {
 		return entities.NOTIFY_LEVELS, nil
 	} else {
 		var dest interface{}
@@ -128,13 +118,13 @@ func (service *EventService) Create(data dto.CreateEventData, transaction db.Dat
 		return nil, err
 	}
 
-	notifyLevels, err := service.checkNotifyLevels(data.NotifyLevels)
+	notifyLevels, err := service.checkJSONField(data.NotifyLevels, NOTIFY_LEVELS)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = service.checkProviders(data.Providers)
+	providers, err := service.checkJSONField(data.Providers, PROVIDERS)
 
 	if err != nil {
 		return nil, err
@@ -146,7 +136,7 @@ func (service *EventService) Create(data dto.CreateEventData, transaction db.Dat
 		Info:         data.Info,
 		Date:         data.Date,
 		NotifyLevels: notifyLevels,
-		Providers:    data.Providers,
+		Providers:    providers,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
@@ -176,10 +166,10 @@ func (service *EventService) Update(
 	if isInvalidDate := service.checkDate(data.Date); isInvalidDate == nil {
 		currentEvent.Date = data.Date
 	}
-	if notifyLevels, isInvalidNotifyLevels := service.checkNotifyLevels(data.NotifyLevels); isInvalidNotifyLevels == nil {
+	if notifyLevels, isInvalidNotifyLevels := service.checkJSONField(data.NotifyLevels, NOTIFY_LEVELS); isInvalidNotifyLevels == nil {
 		currentEvent.NotifyLevels = notifyLevels
 	}
-	if isInvalidProviders := service.checkProviders(data.Providers); isInvalidProviders == nil {
+	if _, isInvalidProviders := service.checkJSONField(data.Providers, PROVIDERS); isInvalidProviders == nil {
 		currentEvent.Providers = data.Providers
 	}
 

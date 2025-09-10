@@ -6,17 +6,17 @@ import (
 	"events-system/pkg/utils"
 )
 
-type Providers []string
+type JsonField []string
 
-func (value *Providers) Scan(src interface{}) error {
+func (value *JsonField) Scan(src interface{}) error {
 	bytes, ok := src.([]byte)
 	if !ok {
-		return utils.GenerateError("Notify level scan", "src value cannot be cast to []byte")
+		return utils.GenerateError("json field scan", "src value cannot be cast to []byte")
 	}
 	return json.Unmarshal(bytes, value)
 }
 
-func (value Providers) Value() (driver.Value, error) {
+func (value JsonField) Value() (driver.Value, error) {
 	if len(value) == 0 {
 		return nil, nil
 	}

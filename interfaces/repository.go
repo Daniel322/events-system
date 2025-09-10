@@ -6,7 +6,6 @@ type BaseRepository interface {
 	CreateTransaction() db.DatabaseInstance
 }
 
-// TODO: find sol for change any
 type Repository[Entity any] interface {
 	BaseRepository
 	Save(entity Entity, transaction db.DatabaseInstance) (*Entity, error)

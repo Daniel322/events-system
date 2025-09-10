@@ -150,7 +150,7 @@ func (usecase *InternalUseCases) GetListOfTodayTasks() (*[]entities.Task, error)
 
 func (usecase *InternalUseCases) generateTimesForTasks(
 	eventDate time.Time,
-	providers entities.Providers,
+	providers entities.JsonField,
 ) []dto.TaskSliceEvent {
 	today := time.Now()
 	todayYear := today.Year()
