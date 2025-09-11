@@ -19,7 +19,7 @@ type UserData struct {
 	Username string
 }
 
-const USERNAME_CANT_BE_EMPTY_ERR_MSG = "username cant be empty"
+var USERNAME_CANT_BE_EMPTY_ERR_MSG = "username cant be empty"
 
 func NewUserService(repository interfaces.Repository[entities.User]) *UserService {
 	return &UserService{
