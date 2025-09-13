@@ -21,6 +21,8 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func initInternalDependencies(
@@ -65,8 +67,20 @@ func main() {
 		fmt.Println("Error loading .env file")
 	}
 
+	db_url := os.Getenv("GOOSE_DBSTRING")
+
+	conn, err := gorm.Open(postgres.Open(db_url), &gorm.Config{
+		SkipDefaultTransaction: true,
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Connected!")
+
 	// init external providers
-	database_instance := db.NewDatabase(os.Getenv("GOOSE_DBSTRING"))
+	database_instance := db.NewDatabase(db_url, conn)
 	server := server.NewEchoInstance()
 
 	// init di container
