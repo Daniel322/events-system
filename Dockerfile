@@ -24,5 +24,5 @@ https://raw.githubusercontent.com/pressly/goose/master/install.sh |\
 sh 
 
 EXPOSE 8080
-
-CMD ["/bin/sh", "-c", "./run-migrations.sh && ./app"]
+# TODO: fix migration return ./run-migrations.sh before release test locally!
+CMD ["/bin/sh", "-c", "./app"]
