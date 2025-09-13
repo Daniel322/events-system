@@ -1,0 +1,25 @@
+name: Deploy release
+on:
+  release:
+    tags:
+      - "s*"
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: deploy
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd events-system/
+            sed -i '/^TAG=/d' .env
+            echo "TAG=${{ github.ref_name }}" >> .env
+            sed -i '/^DOCKER_REGISTRY=/d' .env
+            echo "DOCKER_REGISTRY=${{ vars.DOCKER_REGISTRY }}" >> .env
+            git fetch
+            git checkout ${{ github.ref_name }}
+            docker compose up -d --force-recreate

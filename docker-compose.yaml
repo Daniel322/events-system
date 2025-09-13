@@ -2,10 +2,8 @@ version: "3.7"
 
 services:
   app:
-    container_name: app
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: "${DOCKER_REGISTRY}/events-system:${TAG}"
+    container_name: api
     restart: unless-stopped
     env_file:
       - .env
