@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -15,27 +14,13 @@ type Database struct {
 	Url      string
 }
 
-func NewDatabase(url string) *Database {
-	conn, err := gorm.Open(postgres.Open(url), &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func NewDatabase(url string, connection DatabaseInstance) *Database {
 	fmt.Println("Connected!")
 
 	return &Database{
 		Url:      url,
-		Instance: conn,
+		Instance: connection,
 	}
-}
-
-func (db *Database) CreateTransaction() DatabaseInstance {
-	tx := db.Instance.Begin()
-
-	return tx
 }
 
 func (db *Database) Close() error {
