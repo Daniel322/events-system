@@ -57,8 +57,7 @@ func (service *EventService) checkJSONField(
 	if len(value) == 0 && name == NOTIFY_LEVELS {
 		return entities.NOTIFY_LEVELS, nil
 	} else {
-		var dest interface{}
-		err := value.Scan(dest)
+		err := value.Scan(value)
 
 		if err != nil {
 			return nil, err

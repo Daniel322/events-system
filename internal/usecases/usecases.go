@@ -18,9 +18,10 @@ type InternalUseCases struct {
 	TaskService    interfaces.TaskService
 }
 
+// TODO: use constants here instead of strings
 var TASKS_TYPES = map[string]time.Duration{
 	"today":    0,
-	"tommorow": time.Hour * 24,
+	"tomorrow": time.Hour * 24,
 	"week":     time.Hour * 168,
 	"month":    time.Hour * 720,
 }
@@ -232,19 +233,17 @@ func (usecase *InternalUseCases) CreateEvent(data dto.CreateEventDTO) (*dto.Outp
 		tasks = append(tasks, *task)
 	}
 
-	// unreal error case
-	notifyLevels, _ := event.NotifyLevels.Value()
-
-	// unreal error case
-	providers, _ := event.Providers.Value()
+	if trRes := transaction.Commit(); trRes.Error != nil {
+		return nil, utils.GenerateError("CreateEvent", trRes.Error.Error())
+	}
 
 	return &dto.OutputEvent{
 		ID:           event.ID,
 		UserId:       event.UserId,
 		Info:         event.Info,
 		Date:         event.Date,
-		NotifyLevels: notifyLevels.(string),
-		Providers:    providers.(string),
+		NotifyLevels: event.NotifyLevels,
+		Providers:    event.Providers,
 		CreatedAt:    event.CreatedAt,
 		UpdatedAt:    event.UpdatedAt,
 		Tasks:        tasks,
@@ -316,7 +315,9 @@ func (usecase *InternalUseCases) ExecTask(taskId string) (*dto.InfoAboutTaskForT
 
 	textMsg := "Attention!" + " For " + currentTask.Type + " in " + currentEvent.Date.Format("01-02") + " will be event " + currentEvent.Info
 
-	transaction.Commit()
+	if trRes := transaction.Commit(); trRes.Error != nil {
+		return nil, utils.GenerateError("ExecTask", trRes.Error.Error())
+	}
 
 	return &dto.InfoAboutTaskForTgProvider{
 		ChatId: currentAcc.AccountId,

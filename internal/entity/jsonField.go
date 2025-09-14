@@ -9,8 +9,8 @@ import (
 type JsonField []string
 
 func (value *JsonField) Scan(src interface{}) error {
-	bytes, ok := src.([]byte)
-	if !ok {
+	bytes, ok := json.Marshal(src)
+	if ok != nil {
 		return utils.GenerateError("json field scan", "src value cannot be cast to []byte")
 	}
 	return json.Unmarshal(bytes, value)

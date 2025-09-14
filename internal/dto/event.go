@@ -35,8 +35,8 @@ type OutputEvent struct {
 	UserId       uuid.UUID
 	Info         string
 	Date         time.Time
-	NotifyLevels string
-	Providers    string
+	NotifyLevels entities.JsonField
+	Providers    entities.JsonField
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	Tasks        []entities.Task
