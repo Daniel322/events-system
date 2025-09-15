@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"events-system/infrastructure/providers/cron"
-	db "events-system/infrastructure/providers/db"
+	"events-system/infrastructure/providers/db"
 	"events-system/infrastructure/providers/http/controllers"
 	"events-system/infrastructure/providers/http/server"
 	"events-system/infrastructure/providers/telegram"

@@ -15,6 +15,7 @@ WORKDIR /app
 
 COPY --from=builder /app/app .
 COPY --from=builder /app/run-migrations.sh .
+COPY --from=builder /app/infrastructure/migrations ./migrations
 RUN chmod +x ./run-migrations.sh
 
 RUN apk add --no-cache bash curl zip
@@ -24,5 +25,5 @@ https://raw.githubusercontent.com/pressly/goose/master/install.sh |\
 sh 
 
 EXPOSE 8080
-# TODO: fix migration return ./run-migrations.sh before release test locally!
-CMD ["/bin/sh", "-c", "./app"]
+
+CMD ["/bin/sh", "-c", "./run-migrations.sh && ./app"]
