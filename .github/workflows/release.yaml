@@ -1,8 +1,6 @@
 name: Deploy release
 on:
   release:
-    tags:
-      - "s*"
 jobs:
   deploy:
     runs-on: ubuntu-latest

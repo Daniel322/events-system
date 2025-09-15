@@ -18,7 +18,6 @@ type InternalUseCases struct {
 	TaskService    interfaces.TaskService
 }
 
-// TODO: use constants here instead of strings
 var TASKS_TYPES = map[string]time.Duration{
 	"today":    0,
 	"tomorrow": time.Hour * 24,
