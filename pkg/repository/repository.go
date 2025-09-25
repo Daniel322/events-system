@@ -45,7 +45,7 @@ func (repo *Repository[Entity]) Save(entity Entity, transaction db.DatabaseInsta
 
 func (repo *Repository[Entity]) Destroy(id string, transaction db.DatabaseInstance) (bool, error) {
 	dbTransactionForQueryExec := repo.checkTransactionExistance(transaction)
-	result := dbTransactionForQueryExec.Table(repo.TableName).Delete(id)
+	result := dbTransactionForQueryExec.Table(repo.TableName).Where("id = ?", id).Delete(id)
 
 	if result.Error != nil {
 		return false, utils.GenerateError(repo.Name, result.Error.Error())

@@ -9,11 +9,32 @@ import (
 type JsonField []string
 
 func (value *JsonField) Scan(src interface{}) error {
-	bytes, ok := json.Marshal(src)
-	if ok != nil {
-		return utils.GenerateError("json field scan", "src value cannot be cast to []byte")
+	if src == nil {
+		*value = nil
+		return nil
 	}
-	return json.Unmarshal(bytes, value)
+
+	var bytes []byte
+	switch v := src.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		// Если это не []byte и не string, попробуем замаршалить
+		var err error
+		bytes, err = json.Marshal(src)
+		if err != nil {
+			return utils.GenerateError("json field scan", "src value cannot be converted to []byte")
+		}
+	}
+
+	err := json.Unmarshal(bytes, value)
+	if err != nil {
+		return utils.GenerateError("json field scan", "failed to unmarshal JSON: "+err.Error())
+	}
+
+	return nil
 }
 
 func (value JsonField) Value() (driver.Value, error) {
