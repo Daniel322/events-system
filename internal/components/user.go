@@ -2,15 +2,10 @@ package components
 
 import (
 	"events-system/interfaces"
-	"time"
-
-	"github.com/google/uuid"
+	entities "events-system/internal/entity"
 )
 
 type UserComponent struct {
 	interfaces.RepositoryV2
-	ID        uuid.UUID
-	Username  string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	entities.User
 }
