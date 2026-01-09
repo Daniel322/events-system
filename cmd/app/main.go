@@ -2,13 +2,10 @@ package main
 
 import (
 	"events-system/infrastructure/providers/http/server"
-	"fmt"
+	"events-system/pkg/config"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
-// TODO: logger provider
 // TODO: config manager
 // TODO: repository abstraction
 // TODO: components slice
@@ -16,10 +13,7 @@ import (
 
 func main() {
 
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
-	}
+	config.Bootstrap()
 
 	// db_url := os.Getenv("GOOSE_DBSTRING")
 
