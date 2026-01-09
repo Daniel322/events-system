@@ -22,7 +22,7 @@ func NewDbAdapter(instance *gorm.DB) *DbAdapter {
 	}
 }
 
-func (adapter *DbAdapter) Save(ctx context.Context, value interface{}) error {
+func (adapter *DbAdapter) Save(ctx *context.Context, value interface{}) error {
 	adapter.Instance.Save(value)
 
 	return nil

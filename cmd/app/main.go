@@ -35,19 +35,18 @@ func main() {
 
 	user := components.UserComponent{
 		RepositoryV2: db_adapter,
-		ID:           uuid.New(),
-		Username:     "test_user",
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		User: entities.User{
+			ID:        uuid.New(),
+			Username:  "test_user pointer",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
 	}
 
-	user.Save(context.Background(), entities.User{ID: uuid.New(),
-		Username:  "test_user",
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now()})
+	ctx := context.Background()
 
-	// // init external providers
-	// database_instance := db.NewDatabase(db_url, conn)
+	user.Save(&ctx, user.User)
+
 	server := server.NewEchoInstance()
 
 	// // init di container
