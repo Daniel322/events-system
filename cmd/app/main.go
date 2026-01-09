@@ -1,9 +1,16 @@
 package main
 
 import (
-	"events-system/infrastructure/providers/http/server"
+	"context"
+	pg_db "events-system/infrastructure/providers/db/postgres"
+	server "events-system/infrastructure/providers/http"
+	"events-system/internal/components"
+	entities "events-system/internal/entity"
 	"events-system/pkg/config"
 	"os"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 // TODO: repository abstraction
@@ -18,9 +25,26 @@ func main() {
 		panic(err.Error())
 	}
 
-	// conn, err := gorm.Open(postgres.Open(db_url), &gorm.Config{
-	// 	SkipDefaultTransaction: true,
-	// })
+	db_conn, err := pg_db.Connect()
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	db_adapter := pg_db.NewDbAdapter(db_conn)
+
+	user := components.UserComponent{
+		RepositoryV2: db_adapter,
+		ID:           uuid.New(),
+		Username:     "test_user",
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+
+	user.Save(context.Background(), entities.User{ID: uuid.New(),
+		Username:  "test_user",
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now()})
 
 	// // init external providers
 	// database_instance := db.NewDatabase(db_url, conn)
