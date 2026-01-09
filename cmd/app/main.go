@@ -6,26 +6,21 @@ import (
 	"os"
 )
 
-// TODO: config manager
 // TODO: repository abstraction
 // TODO: components slice
 // TODO: graceful shutdown
 
 func main() {
 
-	cfg, _ := config.Bootstrap()
+	err := config.Config.Bootstrap()
 
-	cfg.DB_URL()
+	if err != nil {
+		panic(err.Error())
+	}
 
 	// conn, err := gorm.Open(postgres.Open(db_url), &gorm.Config{
 	// 	SkipDefaultTransaction: true,
 	// })
-
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// fmt.Println("Connected!")
 
 	// // init external providers
 	// database_instance := db.NewDatabase(db_url, conn)

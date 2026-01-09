@@ -8,31 +8,32 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type Config struct {
+type IConfig struct {
 	Name   string
 	Logger *log.Logger
 }
 
-func Bootstrap() (*Config, error) {
-	logger := log.New(os.Stdout, "Config ", log.LstdFlags)
+var logger = log.New(os.Stdout, "Config ", log.LstdFlags)
 
-	config := Config{
-		Name:   "Config",
-		Logger: logger,
-	}
+var Config = IConfig{
+	Name:   "Config",
+	Logger: logger,
+}
+
+func (cfg *IConfig) Bootstrap() error {
 
 	err := godotenv.Load()
 
 	if err != nil {
-		config.Logger.Println("Error loading .env file", err)
+		Config.Logger.Println("Error loading .env file", err)
 
-		return nil, err
+		return err
 	}
 
-	return &config, nil
+	return nil
 }
 
-func (cfg *Config) get(field string) (string, error) {
+func (cfg *IConfig) get(field string) (string, error) {
 	field_value := os.Getenv(field)
 
 	if len(field_value) == 0 {
@@ -42,18 +43,18 @@ func (cfg *Config) get(field string) (string, error) {
 	return field_value, nil
 }
 
-func (cfg *Config) DB_URL() (string, error) {
+func (cfg *IConfig) DB_URL() (string, error) {
 	return cfg.get(DB_URL)
 }
 
-func (cfg *Config) TG_TOKEN() (string, error) {
+func (cfg *IConfig) TG_TOKEN() (string, error) {
 	return cfg.get(TG_TOKEN)
 }
 
-func (cfg *Config) HTTP_PORT() (string, error) {
+func (cfg *IConfig) HTTP_PORT() (string, error) {
 	return cfg.get(HTTP_PORT)
 }
 
-func (cfg *Config) CRON_INTERVAL() (string, error) {
+func (cfg *IConfig) CRON_INTERVAL() (string, error) {
 	return cfg.get(CRON_INTERVAL)
 }
