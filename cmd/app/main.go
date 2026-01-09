@@ -13,9 +13,9 @@ import (
 
 func main() {
 
-	config.Bootstrap()
+	cfg, _ := config.Bootstrap()
 
-	// db_url := os.Getenv("GOOSE_DBSTRING")
+	cfg.DB_URL()
 
 	// conn, err := gorm.Open(postgres.Open(db_url), &gorm.Config{
 	// 	SkipDefaultTransaction: true,
