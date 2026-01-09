@@ -1,130 +1,84 @@
 package main
 
 import (
-	"context"
-	"events-system/infrastructure/providers/cron"
-	"events-system/infrastructure/providers/db"
-	"events-system/infrastructure/providers/http/controllers"
 	"events-system/infrastructure/providers/http/server"
-	"events-system/infrastructure/providers/telegram"
-	"events-system/interfaces"
-	entities "events-system/internal/entity"
-	"events-system/internal/services"
-	"events-system/internal/usecases"
-	dependency_container "events-system/pkg/di"
-	"events-system/pkg/repository"
 	"fmt"
-	"log"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/joho/godotenv"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
-func initInternalDependencies(
-	di *dependency_container.DependencyContainer,
-	db *db.Database,
-) interfaces.InternalUsecase {
-
-	// init base repository
-	base_repository := repository.NewBaseRepository(db)
-
-	// init repos
-	user_repository := repository.NewRepository[entities.User](repository.Users, base_repository)
-	account_repository := repository.NewRepository[entities.Account](repository.Accounts, base_repository)
-	event_repository := repository.NewRepository[entities.Event](repository.Events, base_repository)
-	task_repository := repository.NewRepository[entities.Task](repository.Tasks, base_repository)
-
-	// init services
-	user_service := services.NewUserService(user_repository)
-	account_service := services.NewAccountService(account_repository)
-	event_service := services.NewEventService(event_repository)
-	task_service := services.NewTaskService(task_repository)
-
-	internalUseCases := usecases.NewInternalUseCases(
-		base_repository,
-		user_service,
-		account_service,
-		event_service,
-		task_service,
-	)
-
-	di.Add("useCases", internalUseCases)
-
-	return internalUseCases
-}
+// TODO: logger provider
+// TODO: config manager
+// TODO: repository abstraction
+// TODO: components slice
+// TODO: graceful shutdown
 
 func main() {
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
-	defer stop()
 
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Println("Error loading .env file")
 	}
 
-	db_url := os.Getenv("GOOSE_DBSTRING")
+	// db_url := os.Getenv("GOOSE_DBSTRING")
 
-	conn, err := gorm.Open(postgres.Open(db_url), &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
+	// conn, err := gorm.Open(postgres.Open(db_url), &gorm.Config{
+	// 	SkipDefaultTransaction: true,
+	// })
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	fmt.Println("Connected!")
+	// fmt.Println("Connected!")
 
-	// init external providers
-	database_instance := db.NewDatabase(db_url, conn)
+	// // init external providers
+	// database_instance := db.NewDatabase(db_url, conn)
 	server := server.NewEchoInstance()
 
-	// init di container
+	// // init di container
 
-	dependency_container := dependency_container.NewDIContainer()
+	// dependency_container := dependency_container.NewDIContainer()
 
-	internalUseCases := initInternalDependencies(dependency_container, database_instance)
+	// internalUseCases := initInternalDependencies(dependency_container, database_instance)
 
-	// init controllers
-	userController := controllers.NewUserController(
-		server.Instance,
-		internalUseCases,
-	)
-	eventController := controllers.NewEventController(server.Instance, internalUseCases)
-	taskController := controllers.NewTaskController(server.Instance, internalUseCases)
+	// // init controllers
+	// userController := controllers.NewUserController(
+	// 	server.Instance,
+	// 	internalUseCases,
+	// )
+	// eventController := controllers.NewEventController(server.Instance, internalUseCases)
+	// taskController := controllers.NewTaskController(server.Instance, internalUseCases)
 
-	tgBotProvider, err := telegram.NewTgBotProvider(os.Getenv("TG_BOT_TOKEN"), internalUseCases)
+	// tgBotProvider, err := telegram.NewTgBotProvider(os.Getenv("TG_BOT_TOKEN"), internalUseCases)
 
-	if err != nil {
-		panic(err.Error())
-	}
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
 
-	cronProvider := cron.NewCronProvider(tgBotProvider, internalUseCases)
+	// cronProvider := cron.NewCronProvider(tgBotProvider, internalUseCases)
 
-	cronProvider.Bootstrap()
+	// cronProvider.Bootstrap()
 
-	go tgBotProvider.Bootstrap()
+	// go tgBotProvider.Bootstrap()
 
-	// init http routes
-	userController.InitRoutes()
-	eventController.InitRoutes()
-	taskController.InitRoutes()
+	// // init http routes
+	// userController.InitRoutes()
+	// eventController.InitRoutes()
+	// taskController.InitRoutes()
 
 	// start http server
-	go server.Start(os.Getenv("HTTP_PORT"))
+	server.Start(os.Getenv("HTTP_PORT"))
 
-	<-ctx.Done()
+	// <-ctx.Done()
 
-	log.Println("shutting down server gracefully")
+	// log.Println("shutting down server gracefully")
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	// shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// defer cancel()
 
-	database_instance.Close()
-	tgBotProvider.Close()
-	server.Close(shutdownCtx)
+	// database_instance.Close()
+	// tgBotProvider.Close()
+	// server.Close(shutdownCtx)
 }
