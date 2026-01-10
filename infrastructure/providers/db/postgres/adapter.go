@@ -23,7 +23,20 @@ func NewDbAdapter(instance *gorm.DB) *DbAdapter {
 }
 
 func (adapter *DbAdapter) Save(ctx context.Context, value interface{}) error {
-	adapter.Instance.WithContext(ctx).Save(value)
+	if ctx.Value("transaction") != nil {
+		res := ctx.Value("transaction").(*gorm.DB).Save(value)
+
+		if res.Error != nil {
+			return res.Error
+		}
+
+		return nil
+	}
+	res := adapter.Instance.WithContext(ctx).Save(value)
+
+	if res.Error != nil {
+		return res.Error
+	}
 
 	return nil
 }

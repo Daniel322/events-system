@@ -8,17 +8,17 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserFactory struct {
+type Users struct {
 	Factory
 }
 
-func NewUserFactory(repo interfaces.RepositoryV2) *UserFactory {
-	return &UserFactory{
+func NewUsersFactory(repo interfaces.RepositoryV2) *Users {
+	return &Users{
 		Factory: *NewFactory("User", repo),
 	}
 }
 
-func (factory UserFactory) NewUser(username string) *User {
+func (factory Users) NewUser(username string) *User {
 	id := uuid.New()
 	created := time.Now()
 	factory.Logger.Println("Create user", username, "with id", id)

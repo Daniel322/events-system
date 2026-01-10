@@ -9,8 +9,6 @@ import (
 	"os"
 )
 
-// TODO: repository abstraction
-// TODO: components slice
 // TODO: graceful shutdown
 
 func main() {
@@ -29,13 +27,17 @@ func main() {
 
 	db_adapter := pg_db.NewDbAdapter(db_conn)
 
-	userFactory := components.NewUserFactory(db_adapter)
+	users := components.NewUsersFactory(db_adapter)
 
-	user := userFactory.NewUser("test factoryzzzz")
+	user := users.NewUser("zxccxz")
 
-	ctx := context.Background()
+	tx := db_adapter.Instance.Begin()
+
+	ctx := context.WithValue(context.Background(), "transaction", tx)
 
 	user.Save(ctx)
+
+	panic("asd")
 
 	user.Username = "asdcdcd"
 
