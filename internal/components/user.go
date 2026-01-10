@@ -4,9 +4,6 @@ import (
 	"context"
 	"events-system/interfaces"
 	entities "events-system/internal/entity"
-	"time"
-
-	"github.com/google/uuid"
 )
 
 type User struct {
@@ -18,17 +15,8 @@ func (user User) get() entities.User {
 	return user.User
 }
 
-func (user User) Create(ctx *context.Context, username string) entities.User {
-	user.User = entities.User{
-		Username:  username,
-		ID:        uuid.New(),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	user.Save(ctx, user.User)
-
-	return user.get()
+func (comp User) Save(ctx context.Context) error {
+	err := comp.RepositoryV2.Save(ctx, comp.User)
+	return err
 }
-func (comp User) Update()  {}
 func (comp User) Destroy() {}

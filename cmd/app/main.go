@@ -5,12 +5,8 @@ import (
 	pg_db "events-system/infrastructure/providers/db/postgres"
 	server "events-system/infrastructure/providers/http"
 	"events-system/internal/components"
-	entities "events-system/internal/entity"
 	"events-system/pkg/config"
 	"os"
-	"time"
-
-	"github.com/google/uuid"
 )
 
 // TODO: repository abstraction
@@ -33,19 +29,17 @@ func main() {
 
 	db_adapter := pg_db.NewDbAdapter(db_conn)
 
-	user := components.UserComponent{
-		RepositoryV2: db_adapter,
-		User: entities.User{
-			ID:        uuid.New(),
-			Username:  "test_user pointer",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		},
-	}
+	userFactory := components.NewUserFactory(db_adapter)
+
+	user := userFactory.NewUser("test factoryzzzz")
 
 	ctx := context.Background()
 
-	user.Save(&ctx, user.User)
+	user.Save(ctx)
+
+	user.Username = "asdcdcd"
+
+	user.Save(ctx)
 
 	server := server.NewEchoInstance()
 

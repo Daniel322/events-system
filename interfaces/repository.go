@@ -17,5 +17,5 @@ type Repository[Entity any] interface {
 }
 
 type RepositoryV2 interface {
-	Save(ctx *context.Context, value interface{}) error
+	Save(ctx context.Context, value interface{}) error
 }

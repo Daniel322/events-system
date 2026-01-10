@@ -22,8 +22,8 @@ func NewDbAdapter(instance *gorm.DB) *DbAdapter {
 	}
 }
 
-func (adapter *DbAdapter) Save(ctx *context.Context, value interface{}) error {
-	adapter.Instance.Save(value)
+func (adapter *DbAdapter) Save(ctx context.Context, value interface{}) error {
+	adapter.Instance.WithContext(ctx).Save(value)
 
 	return nil
 }
