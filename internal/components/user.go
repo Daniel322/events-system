@@ -11,7 +11,7 @@ type User struct {
 	entities.User
 }
 
-func (user User) get() entities.User {
+func (user User) Get() entities.User {
 	return user.User
 }
 

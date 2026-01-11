@@ -2,6 +2,7 @@ package pg_db
 
 import (
 	"context"
+	"events-system/interfaces"
 	"log"
 	"os"
 
@@ -22,20 +23,31 @@ func NewDbAdapter(instance *gorm.DB) *DbAdapter {
 	}
 }
 
-func (adapter *DbAdapter) Save(ctx context.Context, value interface{}) error {
+func (adapter *DbAdapter) instance(ctx context.Context) *gorm.DB {
 	if ctx.Value("transaction") != nil {
-		res := ctx.Value("transaction").(*gorm.DB).Save(value)
-
-		if res.Error != nil {
-			return res.Error
-		}
-
-		return nil
+		return ctx.Value("transaction").(*gorm.DB)
 	}
-	res := adapter.Instance.WithContext(ctx).Save(value)
 
-	if res.Error != nil {
-		return res.Error
+	return adapter.Instance
+}
+
+func (adapter *DbAdapter) Save(ctx context.Context, value interface{}) error {
+	adapterContextForExecQuery := adapter.instance(ctx)
+	resultOfQuery := adapterContextForExecQuery.Save(value)
+
+	if resultOfQuery.Error != nil {
+		return resultOfQuery.Error
+	}
+
+	return nil
+}
+
+func (adapter *DbAdapter) Destroy(ctx context.Context, options interfaces.DestroyOptions) error {
+	adapterContextForExecQuery := adapter.instance(ctx)
+	resultOfQuery := adapterContextForExecQuery.Table(options.Table).Delete(options.ID)
+
+	if resultOfQuery.Error != nil {
+		return resultOfQuery.Error
 	}
 
 	return nil
