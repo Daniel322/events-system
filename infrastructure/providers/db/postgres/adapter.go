@@ -3,6 +3,7 @@ package pg_db
 import (
 	"context"
 	"events-system/interfaces"
+	"events-system/pkg/utils"
 	"log"
 	"os"
 
@@ -14,8 +15,10 @@ type DbAdapter struct {
 	Logger   *log.Logger
 }
 
+const NAME = "DB Adapter"
+
 func NewDbAdapter(instance *gorm.DB) *DbAdapter {
-	var logger = log.New(os.Stdout, "DB Adapter ", log.LstdFlags)
+	var logger = log.New(os.Stdout, NAME+" ", log.LstdFlags)
 
 	return &DbAdapter{
 		Instance: instance,
@@ -36,7 +39,7 @@ func (adapter *DbAdapter) Save(ctx context.Context, value interface{}) error {
 	resultOfQuery := adapterContextForExecQuery.Save(value)
 
 	if resultOfQuery.Error != nil {
-		return resultOfQuery.Error
+		return utils.GenerateError(NAME, resultOfQuery.Error.Error())
 	}
 
 	return nil
@@ -47,8 +50,23 @@ func (adapter *DbAdapter) Destroy(ctx context.Context, options interfaces.Destro
 	resultOfQuery := adapterContextForExecQuery.Table(options.Table).Delete(options.ID)
 
 	if resultOfQuery.Error != nil {
-		return resultOfQuery.Error
+		return utils.GenerateError(NAME, resultOfQuery.Error.Error())
 	}
 
 	return nil
+}
+
+func (adapter *DbAdapter) Find(
+	tableName string,
+	options map[string]interface{},
+) (*[]interface{}, error) {
+	entities := make([]interface{}, 0)
+
+	result := adapter.Instance.Table(tableName).Find(&entities, options)
+
+	if result.Error != nil {
+		return nil, utils.GenerateError(NAME, result.Error.Error())
+	}
+
+	return &entities, nil
 }

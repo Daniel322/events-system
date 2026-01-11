@@ -26,4 +26,8 @@ type Repository[Entity any] interface {
 type RepositoryV2 interface {
 	Save(ctx context.Context, value interface{}) error
 	Destroy(ctx context.Context, options DestroyOptions) error
+	Find(
+		tableName string,
+		options map[string]interface{},
+	) (*[]interface{}, error)
 }
