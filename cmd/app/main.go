@@ -1,10 +1,7 @@
 package main
 
 import (
-	"context"
-	pg_db "events-system/infrastructure/providers/db/postgres"
 	server "events-system/infrastructure/providers/http"
-	"events-system/internal/components"
 	"events-system/pkg/config"
 	"os"
 )
@@ -19,29 +16,27 @@ func main() {
 		panic(err.Error())
 	}
 
-	db_conn, err := pg_db.Connect()
+	// db_conn, err := pg_db.Connect()
 
-	if err != nil {
-		panic(err.Error())
-	}
+	// if err != nil {
+	// 	panic(err.Error())
+	// }
 
-	db_adapter := pg_db.NewDbAdapter(db_conn)
+	// db_adapter := pg_db.NewDbAdapter(db_conn)
 
-	users := components.NewUsersFactory(db_adapter)
+	// users := components.NewUsersFactory(db_adapter)
 
-	user := users.NewUser("zxccxz")
+	// user := users.NewUser("zxccxz")
 
-	tx := db_adapter.Instance.Begin()
+	// tx := db_adapter.Instance.Begin()
 
-	ctx := context.WithValue(context.Background(), "transaction", tx)
+	// ctx := context.WithValue(context.Background(), "transaction", tx)
 
-	user.Save(ctx)
+	// user.Save(ctx)
 
-	panic("asd")
+	// user.Username = "asdcdcd"
 
-	user.Username = "asdcdcd"
-
-	user.Save(ctx)
+	// user.Save(ctx)
 
 	server := server.NewEchoInstance()
 
