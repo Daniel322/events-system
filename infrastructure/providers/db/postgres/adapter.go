@@ -36,7 +36,7 @@ func (adapter *DbAdapter) instance(ctx context.Context) *gorm.DB {
 
 func (adapter *DbAdapter) Save(ctx context.Context, value interface{}) error {
 	adapterContextForExecQuery := adapter.instance(ctx)
-	resultOfQuery := adapterContextForExecQuery.Save(value)
+	resultOfQuery := adapterContextForExecQuery.Table(ctx.Value("tableName").(string)).Save(value)
 
 	if resultOfQuery.Error != nil {
 		return utils.GenerateError(NAME, resultOfQuery.Error.Error())
@@ -57,12 +57,12 @@ func (adapter *DbAdapter) Destroy(ctx context.Context, options interfaces.Destro
 }
 
 func (adapter *DbAdapter) Find(
-	tableName string,
+	ctx context.Context,
 	options map[string]interface{},
 ) (*[]interface{}, error) {
 	entities := make([]interface{}, 0)
 
-	result := adapter.Instance.Table(tableName).Find(&entities, options)
+	result := adapter.Instance.Table(ctx.Value("tableName").(string)).Find(&entities, options)
 
 	if result.Error != nil {
 		return nil, utils.GenerateError(NAME, result.Error.Error())

@@ -27,7 +27,7 @@ type RepositoryV2 interface {
 	Save(ctx context.Context, value interface{}) error
 	Destroy(ctx context.Context, options DestroyOptions) error
 	Find(
-		tableName string,
+		ctx context.Context,
 		options map[string]interface{},
 	) (*[]interface{}, error)
 }

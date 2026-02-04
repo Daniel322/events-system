@@ -1,17 +1,18 @@
 package user
 
 import (
+	"events-system/interfaces"
 	"events-system/pkg/vo"
 )
 
 type Entity struct {
-	vo.Entity
+	interfaces.Entity
 	Model
 }
 
 func New(username vo.NonEmptyString) Entity {
 	return Entity{
-		vo.NewEntity(),
+		interfaces.NewEntity(),
 		newModel(username),
 	}
 }

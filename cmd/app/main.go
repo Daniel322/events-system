@@ -1,11 +1,12 @@
 package main
 
 import (
+	"context"
+	pg_db "events-system/infrastructure/providers/db/postgres"
 	server "events-system/infrastructure/providers/http"
 	"events-system/internal/domain/user"
 	"events-system/pkg/config"
 	"events-system/pkg/vo"
-	"fmt"
 	"os"
 )
 
@@ -18,26 +19,28 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+
+	db_conn, err := pg_db.Connect()
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	db_adapter := pg_db.NewDbAdapter(db_conn)
+
+	userRepo := user.NewUsersRepo(db_adapter)
+
+	tx := db_adapter.Instance.Begin()
+
+	ctx := context.WithValue(context.Background(), "transaction", tx)
+	ctx = context.WithValue(ctx, "tableName", "users")
+
 	username, _ := vo.NewNonEmptyString("test")
 	user := user.New(username)
 
-	fmt.Println(user.Username(), user.ID)
-
-	// db_conn, err := pg_db.Connect()
-
-	// if err != nil {
-	// 	panic(err.Error())
-	// }
-
-	// db_adapter := pg_db.NewDbAdapter(db_conn)
-
-	// users := components.NewUsersFactory(db_adapter)
+	userRepo.Repository.Save(ctx, user)
 
 	// user := users.NewUser("zxccxz")
-
-	// tx := db_adapter.Instance.Begin()
-
-	// ctx := context.WithValue(context.Background(), "transaction", tx)
 
 	// user.Save(ctx)
 
