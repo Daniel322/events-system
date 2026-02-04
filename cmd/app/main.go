@@ -30,15 +30,18 @@ func main() {
 
 	userRepo := user.NewUsersRepo(db_adapter)
 
+	ctx := context.Background()
+
 	tx := db_adapter.Instance.Begin()
 
-	ctx := context.WithValue(context.Background(), "transaction", tx)
 	ctx = context.WithValue(ctx, "tableName", "users")
+	ctx = context.WithValue(ctx, "transaction", tx)
 
-	username, _ := vo.NewNonEmptyString("test")
+	username, _ := vo.NewNonEmptyString("ZALUPATX")
 	user := user.New(username)
 
-	userRepo.Repository.Save(ctx, user)
+	userRepo.Repository.Save(ctx, user.ToPlain())
+	tx.Commit()
 
 	// user := users.NewUser("zxccxz")
 
