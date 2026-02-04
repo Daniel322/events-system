@@ -24,10 +24,10 @@ func (factory Users) NewUser(username string) *User {
 	factory.Logger.Println("Create user", username, "with id", id)
 	return &User{
 		User: entities.User{
-			Username:  username,
 			ID:        uuid.New(),
 			CreatedAt: created,
 			UpdatedAt: created,
+			Username:  username,
 		},
 		RepositoryV2: factory.Repository,
 	}

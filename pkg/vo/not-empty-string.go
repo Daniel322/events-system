@@ -19,6 +19,6 @@ func NewNonEmptyString(s string) (NonEmptyString, error) {
 }
 
 // Get returns the underlying string value.
-func (n NonEmptyString) Get() string {
+func (n NonEmptyString) Val() string {
 	return n.value
 }

@@ -2,7 +2,10 @@ package main
 
 import (
 	server "events-system/infrastructure/providers/http"
+	"events-system/internal/domain/user"
 	"events-system/pkg/config"
+	"events-system/pkg/vo"
+	"fmt"
 	"os"
 )
 
@@ -15,6 +18,10 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+	username, _ := vo.NewNonEmptyString("test")
+	user := user.New(username)
+
+	fmt.Println(user.Username(), user.ID)
 
 	// db_conn, err := pg_db.Connect()
 
