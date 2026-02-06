@@ -1,17 +1,15 @@
 package account
 
-import "events-system/pkg/vo"
-
 type Model struct {
-	value   vo.NonEmptyString
-	acctype vo.AccountType
+	value   AccountValue
+	acctype AccountType
 }
 
 func (m Model) Type() string {
 	return m.acctype.String()
 }
 
-func newModel(value vo.NonEmptyString, acctype vo.AccountType) Model {
+func newModel(value AccountValue, acctype AccountType) Model {
 	return Model{
 		value:   value,
 		acctype: acctype,

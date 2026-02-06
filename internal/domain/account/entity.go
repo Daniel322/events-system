@@ -2,7 +2,6 @@ package account
 
 import (
 	"events-system/interfaces"
-	"events-system/pkg/vo"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,7 +22,7 @@ type Plain struct {
 	UpdatedAt time.Time
 }
 
-func New(value vo.NonEmptyString, acctype vo.AccountType, userId uuid.UUID) Entity {
+func New(value AccountValue, acctype AccountType, userId uuid.UUID) Entity {
 	return Entity{
 		interfaces.NewEntity(),
 		newModel(value, acctype),

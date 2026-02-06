@@ -8,6 +8,7 @@ import (
 type Model struct {
 	info         vo.NonEmptyString
 	date         time.Time
+	Type         string
 	notifyLevels vo.JsonField
 	providers    vo.JsonField
 }
