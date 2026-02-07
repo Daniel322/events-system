@@ -4,9 +4,12 @@ import (
 	"context"
 	pg_db "events-system/infrastructure/providers/db/postgres"
 	server "events-system/infrastructure/providers/http"
+	"events-system/internal/application"
+	"events-system/internal/domain/account"
 	"events-system/internal/domain/user"
 	"events-system/pkg/config"
 	"events-system/pkg/vo"
+	"fmt"
 	"os"
 )
 
@@ -29,27 +32,23 @@ func main() {
 	db_adapter := pg_db.NewDbAdapter(db_conn)
 
 	userRepo := user.NewUsersRepo(db_adapter)
+	accRepo := account.NewAccRepo(db_adapter)
+
+	createUserAction := application.NewCreateUser(userRepo, accRepo)
 
 	ctx := context.Background()
 
-	tx := db_adapter.Instance.Begin()
+	userName, _ := vo.NewNonEmptyString("Daniil")
+	typ, _ := account.NewAccountType("mail")
+	val, _ := account.NewAccountValue("kravchenkodanil122@gmail.com", typ)
+	user, err := createUserAction.Run(ctx, application.CreateUserState{
+		Username:     userName,
+		Type:         typ,
+		AccountValue: val,
+	},
+	)
 
-	ctx = context.WithValue(ctx, "tableName", "users")
-	ctx = context.WithValue(ctx, "transaction", tx)
-
-	username, _ := vo.NewNonEmptyString("ZALUPATX")
-	user := user.New(username)
-
-	userRepo.Repository.Save(ctx, user.ToPlain())
-	tx.Commit()
-
-	// user := users.NewUser("zxccxz")
-
-	// user.Save(ctx)
-
-	// user.Username = "asdcdcd"
-
-	// user.Save(ctx)
+	fmt.Println(user.Accounts())
 
 	server := server.NewEchoInstance()
 

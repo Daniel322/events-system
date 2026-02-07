@@ -8,7 +8,7 @@ import (
 
 type Entity struct {
 	interfaces.Entity
-	Model
+	*Model
 }
 
 type Plain struct {
