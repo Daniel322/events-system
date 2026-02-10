@@ -6,9 +6,7 @@ import (
 	"net/mail"
 )
 
-type AccountValue struct {
-	vo.NonEmptyString
-}
+// ACC TYPE
 
 type AccountType int
 
@@ -35,6 +33,11 @@ func NewAccountType(s string) (AccountType, error) {
 	default:
 		return AccountType(-1), utils.GenerateError("AccountType", "invalid acc type")
 	}
+}
+
+// ACCOUNT VALUE
+type AccountValue struct {
+	vo.NonEmptyString
 }
 
 func NewAccountValue(s string, t AccountType) (AccountValue, error) {

@@ -8,7 +8,7 @@ import (
 type Model struct {
 	info         vo.NonEmptyString
 	date         time.Time
-	Type         string       // hb, reminder?
-	notifyLevels vo.JsonField // month, week, tomorrow, today
+	Type         EventType
+	notifyLevels NotifyLevels
 	providers    vo.JsonField // mail, telegram
 }
