@@ -29,7 +29,7 @@ type Plain struct {
 func New(
 	info vo.NonEmptyString,
 	date time.Time,
-	eventType EventType,
+	eventType vo.EventType,
 	notifyLevels vo.JsonField,
 	providers vo.JsonField,
 	userId uuid.UUID,
