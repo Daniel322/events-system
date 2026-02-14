@@ -1,7 +1,6 @@
 package event
 
 import (
-	"events-system/internal/domain/task"
 	"events-system/pkg/vo"
 	"time"
 )
@@ -12,7 +11,6 @@ type Model struct {
 	eventType    vo.EventType
 	notifyLevels vo.JsonField
 	providers    vo.JsonField
-	tasks        *[]task.Model
 }
 
 func (m Model) Type() string {

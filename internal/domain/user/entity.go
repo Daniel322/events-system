@@ -1,8 +1,10 @@
 package user
 
 import (
+	"encoding/json"
 	"events-system/interfaces"
 	"events-system/pkg/vo"
+	"fmt"
 	"time"
 )
 
@@ -12,10 +14,10 @@ type Entity struct {
 }
 
 type Plain struct {
-	ID        string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Username  string
+	ID        string    `json:"id"`
+	CreatedAt time.Time `json:"username"`
+	UpdatedAt time.Time `json:"createdAt"`
+	Username  string    `json:"updatedAt"`
 }
 
 func New(username vo.NonEmptyString) Entity {
@@ -32,4 +34,15 @@ func (e Entity) ToPlain() Plain {
 		UpdatedAt: e.UpdatedAt,
 		Username:  e.Username(),
 	}
+}
+
+func (e Entity) ToJSON() []byte {
+
+	result, err := json.Marshal(e.ToPlain())
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return result
 }

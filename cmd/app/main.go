@@ -33,6 +33,8 @@ func main() {
 
 	userRepo := user.NewUsersRepo(db_adapter)
 	accRepo := account.NewAccRepo(db_adapter)
+	// eventRepo := event.NewEventsRepo(db_adapter)
+	// taskRepo := task.NewTaskRepo(db_adapter)
 
 	createUserAction := application.NewCreateUser(userRepo, accRepo)
 
@@ -48,7 +50,7 @@ func main() {
 	},
 	)
 
-	fmt.Println(user.Accounts())
+	fmt.Println(string(user.ToJSON()))
 
 	server := server.NewEchoInstance()
 

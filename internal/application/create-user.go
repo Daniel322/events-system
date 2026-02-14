@@ -16,6 +16,12 @@ type CreateUser struct {
 	AccRepo  *account.AccRepo
 }
 
+type CreateUserData struct {
+	Username     string
+	Type         string
+	AccountValue string
+}
+
 type CreateUserState struct {
 	Username     vo.NonEmptyString
 	Type         account.AccountType
@@ -30,6 +36,38 @@ func NewCreateUser(userRepo *user.UserRepo, accRepo *account.AccRepo) *CreateUse
 		AccRepo:  accRepo,
 		Logger:   logger,
 	}
+}
+
+// TODO: add format func
+
+func Validate(data CreateUserData) (*CreateUserState, error) {
+	state := CreateUserState{}
+
+	username, err := vo.NewNonEmptyString(data.Username)
+
+	if err != nil {
+		return nil, utils.GenerateError("CreateUser.Validate", err.Error())
+	}
+
+	state.Username = username
+
+	accType, err := account.NewAccountType(data.Type)
+
+	if err != nil {
+		return nil, utils.GenerateError("CreateUser.Validate", err.Error())
+	}
+
+	state.Type = accType
+
+	accValue, err := account.NewAccountValue(data.AccountValue, accType)
+
+	if err != nil {
+		return nil, utils.GenerateError("CreateUser.Validate", err.Error())
+	}
+
+	state.AccountValue = accValue
+
+	return &state, nil
 }
 
 func (this CreateUser) Run(
@@ -52,8 +90,6 @@ func (this CreateUser) Run(
 	if err != nil {
 		return nil, utils.GenerateError("Create user", err.Error())
 	}
-
-	user.Model.AddAccount(acc.Model)
 
 	return &user, nil
 }
