@@ -14,12 +14,12 @@ type Entity struct {
 }
 
 type Plain struct {
-	ID        string
-	UserId    string
-	AccountId string
-	Type      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        string    `json:"id"`
+	UserId    string    `json:"userId"`
+	AccountId string    `json:"accountId"`
+	Type      string    `json:"type"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 func New(value AccountValue, acctype AccountType, userId uuid.UUID) Entity {

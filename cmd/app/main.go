@@ -4,11 +4,12 @@ import (
 	"context"
 	pg_db "events-system/infrastructure/providers/db/postgres"
 	server "events-system/infrastructure/providers/http"
-	"events-system/internal/application"
+	"events-system/internal/application/commands"
+	"events-system/internal/application/queries"
 	"events-system/internal/domain/account"
+	"events-system/internal/domain/event"
 	"events-system/internal/domain/user"
 	"events-system/pkg/config"
-	"events-system/pkg/vo"
 	"fmt"
 	"os"
 )
@@ -33,24 +34,27 @@ func main() {
 
 	userRepo := user.NewUsersRepo(db_adapter)
 	accRepo := account.NewAccRepo(db_adapter)
-	// eventRepo := event.NewEventsRepo(db_adapter)
+	eventRepo := event.NewEventsRepo(db_adapter)
 	// taskRepo := task.NewTaskRepo(db_adapter)
 
-	createUserAction := application.NewCreateUser(userRepo, accRepo)
+	createUserAction := commands.NewCreateUser(userRepo, accRepo)
+	getUserAction := queries.NewGetUser(userRepo, accRepo, eventRepo)
 
 	ctx := context.Background()
 
-	userName, _ := vo.NewNonEmptyString("Daniil")
-	typ, _ := account.NewAccountType("mail")
-	val, _ := account.NewAccountValue("kravchenkodanil122@gmail.com", typ)
-	user, err := createUserAction.Run(ctx, application.CreateUserState{
-		Username:     userName,
-		Type:         typ,
-		AccountValue: val,
-	},
-	)
+	state, _ := createUserAction.Validate(commands.CreateUserData{
+		Username:     "Daniil",
+		Type:         "mail",
+		AccountValue: "kravchenkodanil12342@gmail.com",
+	})
 
-	fmt.Println(string(user.ToJSON()))
+	user, err := createUserAction.Run(ctx, *state)
+
+	// fmt.Println(string(user.ToJSON()))
+
+	userG, err := getUserAction.Run(ctx, user.ID.String())
+
+	fmt.Println(userG, string(userG.ToJSON()))
 
 	server := server.NewEchoInstance()
 

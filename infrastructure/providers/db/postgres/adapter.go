@@ -6,6 +6,7 @@ import (
 	"events-system/pkg/utils"
 	"log"
 	"os"
+	"reflect"
 
 	"gorm.io/gorm"
 )
@@ -60,13 +61,20 @@ func (adapter *DbAdapter) Find(
 	ctx context.Context,
 	options map[string]interface{},
 ) (*[]interface{}, error) {
-	entities := make([]interface{}, 0)
+	entityType, ok := ctx.Value("entityType").(reflect.Type)
+	if !ok || entityType == nil {
+		return nil, utils.GenerateError(NAME, "Find: в контексте должен быть задан entityType (reflect.Type)")
+	}
 
-	result := adapter.Instance.Table(ctx.Value("tableName").(string)).Find(&entities, options)
+	sliceType := reflect.SliceOf(entityType)
+	slice := reflect.MakeSlice(sliceType, 0, 0)
+	slicePtr := reflect.New(sliceType)
+	slicePtr.Elem().Set(slice)
 
+	result := adapter.instance(ctx).Table(ctx.Value("tableName").(string)).Find(slicePtr.Interface(), options)
 	if result.Error != nil {
 		return nil, utils.GenerateError(NAME, result.Error.Error())
 	}
 
-	return &entities, nil
+	return slicePtr.Interface().(*[]interface{}), nil
 }

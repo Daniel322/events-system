@@ -1,4 +1,4 @@
-package application
+package commands
 
 import (
 	"context"
@@ -28,7 +28,10 @@ type CreateUserState struct {
 	AccountValue account.AccountValue
 }
 
-func NewCreateUser(userRepo *user.UserRepo, accRepo *account.AccRepo) *CreateUser {
+func NewCreateUser(
+	userRepo *user.UserRepo,
+	accRepo *account.AccRepo,
+) *CreateUser {
 	var logger = log.New(os.Stdout, "CreateUser ", log.LstdFlags)
 
 	return &CreateUser{
@@ -38,9 +41,11 @@ func NewCreateUser(userRepo *user.UserRepo, accRepo *account.AccRepo) *CreateUse
 	}
 }
 
-// TODO: add format func
+func (this CreateUser) Format(user user.Entity) user.Output {
+	return user.ToOutput()
+}
 
-func Validate(data CreateUserData) (*CreateUserState, error) {
+func (this CreateUser) Validate(data CreateUserData) (*CreateUserState, error) {
 	state := CreateUserState{}
 
 	username, err := vo.NewNonEmptyString(data.Username)
@@ -90,6 +95,8 @@ func (this CreateUser) Run(
 	if err != nil {
 		return nil, utils.GenerateError("Create user", err.Error())
 	}
+
+	user.AddAccount(acc)
 
 	return &user, nil
 }
