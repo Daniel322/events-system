@@ -6,7 +6,6 @@ import (
 	"events-system/internal/components"
 	"events-system/pkg/utils"
 	"fmt"
-	"reflect"
 )
 
 type UserRepo struct {
@@ -25,10 +24,11 @@ func (r UserRepo) Save(ctx context.Context, value interface{}) error {
 	return r.Repository.Save(ctx, value)
 }
 
-func (r UserRepo) FindOne(ctx context.Context, options map[string]interface{}) (*Entity, error) {
+func (r UserRepo) FindOne(ctx context.Context, options map[string]interface{}) (*Plain, error) {
+	users := new([]Plain)
 	ctx = context.WithValue(ctx, "tableName", "users")
-	ctx = context.WithValue(ctx, "entityType", reflect.TypeOf(Entity{}))
-	users, err := r.Repository.Find(ctx, options)
+	ctx = context.WithValue(ctx, "ptr", users)
+	err := r.Repository.Find(ctx, options)
 
 	fmt.Println((*users)[0])
 
@@ -36,5 +36,7 @@ func (r UserRepo) FindOne(ctx context.Context, options map[string]interface{}) (
 		return nil, utils.GenerateError("UserRepo", err.Error())
 	}
 
-	return (*users)[0].(*Entity), nil
+	user := (*users)[0]
+
+	return &user, nil
 }

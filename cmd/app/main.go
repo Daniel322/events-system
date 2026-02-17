@@ -54,7 +54,7 @@ func main() {
 
 	userG, err := getUserAction.Run(ctx, user.ID.String())
 
-	fmt.Println(userG, string(userG.ToJSON()))
+	fmt.Println(userG)
 
 	server := server.NewEchoInstance()
 

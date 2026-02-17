@@ -32,7 +32,7 @@ func NewGetUser(
 	}
 }
 
-func (this GetUser) Run(ctx context.Context, id string) (*user.Entity, error) {
+func (this GetUser) Run(ctx context.Context, id string) (*user.Plain, error) {
 	findOptions := make(map[string]interface{})
 	findOptions["id"] = id
 

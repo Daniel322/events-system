@@ -29,5 +29,5 @@ type RepositoryV2 interface {
 	Find(
 		ctx context.Context,
 		options map[string]interface{},
-	) (*[]interface{}, error)
+	) error
 }
