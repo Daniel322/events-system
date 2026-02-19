@@ -2,7 +2,6 @@ package task
 
 import (
 	"events-system/interfaces"
-	"events-system/pkg/vo"
 	"time"
 
 	"github.com/google/uuid"
@@ -28,7 +27,7 @@ type Plain struct {
 
 func New(
 	date time.Time,
-	taskType vo.EventType,
+	taskType TaskType,
 	provider TaskProvider,
 	accountId uuid.UUID,
 	eventId uuid.UUID,

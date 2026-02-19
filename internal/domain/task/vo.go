@@ -2,6 +2,43 @@ package task
 
 import "events-system/pkg/utils"
 
+type TaskType int
+
+var SUPPORTED_TYPES = []string{"month", "week", "tomorrow", "today"}
+
+const (
+	Today TaskType = iota
+	Tomorrow
+	Week
+	Month
+)
+
+var TASK_TYPES = map[TaskType]string{
+	Today:    "today",
+	Tomorrow: "tomorrow",
+	Week:     "week",
+	Month:    "month",
+}
+
+func (task TaskType) String() string {
+	return TASK_TYPES[task]
+}
+
+func NewTaskType(s string) (TaskType, error) {
+	switch s {
+	case "today":
+		return TaskType(0), nil
+	case "tomorrow":
+		return TaskType(1), nil
+	case "week":
+		return TaskType(2), nil
+	case "month":
+		return TaskType(3), nil
+	default:
+		return TaskType(-1), utils.GenerateError("TaskType", "invalid task type")
+	}
+}
+
 type TaskProvider int
 
 const (

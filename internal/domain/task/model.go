@@ -1,19 +1,18 @@
 package task
 
 import (
-	"events-system/pkg/vo"
 	"time"
 )
 
 type Model struct {
 	date     time.Time
-	taskType vo.EventType
+	taskType TaskType
 	provider TaskProvider
 }
 
 func newModel(
 	date time.Time,
-	taskType vo.EventType,
+	taskType TaskType,
 	provider TaskProvider,
 ) Model {
 	return Model{

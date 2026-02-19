@@ -80,7 +80,7 @@ func (this CreateEvent) Validate(data CreateEventData) (*CreateEventState, error
 
 	state.UserId = userId
 
-	accId, err := uuid.Parse(data.UserId)
+	accId, err := uuid.Parse(data.AccId)
 
 	if err != nil {
 		return nil, utils.GenerateError("CreateEvent.Validate", err.Error())
@@ -129,7 +129,54 @@ func (this CreateEvent) Run(
 		return nil, utils.GenerateError("Create event", err.Error())
 	}
 
-	// TODO: add generate tasks info and create tasks
+	var TASKS_TYPES = map[string]time.Duration{
+		"today":    0,
+		"tomorrow": time.Hour * 24,
+		"week":     time.Hour * 168,
+		"month":    time.Hour * 720,
+	}
+
+	// tasks := make(
+	// 	[]task.Entity,
+	// 	0,
+	// 	len(state.NotifyLevels)*len(state.Providers),
+	// )
+	for _, provider := range state.Providers {
+		for _, level := range state.NotifyLevels {
+			today := time.Now()
+			todayYear := today.Year()
+			currentEventInThatYear := time.Date(
+				todayYear,
+				state.Date.Month(),
+				state.Date.Day(),
+				state.Date.Hour(),
+				state.Date.Minute(),
+				state.Date.Second(),
+				state.Date.Nanosecond(),
+				state.Date.Location(),
+			).Add(-TASKS_TYPES[level])
+
+			if currentEventInThatYear.Compare(today) == -1 {
+				currentEventInThatYear = currentEventInThatYear.AddDate(1, 0, 0)
+			}
+
+			taskType, _ := task.NewTaskType(level)
+
+			taskProvider, _ := task.NewTaskProvider(provider)
+
+			task := task.New(
+				currentEventInThatYear,
+				taskType,
+				taskProvider,
+				state.AccId,
+				event.ID,
+			)
+
+			err = this.TaskRepo.Save(ctx, task.ToPlain())
+
+			// tasks = append(tasks, task)
+		}
+	}
 
 	return &event, nil
 }

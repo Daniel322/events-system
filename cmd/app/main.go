@@ -47,7 +47,7 @@ func main() {
 	state, _ := createEventAction.Validate(commands.CreateEventData{
 		UserId:       "9bd6d11f-c4b2-4863-93ab-09dbd7728880",
 		AccId:        "0f6af9d8-af28-42ee-b895-417901cd70a1",
-		Info:         "app test event",
+		Info:         "app test event with tasks",
 		Date:         time.Now(),
 		NotifyLevels: []string{"today", "tomorrow"},
 		Providers:    []string{"telegram"},
