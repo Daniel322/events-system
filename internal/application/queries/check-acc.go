@@ -1,4 +1,4 @@
-package application
+package queries
 
 import (
 	"context"
@@ -18,7 +18,7 @@ type CheckAccountState struct {
 func (this CheckAccount) Run(
 	ctx context.Context,
 	state CheckAccountState,
-) (*account.Entity, error) {
+) (*account.Plain, error) {
 	options := make(map[string]interface{})
 	options["account_id"] = state.value.Val()
 	acc, err := this.AccRepo.FindOne(ctx, options)

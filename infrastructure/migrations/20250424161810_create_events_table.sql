@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS events(
   id UUID DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES users (id),
   info TEXT NOT NULL,
+  type TEXT NOT NULL,
   date TIMESTAMP NOT NULL,
   notify_levels JSONB NOT NULL DEFAULT '["month", "week", "tomorrow", "today"]'::JSONB,
   providers JSONB NOT NULL,

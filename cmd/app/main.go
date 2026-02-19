@@ -5,13 +5,14 @@ import (
 	pg_db "events-system/infrastructure/providers/db/postgres"
 	server "events-system/infrastructure/providers/http"
 	"events-system/internal/application/commands"
-	"events-system/internal/application/queries"
 	"events-system/internal/domain/account"
 	"events-system/internal/domain/event"
+	"events-system/internal/domain/task"
 	"events-system/internal/domain/user"
 	"events-system/pkg/config"
 	"fmt"
 	"os"
+	"time"
 )
 
 // TODO: graceful shutdown
@@ -35,26 +36,38 @@ func main() {
 	userRepo := user.NewUsersRepo(db_adapter)
 	accRepo := account.NewAccRepo(db_adapter)
 	eventRepo := event.NewEventsRepo(db_adapter)
-	// taskRepo := task.NewTaskRepo(db_adapter)
+	taskRepo := task.NewTaskRepo(db_adapter)
 
-	createUserAction := commands.NewCreateUser(userRepo, accRepo)
-	getUserAction := queries.NewGetUser(userRepo, accRepo, eventRepo)
+	// createUserAction := commands.NewCreateUser(userRepo, accRepo)
+	createEventAction := commands.NewCreateEvent(userRepo, accRepo, eventRepo, taskRepo)
+	// getUserAction := queries.NewGetUser(userRepo, accRepo, eventRepo)
 
 	ctx := context.Background()
 
-	state, _ := createUserAction.Validate(commands.CreateUserData{
-		Username:     "Daniil",
-		Type:         "mail",
-		AccountValue: "kravchenkodanil12342@gmail.com",
+	state, _ := createEventAction.Validate(commands.CreateEventData{
+		UserId:       "9bd6d11f-c4b2-4863-93ab-09dbd7728880",
+		AccId:        "0f6af9d8-af28-42ee-b895-417901cd70a1",
+		Info:         "app test event",
+		Date:         time.Now(),
+		NotifyLevels: []string{"today", "tomorrow"},
+		Providers:    []string{"telegram"},
 	})
 
-	user, err := createUserAction.Run(ctx, *state)
+	event, err := createEventAction.Run(ctx, state)
 
-	// fmt.Println(string(user.ToJSON()))
+	fmt.Println(event.ToPlain())
 
-	userG, err := getUserAction.Run(ctx, user.ID.String())
+	// state, _ := createUserAction.Validate(commands.CreateUserData{
+	// 	Username:     "Daniil",
+	// 	Type:         "mail",
+	// 	AccountValue: "kravchenkodanil12342@gmail.com",
+	// })
 
-	fmt.Println(userG)
+	// user, err := createUserAction.Run(ctx, *state)
+
+	// userG, err := getUserAction.Run(ctx, user.ID.String())
+
+	// fmt.Println(userG)
 
 	server := server.NewEchoInstance()
 
