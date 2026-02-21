@@ -3,8 +3,8 @@ package user
 import (
 	"encoding/json"
 	"events-system/interfaces"
+	"events-system/internal/components/vo"
 	"events-system/internal/domain/account"
-	"events-system/pkg/vo"
 	"fmt"
 	"time"
 )

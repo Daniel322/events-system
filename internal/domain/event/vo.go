@@ -1,8 +1,8 @@
 package event
 
 import (
+	"events-system/internal/components/vo"
 	"events-system/pkg/utils"
-	"events-system/pkg/vo"
 	"slices"
 )
 

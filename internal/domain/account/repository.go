@@ -11,7 +11,7 @@ type AccRepo struct {
 	components.Factory
 }
 
-func NewAccRepo(repo interfaces.RepositoryV2) *AccRepo {
+func NewAccRepo(repo interfaces.Repository) *AccRepo {
 	return &AccRepo{
 		Factory: *components.NewFactory("Account", repo),
 	}

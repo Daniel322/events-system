@@ -2,12 +2,12 @@ package commands
 
 import (
 	"context"
+	"events-system/internal/components/vo"
 	"events-system/internal/domain/account"
 	"events-system/internal/domain/event"
 	"events-system/internal/domain/task"
 	"events-system/internal/domain/user"
 	"events-system/pkg/utils"
-	"events-system/pkg/vo"
 	"log"
 	"os"
 	"time"

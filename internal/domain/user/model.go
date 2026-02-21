@@ -1,7 +1,7 @@
 package user
 
 import (
-	"events-system/pkg/vo"
+	"events-system/internal/components/vo"
 )
 
 type Model struct {

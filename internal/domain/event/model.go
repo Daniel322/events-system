@@ -1,7 +1,7 @@
 package event
 
 import (
-	"events-system/pkg/vo"
+	"events-system/internal/components/vo"
 	"time"
 )
 

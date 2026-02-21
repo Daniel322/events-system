@@ -8,11 +8,11 @@ import (
 
 type Factory struct {
 	Entity     string
-	Repository interfaces.RepositoryV2
+	Repository interfaces.Repository
 	Logger     *log.Logger
 }
 
-func NewFactory(entity string, repo interfaces.RepositoryV2) *Factory {
+func NewFactory(entity string, repo interfaces.Repository) *Factory {
 	var logger = log.New(os.Stdout, entity+" factory ", log.LstdFlags)
 
 	return &Factory{

@@ -60,11 +60,6 @@ func (adapter *DbAdapter) Find(
 	ctx context.Context,
 	options map[string]interface{},
 ) error {
-	// entityType, ok := ctx.Value("entityType").(reflect.Type)
-	// if !ok || entityType == nil {
-	// 	return nil, utils.GenerateError(NAME, "Find: в контексте должен быть задан entityType (reflect.Type)")
-	// }
-
 	ptr := ctx.Value("ptr")
 
 	result := adapter.instance(ctx).Table(ctx.Value("tableName").(string)).Find(ptr, options)

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	pg_db "events-system/infrastructure/providers/db/postgres"
-	server "events-system/infrastructure/providers/http"
 	"events-system/internal/application/commands"
 	"events-system/internal/domain/account"
 	"events-system/internal/domain/event"
@@ -11,7 +10,6 @@ import (
 	"events-system/internal/domain/user"
 	"events-system/pkg/config"
 	"fmt"
-	"os"
 	"time"
 )
 
@@ -69,8 +67,6 @@ func main() {
 
 	// fmt.Println(userG)
 
-	server := server.NewEchoInstance()
-
 	// // init di container
 
 	// dependency_container := dependency_container.NewDIContainer()
@@ -101,9 +97,6 @@ func main() {
 	// userController.InitRoutes()
 	// eventController.InitRoutes()
 	// taskController.InitRoutes()
-
-	// start http server
-	server.Start(os.Getenv("HTTP_PORT"))
 
 	// <-ctx.Done()
 

@@ -2,7 +2,7 @@ package event
 
 import (
 	"events-system/interfaces"
-	"events-system/pkg/vo"
+	"events-system/internal/components/vo"
 	"time"
 
 	"github.com/google/uuid"
