@@ -1,7 +1,7 @@
 package pg_db
 
 import (
-	"events-system/pkg/config"
+	"events-system/infrastructure/config"
 	"log"
 
 	"gorm.io/driver/postgres"
@@ -27,4 +27,21 @@ func Connect() (*gorm.DB, error) {
 	log.Println("Connected to Database!")
 
 	return conn, nil
+}
+
+func Close(db *gorm.DB) error {
+	instance, err := db.DB()
+
+	if err != nil {
+		return err
+	}
+
+	err = instance.Close()
+
+	if err == nil {
+		log.SetPrefix("DB Adapter ")
+		log.Println("Close DB connection")
+	}
+
+	return err
 }
