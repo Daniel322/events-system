@@ -52,4 +52,5 @@ func (cron *CronProvider) Stop() {
 		cron.Logger.Println("JOB STOP BY STOP CHANNEL")
 		stop <- true
 	}
+	cron.Logger.Println("CRON PROVIDER STOPPED")
 }

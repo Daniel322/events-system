@@ -5,6 +5,7 @@ import (
 	"events-system/infrastructure/config"
 	"events-system/infrastructure/cron"
 	pg_db "events-system/infrastructure/db/adapters/postgres"
+	"events-system/infrastructure/telegram"
 	"events-system/internal/application/commands"
 	"events-system/internal/application/queries"
 	"events-system/internal/domain/account"
@@ -51,6 +52,10 @@ func main() {
 
 	cronProvider.Bootstrap()
 
+	tgProvider, _ := telegram.NewTgBotProvider()
+
+	go tgProvider.Bootstrap()
+
 	// state, _ := createEventAction.Validate(commands.CreateEventData{
 	// 	UserId:       "9bd6d11f-c4b2-4863-93ab-09dbd7728880",
 	// 	AccId:        "0f6af9d8-af28-42ee-b895-417901cd70a1",
@@ -89,6 +94,7 @@ func main() {
 	log.Println("shutting down server gracefully")
 
 	cronProvider.Stop()
+	tgProvider.Close()
 	pg_db.Close(db_conn)
 	// tgBotProvider.Close()
 }
