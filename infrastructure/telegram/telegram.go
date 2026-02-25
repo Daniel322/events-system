@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"events-system/infrastructure/config"
+	tg_commands "events-system/infrastructure/telegram/commands"
 	"events-system/pkg/utils"
 	"log"
 	"os"
@@ -10,7 +11,6 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-// TODO: refactor provider after s-1.0
 type TgEvent struct {
 	Name string
 	Date *time.Time
@@ -61,7 +61,17 @@ func (tg *TgBotProvider) Bootstrap() {
 			continue
 		}
 
-		// msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+
+		if !update.Message.IsCommand() {
+			// here will be long process handlers
+		} else {
+			switch update.Message.Command() {
+			// here will be our cmd handlers
+			case "help":
+				tg_commands.HelpCmd(&msg)
+			}
+		}
 
 		// if !update.Message.IsCommand() {
 		// 	currentAcc, err := tg.Service.CheckTGAccount(update.Message.Chat.ID)
@@ -184,21 +194,21 @@ func (tg *TgBotProvider) Bootstrap() {
 		// 	}
 		// }
 
-		// if len(msg.Text) == 0 {
-		// 	msg.Text = "Something went wrong"
-		// }
+		if len(msg.Text) == 0 {
+			msg.Text = "Something went wrong"
+		}
 
-		// if _, err := tg.Bot.Send(msg); err != nil {
-		// 	utils.GenerateError(tg.Name, err.Error())
-		// }
+		if _, err := tg.Bot.Send(msg); err != nil {
+			utils.GenerateError("TgProvider", err.Error())
+		}
 	}
 }
 
-// func (tg *TgBotProvider) SendMsg(chatId int64, text string) {
-// 	msg := tgbotapi.NewMessage(chatId, text)
+func (tg *TgBotProvider) SendMsg(chatId int64, text string) {
+	msg := tgbotapi.NewMessage(chatId, text)
 
-// 	tg.Bot.Send(msg)
-// }
+	tg.Bot.Send(msg)
+}
 
 func (tg *TgBotProvider) Close() {
 	tg.Bot.StopReceivingUpdates()

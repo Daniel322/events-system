@@ -47,7 +47,7 @@ func (adapter *DbAdapter) Save(ctx context.Context, value interface{}) error {
 
 func (adapter *DbAdapter) Destroy(ctx context.Context, options interfaces.DestroyOptions) error {
 	adapterContextForExecQuery := adapter.instance(ctx)
-	resultOfQuery := adapterContextForExecQuery.Table(options.Table).Delete(options.ID)
+	resultOfQuery := adapterContextForExecQuery.Table(options.Table).Where("id = ?", options.ID).Delete(options.ID)
 
 	if resultOfQuery.Error != nil {
 		return utils.GenerateError(NAME, resultOfQuery.Error.Error())
@@ -63,6 +63,7 @@ func (adapter *DbAdapter) Find(
 	ptr := ctx.Value("ptr")
 
 	result := adapter.instance(ctx).Table(ctx.Value("tableName").(string)).Find(ptr, options)
+
 	if result.Error != nil {
 		return utils.GenerateError(NAME, result.Error.Error())
 	}

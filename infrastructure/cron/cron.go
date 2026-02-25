@@ -3,6 +3,8 @@ package cron
 import (
 	"events-system/infrastructure/config"
 	"events-system/infrastructure/cron/jobs"
+	"events-system/internal/application/commands"
+	"events-system/internal/application/queries"
 	"events-system/pkg/utils"
 	"log"
 	"os"
@@ -13,17 +15,21 @@ import (
 const ONE_TIME_IN_24_HOURS = 86400
 
 type CronProvider struct {
-	Name   string
-	Logger *log.Logger
-	Stops  *[]chan bool
+	Name            string
+	Logger          *log.Logger
+	Stops           *[]chan bool
+	TasksListAction *queries.TasksList
+	ExecTaskCmd     *commands.Exectask
 }
 
-func NewCronProvider() *CronProvider {
+func NewCronProvider(action *queries.TasksList, cmd *commands.Exectask) *CronProvider {
 	var logger = log.New(os.Stdout, "CronProvider"+" ", log.LstdFlags)
 	return &CronProvider{
-		Name:   "CronProvider",
-		Logger: logger,
-		Stops:  new([]chan bool),
+		Name:            "CronProvider",
+		Logger:          logger,
+		Stops:           new([]chan bool),
+		TasksListAction: action,
+		ExecTaskCmd:     cmd,
 	}
 }
 
@@ -41,7 +47,7 @@ func (cron *CronProvider) Bootstrap() {
 		duration = ONE_TIME_IN_24_HOURS
 	}
 
-	taskJob := jobs.NewTaskJob()
+	taskJob := jobs.NewTaskJob(cron.TasksListAction, cron.ExecTaskCmd)
 
 	stop := utils.SetInterval(taskJob.Run, time.Duration(duration)*time.Second)
 	*cron.Stops = append(*cron.Stops, stop)

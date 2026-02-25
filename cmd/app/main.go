@@ -17,8 +17,6 @@ import (
 	"syscall"
 )
 
-// TODO: graceful shutdown
-
 func main() {
 	ctx := context.Background()
 
@@ -46,9 +44,11 @@ func main() {
 
 	_ = commands.NewCreateUser(userRepo, accRepo)
 	_ = commands.NewCreateEvent(userRepo, accRepo, eventRepo, taskRepo)
+	execTaskCmd := commands.NewExecTask(taskRepo, eventRepo, accRepo)
 	_ = queries.NewGetUser(userRepo, accRepo, eventRepo)
+	tasksListQuery := queries.NewTasksList(taskRepo)
 
-	cronProvider := cron.NewCronProvider()
+	cronProvider := cron.NewCronProvider(tasksListQuery, execTaskCmd)
 
 	cronProvider.Bootstrap()
 
@@ -81,14 +81,6 @@ func main() {
 
 	// fmt.Println(userG)
 
-	// tgBotProvider, err := telegram.NewTgBotProvider(os.Getenv("TG_BOT_TOKEN"), internalUseCases)
-
-	// if err != nil {
-	// 	panic(err.Error())
-	// }
-
-	// go tgBotProvider.Bootstrap()
-
 	<-ctx.Done()
 
 	log.Println("shutting down server gracefully")
@@ -96,5 +88,4 @@ func main() {
 	cronProvider.Stop()
 	tgProvider.Close()
 	pg_db.Close(db_conn)
-	// tgBotProvider.Close()
 }

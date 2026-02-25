@@ -25,12 +25,12 @@ func (r EventsRepo) Save(ctx context.Context, value interface{}) error {
 
 func (r EventsRepo) FindOne(ctx context.Context, options map[string]interface{}) (*Plain, error) {
 	events := new([]Plain)
-	ctx = context.WithValue(ctx, "tableName", "tasks")
+	ctx = context.WithValue(ctx, "tableName", "events")
 	ctx = context.WithValue(ctx, "ptr", events)
 	err := r.Repository.Find(ctx, options)
 
 	if err != nil {
-		return nil, utils.GenerateError("TaskRepo FindOne", err.Error())
+		return nil, utils.GenerateError("EventRepo FindOne", err.Error())
 	}
 	if len(*events) == 0 {
 		return nil, nil

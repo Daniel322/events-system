@@ -19,7 +19,7 @@ type Exectask struct {
 }
 
 type ExecTaskData struct {
-	id string
+	Id string
 }
 
 type ExecTaskState struct {
@@ -49,12 +49,13 @@ func NewExecTask(
 func (this Exectask) Validate(data ExecTaskData) (*ExecTaskState, error) {
 	state := ExecTaskState{}
 
-	state.id = data.id
+	state.id = data.Id
 
 	return &state, nil
 }
 
 func (this Exectask) Run(ctx context.Context, state *ExecTaskState) (*ExecTaskResult, error) {
+	// TODO: add tranasction
 	// find task by id from state
 	currentTask, err := this.TaskRepo.FindOne(ctx, map[string]interface{}{"id": state.id})
 
@@ -83,13 +84,13 @@ func (this Exectask) Run(ctx context.Context, state *ExecTaskState) (*ExecTaskRe
 	eventId, _ := uuid.Parse(currentTask.EventId)
 	newTask := task.New(currentTask.Date.AddDate(1, 0, 0), taskType, provider, accId, eventId)
 
-	err = this.TaskRepo.Save(ctx, newTask)
+	err = this.TaskRepo.Save(ctx, newTask.ToPlain())
 
 	if err != nil {
 		return nil, utils.GenerateError("ExecTask.Run", err.Error())
 	}
 
-	text := "Attention!" + " For " + currentTask.Type + " in " + currentEvent.Date.Format("01-02") + " will be event " + currentEvent.Info
+	text := "Attention!" + " For " + (*currentTask).Type + " in " + (*currentEvent).Date.Format("2 January") + " will be event " + (*currentEvent).Info
 
 	return &ExecTaskResult{ChatId: currentAcc.AccountId, Text: text}, nil
 }
