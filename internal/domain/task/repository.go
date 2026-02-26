@@ -13,8 +13,10 @@ type TaskRepo struct {
 	components.Factory
 }
 
-func NewTaskRepo(repo interfaces.Repository) *TaskRepo {
-	return &TaskRepo{
+var Repository *TaskRepo
+
+func InitRepo(repo interfaces.Repository) {
+	Repository = &TaskRepo{
 		Factory: *components.NewFactory("Event", repo),
 	}
 }

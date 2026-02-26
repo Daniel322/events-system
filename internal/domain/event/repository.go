@@ -11,8 +11,10 @@ type EventsRepo struct {
 	components.Factory
 }
 
-func NewEventsRepo(repo interfaces.Repository) *EventsRepo {
-	return &EventsRepo{
+var Repository *EventsRepo
+
+func InitRepo(repo interfaces.Repository) {
+	Repository = &EventsRepo{
 		Factory: *components.NewFactory("Event", repo),
 	}
 }

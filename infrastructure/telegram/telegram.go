@@ -22,26 +22,30 @@ type TgBotProvider struct {
 	NotCompletedEventMap map[int64]*TgEvent
 }
 
-func NewTgBotProvider() (*TgBotProvider, error) {
+var Provider *TgBotProvider
+
+func NewTgBotProvider() error {
 	token, err := config.Config.TG_TOKEN()
 
 	if err != nil {
-		return nil, utils.GenerateError("TgProvider", err.Error())
+		return utils.GenerateError("TgProvider", err.Error())
 	}
 
 	bot, err := tgbotapi.NewBotAPI(token)
 
 	if err != nil {
-		return nil, utils.GenerateError("TgProvider", err.Error())
+		return utils.GenerateError("TgProvider", err.Error())
 	}
 
 	var logger = log.New(os.Stdout, "TgProvider"+" ", log.LstdFlags)
 
-	return &TgBotProvider{
+	*Provider = TgBotProvider{
 		Logger:               logger,
 		Bot:                  bot,
 		NotCompletedEventMap: make(map[int64]*TgEvent, 10),
-	}, nil
+	}
+
+	return nil
 }
 
 // func (tg *TgBotProvider) NewMessage(id int64) tgbotapi.MessageConfig {
@@ -70,6 +74,8 @@ func (tg *TgBotProvider) Bootstrap() {
 			// here will be our cmd handlers
 			case "help":
 				tg_commands.HelpCmd(&msg)
+			case "start":
+				tg_commands.StartCmd(&msg, update)
 			}
 		}
 
@@ -204,7 +210,7 @@ func (tg *TgBotProvider) Bootstrap() {
 	}
 }
 
-func (tg *TgBotProvider) SendMsg(chatId int64, text string) {
+func (tg *TgBotProvider) Send(chatId int64, text string) {
 	msg := tgbotapi.NewMessage(chatId, text)
 
 	tg.Bot.Send(msg)

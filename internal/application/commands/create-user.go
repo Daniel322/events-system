@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-type CreateUser struct {
+type ICreateUser struct {
 	Logger   *log.Logger
 	UserRepo *user.UserRepo
 	AccRepo  *account.AccRepo
@@ -28,24 +28,23 @@ type CreateUserState struct {
 	AccountValue account.AccountValue
 }
 
-func NewCreateUser(
-	userRepo *user.UserRepo,
-	accRepo *account.AccRepo,
-) *CreateUser {
+var CreateUser *ICreateUser
+
+func InitCreateUser() {
 	var logger = log.New(os.Stdout, "CreateUser ", log.LstdFlags)
 
-	return &CreateUser{
-		UserRepo: userRepo,
-		AccRepo:  accRepo,
+	CreateUser = &ICreateUser{
+		UserRepo: user.Repository,
+		AccRepo:  account.Repository,
 		Logger:   logger,
 	}
 }
 
-func (this CreateUser) Format(user user.Entity) user.Output {
+func (this ICreateUser) Format(user user.Entity) user.Output {
 	return user.ToOutput()
 }
 
-func (this CreateUser) Validate(data CreateUserData) (*CreateUserState, error) {
+func (this ICreateUser) Validate(data CreateUserData) (*CreateUserState, error) {
 	state := CreateUserState{}
 
 	username, err := vo.NewNonEmptyString(data.Username)
@@ -75,7 +74,7 @@ func (this CreateUser) Validate(data CreateUserData) (*CreateUserState, error) {
 	return &state, nil
 }
 
-func (this CreateUser) Run(
+func (this ICreateUser) Run(
 	ctx context.Context,
 	state CreateUserState,
 ) (*user.Entity, error) {

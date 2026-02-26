@@ -35,26 +35,30 @@ func main() {
 		panic(err.Error())
 	}
 
-	db_adapter := pg_db.NewDbAdapter(db_conn)
+	pg_db.InitAdapter(db_conn)
 
-	userRepo := user.NewUsersRepo(db_adapter)
-	accRepo := account.NewAccRepo(db_adapter)
-	eventRepo := event.NewEventsRepo(db_adapter)
-	taskRepo := task.NewTaskRepo(db_adapter)
+	user.InitRepo(pg_db.Adapter)
+	account.InitRepo(pg_db.Adapter)
+	event.InitRepo(pg_db.Adapter)
+	task.InitRepo(pg_db.Adapter)
 
-	_ = commands.NewCreateUser(userRepo, accRepo)
-	_ = commands.NewCreateEvent(userRepo, accRepo, eventRepo, taskRepo)
-	execTaskCmd := commands.NewExecTask(taskRepo, eventRepo, accRepo)
-	_ = queries.NewGetUser(userRepo, accRepo, eventRepo)
-	tasksListQuery := queries.NewTasksList(taskRepo)
+	commands.InitCreateUser()
+	_ = commands.NewCreateEvent(user.Repository, account.Repository, event.Repository, task.Repository)
+	execTaskCmd := commands.NewExecTask(task.Repository, event.Repository, account.Repository)
+	_ = queries.NewGetUser(user.Repository, account.Repository, event.Repository)
+	tasksListQuery := queries.NewTasksList(task.Repository)
 
-	cronProvider := cron.NewCronProvider(tasksListQuery, execTaskCmd)
+	err = telegram.NewTgBotProvider()
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	go telegram.Provider.Bootstrap()
+
+	cronProvider := cron.NewCronProvider(tasksListQuery, execTaskCmd, telegram.Provider)
 
 	cronProvider.Bootstrap()
-
-	tgProvider, _ := telegram.NewTgBotProvider()
-
-	go tgProvider.Bootstrap()
 
 	// state, _ := createEventAction.Validate(commands.CreateEventData{
 	// 	UserId:       "9bd6d11f-c4b2-4863-93ab-09dbd7728880",
@@ -86,6 +90,6 @@ func main() {
 	log.Println("shutting down server gracefully")
 
 	cronProvider.Stop()
-	tgProvider.Close()
+	telegram.Provider.Close()
 	pg_db.Close(db_conn)
 }

@@ -17,10 +17,12 @@ type DbAdapter struct {
 
 const NAME = "DB Adapter"
 
-func NewDbAdapter(instance *gorm.DB) *DbAdapter {
+var Adapter *DbAdapter
+
+func InitAdapter(instance *gorm.DB) {
 	var logger = log.New(os.Stdout, NAME+" ", log.LstdFlags)
 
-	return &DbAdapter{
+	*Adapter = DbAdapter{
 		Instance: instance,
 		Logger:   logger,
 	}
