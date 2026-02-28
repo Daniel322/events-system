@@ -10,33 +10,31 @@ import (
 	"os"
 )
 
-type GetUser struct {
-	Logger    *log.Logger
-	UserRepo  *user.UserRepo
-	AccRepo   *account.AccRepo
-	EventRepo *event.EventsRepo
+type IGetUser struct {
+	logger    *log.Logger
+	userRepo  *user.UserRepo
+	accRepo   *account.AccRepo
+	eventRepo *event.EventsRepo
 }
 
-func NewGetUser(
-	userRepo *user.UserRepo,
-	accRepo *account.AccRepo,
-	eventRepo *event.EventsRepo,
-) *GetUser {
+var GetUser *IGetUser
+
+func InitGetUser() {
 	var logger = log.New(os.Stdout, "GetUser ", log.LstdFlags)
 
-	return &GetUser{
-		UserRepo:  userRepo,
-		AccRepo:   accRepo,
-		EventRepo: eventRepo,
-		Logger:    logger,
+	GetUser = &IGetUser{
+		userRepo:  user.Repository,
+		accRepo:   account.Repository,
+		eventRepo: event.Repository,
+		logger:    logger,
 	}
 }
 
-func (this GetUser) Run(ctx context.Context, id string) (*user.Plain, error) {
+func (this IGetUser) Run(ctx context.Context, id string) (*user.Plain, error) {
 	findOptions := make(map[string]interface{})
 	findOptions["id"] = id
 
-	user, err := this.UserRepo.FindOne(ctx, findOptions)
+	user, err := this.userRepo.FindOne(ctx, findOptions)
 
 	if err != nil {
 		return nil, utils.GenerateError("GetUser", err.Error())

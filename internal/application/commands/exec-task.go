@@ -11,11 +11,11 @@ import (
 	"github.com/google/uuid"
 )
 
-type Exectask struct {
-	Logger    *log.Logger
-	TaskRepo  *task.TaskRepo
-	EventRepo *event.EventsRepo
-	AccRepo   *account.AccRepo
+type IExectask struct {
+	logger    *log.Logger
+	taskRepo  *task.TaskRepo
+	eventRepo *event.EventsRepo
+	accRepo   *account.AccRepo
 }
 
 type ExecTaskData struct {
@@ -31,22 +31,20 @@ type ExecTaskResult struct {
 	Text   string
 }
 
-func NewExecTask(
-	taskRepo *task.TaskRepo,
-	eventRepo *event.EventsRepo,
-	accRepo *account.AccRepo,
-) *Exectask {
+var ExecTask *IExectask
+
+func InitExecTask() {
 	var logger = log.New(log.Writer(), "ExecTask ", log.LstdFlags)
 
-	return &Exectask{
-		TaskRepo:  taskRepo,
-		EventRepo: eventRepo,
-		AccRepo:   accRepo,
-		Logger:    logger,
+	ExecTask = &IExectask{
+		taskRepo:  task.Repository,
+		eventRepo: event.Repository,
+		accRepo:   account.Repository,
+		logger:    logger,
 	}
 }
 
-func (this Exectask) Validate(data ExecTaskData) (*ExecTaskState, error) {
+func (this IExectask) Validate(data ExecTaskData) (*ExecTaskState, error) {
 	state := ExecTaskState{}
 
 	state.id = data.Id
@@ -54,29 +52,29 @@ func (this Exectask) Validate(data ExecTaskData) (*ExecTaskState, error) {
 	return &state, nil
 }
 
-func (this Exectask) Run(ctx context.Context, state *ExecTaskState) (*ExecTaskResult, error) {
+func (this IExectask) Run(ctx context.Context, state *ExecTaskState) (*ExecTaskResult, error) {
 	// TODO: add tranasction
 	// find task by id from state
-	currentTask, err := this.TaskRepo.FindOne(ctx, map[string]interface{}{"id": state.id})
+	currentTask, err := this.taskRepo.FindOne(ctx, map[string]interface{}{"id": state.id})
 
 	if err != nil {
 		return nil, utils.GenerateError("ExecTask.Run", err.Error())
 	}
 
-	currentEvent, err := this.EventRepo.FindOne(ctx, map[string]interface{}{"id": currentTask.EventId})
+	currentEvent, err := this.eventRepo.FindOne(ctx, map[string]interface{}{"id": currentTask.EventId})
 
 	if err != nil {
 		return nil, utils.GenerateError("ExecTask.Run", err.Error())
 	}
 
-	currentAcc, err := this.AccRepo.FindOne(ctx, map[string]interface{}{"id": currentTask.AccountId})
+	currentAcc, err := this.accRepo.FindOne(ctx, map[string]interface{}{"id": currentTask.AccountId})
 
 	if err != nil {
 		return nil, utils.GenerateError("ExecTask.Run", err.Error())
 	}
 
 	// delete task
-	this.TaskRepo.Destroy(ctx, state.id)
+	this.taskRepo.Destroy(ctx, state.id)
 	// create new task with same data but date = date + time of notify level (today, tomorrow, etc.)
 	taskType, _ := task.NewTaskType(currentTask.Type)
 	provider, _ := task.NewTaskProvider(currentTask.Provider)
@@ -84,7 +82,7 @@ func (this Exectask) Run(ctx context.Context, state *ExecTaskState) (*ExecTaskRe
 	eventId, _ := uuid.Parse(currentTask.EventId)
 	newTask := task.New(currentTask.Date.AddDate(1, 0, 0), taskType, provider, accId, eventId)
 
-	err = this.TaskRepo.Save(ctx, newTask.ToPlain())
+	err = this.taskRepo.Save(ctx, newTask.ToPlain())
 
 	if err != nil {
 		return nil, utils.GenerateError("ExecTask.Run", err.Error())

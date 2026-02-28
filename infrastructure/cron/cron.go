@@ -3,8 +3,7 @@ package cron
 import (
 	"events-system/infrastructure/config"
 	"events-system/infrastructure/cron/jobs"
-	"events-system/internal/application/commands"
-	"events-system/internal/application/queries"
+	"events-system/interfaces"
 	"events-system/pkg/utils"
 	"log"
 	"os"
@@ -14,33 +13,25 @@ import (
 
 const ONE_TIME_IN_24_HOURS = 86400
 
-type Sender interface {
-	Send(chatId int64, text string)
-}
-
 type CronProvider struct {
-	Name            string
-	Logger          *log.Logger
-	Stops           *[]chan bool
-	TasksListAction *queries.TasksList
-	ExecTaskCmd     *commands.Exectask
-	Sender          Sender
+	Name   string
+	logger *log.Logger
+	stops  *[]chan bool
+	sender interfaces.Sender
 }
 
-func NewCronProvider(action *queries.TasksList, cmd *commands.Exectask, sender Sender) *CronProvider {
+func NewCronProvider(sender interfaces.Sender) *CronProvider {
 	var logger = log.New(os.Stdout, "CronProvider"+" ", log.LstdFlags)
 	return &CronProvider{
-		Name:            "CronProvider",
-		Logger:          logger,
-		Stops:           new([]chan bool),
-		TasksListAction: action,
-		ExecTaskCmd:     cmd,
-		Sender:          sender,
+		Name:   "CronProvider",
+		logger: logger,
+		stops:  new([]chan bool),
+		sender: sender,
 	}
 }
 
 func (cron *CronProvider) Bootstrap() {
-	cron.Logger.Println("BOOTSTRAP STARTED")
+	cron.logger.Println("BOOTSTRAP STARTED")
 	strDuration, err := config.Config.CRON_INTERVAL()
 
 	if err != nil {
@@ -53,16 +44,16 @@ func (cron *CronProvider) Bootstrap() {
 		duration = ONE_TIME_IN_24_HOURS
 	}
 
-	taskJob := jobs.NewTaskJob()
+	taskJob := jobs.NewTaskJob(cron.sender)
 
 	stop := utils.SetInterval(taskJob.Run, time.Duration(duration)*time.Second)
-	*cron.Stops = append(*cron.Stops, stop)
+	*cron.stops = append(*cron.stops, stop)
 }
 
 func (cron *CronProvider) Stop() {
-	for _, stop := range *cron.Stops {
-		cron.Logger.Println("JOB STOP BY STOP CHANNEL")
+	for _, stop := range *cron.stops {
+		cron.logger.Println("JOB STOP BY STOP CHANNEL")
 		stop <- true
 	}
-	cron.Logger.Println("CRON PROVIDER STOPPED")
+	cron.logger.Println("CRON PROVIDER STOPPED")
 }

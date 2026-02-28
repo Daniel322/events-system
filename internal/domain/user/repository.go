@@ -15,7 +15,7 @@ type UserRepo struct {
 var Repository *UserRepo
 
 func InitRepo(repo interfaces.Repository) {
-	*Repository = UserRepo{
+	Repository = &UserRepo{
 		Factory: *components.NewFactory("User", repo),
 	}
 }

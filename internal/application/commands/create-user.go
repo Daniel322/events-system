@@ -11,9 +11,9 @@ import (
 )
 
 type ICreateUser struct {
-	Logger   *log.Logger
-	UserRepo *user.UserRepo
-	AccRepo  *account.AccRepo
+	logger   *log.Logger
+	userRepo *user.UserRepo
+	accRepo  *account.AccRepo
 }
 
 type CreateUserData struct {
@@ -34,9 +34,9 @@ func InitCreateUser() {
 	var logger = log.New(os.Stdout, "CreateUser ", log.LstdFlags)
 
 	CreateUser = &ICreateUser{
-		UserRepo: user.Repository,
-		AccRepo:  account.Repository,
-		Logger:   logger,
+		userRepo: user.Repository,
+		accRepo:  account.Repository,
+		logger:   logger,
 	}
 }
 
@@ -83,13 +83,13 @@ func (this ICreateUser) Run(
 	user := user.New(state.Username)
 	acc := account.New(state.AccountValue, state.Type, user.ID)
 
-	err := this.UserRepo.Save(ctx, user.ToPlain())
+	err := this.userRepo.Save(ctx, user.ToPlain())
 
 	if err != nil {
 		return nil, utils.GenerateError("Create user", err.Error())
 	}
 
-	err = this.AccRepo.Save(ctx, acc.ToPlain())
+	err = this.accRepo.Save(ctx, acc.ToPlain())
 
 	if err != nil {
 		return nil, utils.GenerateError("Create user", err.Error())

@@ -43,10 +43,11 @@ func main() {
 	task.InitRepo(pg_db.Adapter)
 
 	commands.InitCreateUser()
-	_ = commands.NewCreateEvent(user.Repository, account.Repository, event.Repository, task.Repository)
-	execTaskCmd := commands.NewExecTask(task.Repository, event.Repository, account.Repository)
-	_ = queries.NewGetUser(user.Repository, account.Repository, event.Repository)
-	tasksListQuery := queries.NewTasksList(task.Repository)
+	commands.InitCreateEvent()
+	commands.InitExecTask()
+	queries.InitGetUser()
+	queries.InitTasksList()
+	queries.InitCheckAccount()
 
 	err = telegram.NewTgBotProvider()
 
@@ -54,11 +55,11 @@ func main() {
 		panic(err.Error())
 	}
 
-	go telegram.Provider.Bootstrap()
-
-	cronProvider := cron.NewCronProvider(tasksListQuery, execTaskCmd, telegram.Provider)
+	cronProvider := cron.NewCronProvider(telegram.Provider)
 
 	cronProvider.Bootstrap()
+
+	go telegram.Provider.Bootstrap()
 
 	// state, _ := createEventAction.Validate(commands.CreateEventData{
 	// 	UserId:       "9bd6d11f-c4b2-4863-93ab-09dbd7728880",

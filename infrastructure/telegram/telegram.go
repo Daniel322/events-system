@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"context"
 	"events-system/infrastructure/config"
 	tg_commands "events-system/infrastructure/telegram/commands"
 	"events-system/pkg/utils"
@@ -39,7 +40,7 @@ func NewTgBotProvider() error {
 
 	var logger = log.New(os.Stdout, "TgProvider"+" ", log.LstdFlags)
 
-	*Provider = TgBotProvider{
+	Provider = &TgBotProvider{
 		Logger:               logger,
 		Bot:                  bot,
 		NotCompletedEventMap: make(map[int64]*TgEvent, 10),
@@ -55,6 +56,8 @@ func NewTgBotProvider() error {
 func (tg *TgBotProvider) Bootstrap() {
 	tg.Logger.Printf("Authorized on account %s", tg.Bot.Self.UserName)
 
+	ctx := context.Background()
+
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
@@ -67,13 +70,15 @@ func (tg *TgBotProvider) Bootstrap() {
 
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 
+		tg.Logger.Println(update.Message.From.ID)
+
 		if !update.Message.IsCommand() {
 			// here will be long process handlers
 		} else {
 			switch update.Message.Command() {
 			// here will be our cmd handlers
 			case "help":
-				tg_commands.HelpCmd(&msg)
+				tg_commands.HelpCmd(ctx, &msg)
 			case "start":
 				tg_commands.StartCmd(&msg, update)
 			}
@@ -211,9 +216,12 @@ func (tg *TgBotProvider) Bootstrap() {
 }
 
 func (tg *TgBotProvider) Send(chatId int64, text string) {
+	tg.Logger.Println(chatId, text)
 	msg := tgbotapi.NewMessage(chatId, text)
 
-	tg.Bot.Send(msg)
+	m, err := tg.Bot.Send(msg)
+
+	tg.Logger.Println(err, m)
 }
 
 func (tg *TgBotProvider) Close() {

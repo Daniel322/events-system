@@ -15,12 +15,12 @@ import (
 	"github.com/google/uuid"
 )
 
-type CreateEvent struct {
-	Logger    *log.Logger
-	UserRepo  *user.UserRepo
-	AccRepo   *account.AccRepo
-	EventRepo *event.EventsRepo
-	TaskRepo  *task.TaskRepo
+type ICreateEvent struct {
+	logger    *log.Logger
+	userRepo  *user.UserRepo
+	accRepo   *account.AccRepo
+	eventRepo *event.EventsRepo
+	taskRepo  *task.TaskRepo
 }
 
 type CreateEventData struct {
@@ -42,24 +42,21 @@ type CreateEventState struct {
 	EventType    vo.EventType
 }
 
-func NewCreateEvent(
-	userRepo *user.UserRepo,
-	accRepo *account.AccRepo,
-	eventRepo *event.EventsRepo,
-	taskRepo *task.TaskRepo,
-) *CreateEvent {
+var CreateEvent *ICreateEvent
+
+func InitCreateEvent() {
 	var logger = log.New(os.Stdout, "CreateEvent ", log.LstdFlags)
 
-	return &CreateEvent{
-		UserRepo:  userRepo,
-		AccRepo:   accRepo,
-		EventRepo: eventRepo,
-		TaskRepo:  taskRepo,
-		Logger:    logger,
+	CreateEvent = &ICreateEvent{
+		userRepo:  user.Repository,
+		accRepo:   account.Repository,
+		eventRepo: event.Repository,
+		taskRepo:  task.Repository,
+		logger:    logger,
 	}
 }
 
-func (this CreateEvent) Validate(data CreateEventData) (*CreateEventState, error) {
+func (this ICreateEvent) Validate(data CreateEventData) (*CreateEventState, error) {
 	state := CreateEventState{}
 
 	state.Date = data.Date
@@ -109,7 +106,7 @@ func (this CreateEvent) Validate(data CreateEventData) (*CreateEventState, error
 	return &state, nil
 }
 
-func (this CreateEvent) Run(
+func (this ICreateEvent) Run(
 	ctx context.Context,
 	state *CreateEventState,
 ) (*event.Entity, error) {
@@ -123,7 +120,7 @@ func (this CreateEvent) Run(
 		state.UserId,
 	)
 
-	err := this.EventRepo.Save(ctx, event.ToPlain())
+	err := this.eventRepo.Save(ctx, event.ToPlain())
 
 	if err != nil {
 		return nil, utils.GenerateError("Create event", err.Error())
@@ -172,7 +169,7 @@ func (this CreateEvent) Run(
 				event.ID,
 			)
 
-			err = this.TaskRepo.Save(ctx, task.ToPlain())
+			err = this.taskRepo.Save(ctx, task.ToPlain())
 
 			// tasks = append(tasks, task)
 		}

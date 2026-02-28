@@ -8,30 +8,30 @@ import (
 	"time"
 )
 
-type TasksList struct {
-	Logger   *log.Logger
-	TaskRepo *task.TaskRepo
+type ITasksList struct {
+	logger   *log.Logger
+	taskRepo *task.TaskRepo
 }
 
-func NewTasksList(
-	taskRepo *task.TaskRepo,
-) *TasksList {
+var TasksList *ITasksList
+
+func InitTasksList() {
 	var logger = log.New(log.Writer(), "TasksList ", log.LstdFlags)
 
-	return &TasksList{
-		TaskRepo: taskRepo,
-		Logger:   logger,
+	TasksList = &ITasksList{
+		taskRepo: task.Repository,
+		logger:   logger,
 	}
 }
 
-func (this TasksList) Run(ctx context.Context) (*[]task.Plain, error) {
+func (this ITasksList) Run(ctx context.Context) (*[]task.Plain, error) {
 	options := make(map[string]interface{})
 	options["date"] = time.Now().Format("2006-01-02")
 	result := new([]task.Plain)
 	ctx = context.WithValue(ctx, "tableName", "tasks")
 	ctx = context.WithValue(ctx, "ptr", result)
 
-	err := this.TaskRepo.Repository.Find(ctx, options)
+	err := this.taskRepo.Repository.Find(ctx, options)
 
 	if err != nil {
 		return nil, utils.GenerateError("TasksList.Run", err.Error())
