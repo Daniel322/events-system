@@ -80,7 +80,13 @@ func (tg *TgBotProvider) Bootstrap() {
 			case "help":
 				tg_commands.HelpCmd(ctx, &msg)
 			case "start":
-				tg_commands.StartCmd(&msg, update)
+				err := tg_commands.StartCmd(ctx, &msg, update)
+
+				if err != nil {
+					msg.Text = err.Error()
+					tg.Bot.Send(msg)
+					continue
+				}
 			}
 		}
 

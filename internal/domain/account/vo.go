@@ -41,7 +41,7 @@ type AccountValue struct {
 }
 
 func NewAccountValue(s string, t AccountType) (AccountValue, error) {
-	if t == 0 {
+	if t == 1 {
 		if ok := IsEmail(s); !ok {
 			return AccountValue{}, utils.GenerateError("AccountValue", "invalid value for type mail")
 		}
