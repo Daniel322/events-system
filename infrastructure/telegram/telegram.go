@@ -59,28 +59,19 @@ func (tg *TgBotProvider) Bootstrap() {
 
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 
-		tg.Logger.Println(update.Message.From.ID)
-
 		if !update.Message.IsCommand() {
 			tg_handlers.MessageHandler(ctx, &msg, update)
 		} else {
-			switch update.Message.Command() {
-			// here will be our cmd handlers
-			// TODO: make map with commands, create interface and change switch case for get command from map
-			case "help":
-				tg_commands.HelpCmd(ctx, &msg)
-			case "start":
-				err := tg_commands.StartCmd(ctx, &msg, update)
+			cb, ok := tg_commands.COMMANDS[update.Message.Command()]
+			if !ok {
+				tg_commands.DefaultCmd(ctx, &msg, update)
+			}
+			err := cb(ctx, &msg, update)
 
-				if err != nil {
-					msg.Text = err.Error()
-					tg.Bot.Send(msg)
-					continue
-				}
-			case "event":
-				tg_commands.EventCmd(ctx, &msg, update)
-			default:
-				tg_commands.DefaultCmd(ctx, &msg)
+			if err != nil {
+				msg.Text = err.Error()
+				tg.Bot.Send(msg)
+				continue
 			}
 		}
 
