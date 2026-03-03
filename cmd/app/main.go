@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"events-system/infrastructure/cache"
 	"events-system/infrastructure/config"
 	"events-system/infrastructure/cron"
 	pg_db "events-system/infrastructure/db/adapters/postgres"
@@ -36,6 +37,8 @@ func main() {
 	}
 
 	pg_db.InitAdapter(db_conn)
+
+	cache.Init()
 
 	user.InitRepo(pg_db.Adapter)
 	account.InitRepo(pg_db.Adapter)

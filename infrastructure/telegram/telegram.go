@@ -4,23 +4,17 @@ import (
 	"context"
 	"events-system/infrastructure/config"
 	tg_commands "events-system/infrastructure/telegram/commands"
+	tg_handlers "events-system/infrastructure/telegram/handlers"
 	"events-system/pkg/utils"
 	"log"
 	"os"
-	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-type TgEvent struct {
-	Name string
-	Date *time.Time
-}
-
 type TgBotProvider struct {
-	Logger               *log.Logger
-	Bot                  *tgbotapi.BotAPI
-	NotCompletedEventMap map[int64]*TgEvent
+	Logger *log.Logger
+	Bot    *tgbotapi.BotAPI
 }
 
 var Provider *TgBotProvider
@@ -41,17 +35,12 @@ func NewTgBotProvider() error {
 	var logger = log.New(os.Stdout, "TgProvider"+" ", log.LstdFlags)
 
 	Provider = &TgBotProvider{
-		Logger:               logger,
-		Bot:                  bot,
-		NotCompletedEventMap: make(map[int64]*TgEvent, 10),
+		Logger: logger,
+		Bot:    bot,
 	}
 
 	return nil
 }
-
-// func (tg *TgBotProvider) NewMessage(id int64) tgbotapi.MessageConfig {
-// 	return tgbotapi.NewMessage(id, "")
-// }
 
 func (tg *TgBotProvider) Bootstrap() {
 	tg.Logger.Printf("Authorized on account %s", tg.Bot.Self.UserName)
@@ -73,10 +62,11 @@ func (tg *TgBotProvider) Bootstrap() {
 		tg.Logger.Println(update.Message.From.ID)
 
 		if !update.Message.IsCommand() {
-			// here will be long process handlers
+			tg_handlers.MessageHandler(ctx, &msg, update)
 		} else {
 			switch update.Message.Command() {
 			// here will be our cmd handlers
+			// TODO: make map with commands, create interface and change switch case for get command from map
 			case "help":
 				tg_commands.HelpCmd(ctx, &msg)
 			case "start":
@@ -87,129 +77,12 @@ func (tg *TgBotProvider) Bootstrap() {
 					tg.Bot.Send(msg)
 					continue
 				}
+			case "event":
+				tg_commands.EventCmd(ctx, &msg, update)
+			default:
+				tg_commands.DefaultCmd(ctx, &msg)
 			}
 		}
-
-		// if !update.Message.IsCommand() {
-		// 	currentAcc, err := tg.Service.CheckTGAccount(update.Message.Chat.ID)
-
-		// 	if err != nil {
-		// 		msg.Text = err.Error()
-		// 		tg.Bot.Send(msg)
-		// 		continue
-		// 	}
-
-		// 	if currentAcc == nil {
-		// 		msg.Text = "need to create account, use /start command"
-		// 		tg.Bot.Send(msg)
-		// 		continue
-		// 	}
-
-		// 	currentEvent, isCurrentEventExist := tg.NotCompletedEventMap[update.Message.From.ID]
-
-		// 	if !isCurrentEventExist {
-		// 		msg.Text = "you dont have uncompleted events, use /event command for start to create event or /help for get list of available commands"
-		// 		tg.Bot.Send(msg)
-		// 		continue
-		// 	} else {
-		// 		reflectValue := reflect.ValueOf(currentEvent).Elem()
-		// 		if isZeroName := reflectValue.FieldByName("Name").IsZero(); isZeroName {
-		// 			currentEvent.Name = update.Message.Text
-		// 			msg.Text = "added name, now add Date in next format YYYY-MM-DD"
-		// 			tg.Bot.Send(msg)
-		// 			continue
-		// 		} else {
-		// 			timeVar, err := time.Parse("2006-01-02", update.Message.Text)
-		// 			if err != nil {
-		// 				err = utils.GenerateError(tg.Name, err.Error())
-		// 				msg.Text = err.Error()
-		// 				tg.Bot.Send(msg)
-		// 				continue
-		// 			}
-
-		// 			// strAccId := strconv.Itoa(int(update.Message.From.ID))
-		// 			currentEvent.Date = &timeVar
-		// 			event, err := tg.Service.CreateEvent(dto.CreateEventDTO{
-		// 				AccountId: currentAcc.ID,
-		// 				Date:      *currentEvent.Date,
-		// 				Info:      currentEvent.Name,
-		// 				UserId:    currentAcc.UserId,
-		// 				Providers: entities.JsonField{"telegram"},
-		// 			})
-
-		// 			if err != nil {
-		// 				msg.Text = err.Error()
-		// 				tg.Bot.Send(msg)
-		// 				continue
-		// 			}
-
-		// 			msg.Text = "event " + event.Info + " with next date:" + event.Date.Format("2006-01-02") + " created!"
-		// 			delete(tg.NotCompletedEventMap, update.Message.From.ID)
-		// 			tg.Bot.Send(msg)
-		// 			continue
-		// 		}
-		// 	}
-		// } else {
-		// 	switch update.Message.Command() {
-		// 	case "start":
-		// 		accountId := update.Message.From.ID
-		// 		currentAccount, err := tg.Service.CheckTGAccount(accountId)
-
-		// 		if err != nil {
-		// 			utils.GenerateError(tg.Name, err.Error())
-		// 			break
-		// 		}
-
-		// 		if currentAccount == nil {
-		// 			strAccId := strconv.Itoa(int(update.Message.From.ID))
-
-		// 			newUser, err := tg.Service.CreateUser(dto.CreateUserInput{
-		// 				Username:  update.Message.From.UserName,
-		// 				AccountId: strAccId,
-		// 				Type:      entities.AccountType(1),
-		// 			})
-
-		// 			if err != nil {
-		// 				utils.GenerateError(tg.Name, err.Error())
-		// 				break
-		// 			}
-
-		// 			msg.Text = "account " + newUser.Username + " created"
-		// 		} else {
-		// 			currentUser, err := tg.Service.GetUser(currentAccount.UserId.String())
-
-		// 			if err != nil || currentUser == nil {
-		// 				utils.GenerateError(tg.Name, err.Error())
-		// 				break
-		// 			}
-
-		// 			msg.Text = "account " + currentUser.Username + " already created"
-		// 		}
-		// 	case "event":
-		// 		msg.Text = "start to create event"
-		// 		currentAccountId := update.Message.From.ID
-		// 		currentNotCompletedEventOfCurrentAccount, ok := tg.NotCompletedEventMap[currentAccountId]
-
-		// 		if ok {
-		// 			log.SetPrefix("TG_BOT ")
-		// 			log.Println("created event for current account id:", currentNotCompletedEventOfCurrentAccount)
-		// 			msg.Text = "We have not completed event,"
-		// 			reflectValue := reflect.ValueOf(currentNotCompletedEventOfCurrentAccount).Elem()
-		// 			if isInvalidName := reflectValue.FieldByName("Name").IsZero(); isInvalidName {
-		// 				msg.Text += " enter name or info about event"
-		// 			} else if isInvalidDate := reflectValue.FieldByName("Date").IsZero(); isInvalidDate {
-		// 				msg.Text += " enter date in next format: YYYY-MM-DD"
-		// 			}
-		// 		} else {
-		// 			tg.NotCompletedEventMap[currentAccountId] = &TgEvent{Date: nil}
-		// 			msg.Text = "Start to create event, write event name or info"
-		// 		}
-		// 	case "help":
-		// 		msg.Text = "I understand /start and /event."
-		// 	default:
-		// 		msg.Text = "I don't know that command"
-		// 	}
-		// }
 
 		if len(msg.Text) == 0 {
 			msg.Text = "Something went wrong"
