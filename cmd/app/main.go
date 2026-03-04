@@ -51,6 +51,7 @@ func main() {
 	queries.InitGetUser()
 	queries.InitTasksList()
 	queries.InitCheckAccount()
+	queries.InitEventsList()
 
 	err = telegram.NewTgBotProvider()
 
