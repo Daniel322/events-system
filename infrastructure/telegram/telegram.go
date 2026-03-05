@@ -3,8 +3,13 @@ package telegram
 import (
 	"context"
 	"events-system/infrastructure/config"
+	parsers "events-system/infrastructure/parser"
+	"fmt"
+
 	tg_commands "events-system/infrastructure/telegram/commands"
+
 	tg_handlers "events-system/infrastructure/telegram/handlers"
+	"events-system/internal/application/commands"
 	"events-system/pkg/utils"
 	"log"
 	"os"
@@ -60,7 +65,42 @@ func (tg *TgBotProvider) Bootstrap() {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 
 		if !update.Message.IsCommand() {
-			tg_handlers.MessageHandler(ctx, &msg, update)
+			if update.Message.Document != nil {
+				reader, err := tg_handlers.FileHandler(ctx, &msg, update, tg.Bot)
+
+				if err != nil {
+					tg.Bot.Send(msg)
+					continue
+				}
+
+				eventsData, err := parsers.ParseCsv(ctx, reader)
+
+				if err != nil {
+					tg.Bot.Send(msg)
+					continue
+				}
+
+				for _, eventData := range *eventsData {
+					state, err := commands.CreateEvent.Validate(eventData)
+
+					if err != nil {
+						tg.Bot.Send(msg)
+						continue
+					}
+
+					_, err = commands.CreateEvent.Run(ctx, state)
+
+					if err != nil {
+						tg.Bot.Send(msg)
+						continue
+					}
+				}
+
+				msg.Text = fmt.Sprint(len(*eventsData)) + " events created!"
+			}
+			if len(update.Message.Text) != 0 {
+				tg_handlers.MessageHandler(ctx, &msg, update)
+			}
 		} else {
 			cb, ok := tg_commands.COMMANDS[update.Message.Command()]
 			if !ok {
