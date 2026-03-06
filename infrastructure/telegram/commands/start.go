@@ -11,7 +11,12 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func StartCmd(ctx context.Context, msg *tgbotapi.MessageConfig, update tgbotapi.Update) error {
+func StartCmd(
+	ctx context.Context,
+	msg *tgbotapi.MessageConfig,
+	update tgbotapi.Update,
+	bot *tgbotapi.BotAPI,
+) error {
 
 	accountId := update.Message.From.ID
 	t, err := account.NewAccountType("telegram")

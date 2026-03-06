@@ -10,7 +10,12 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func EventCmd(ctx context.Context, msg *tgbotapi.MessageConfig, update tgbotapi.Update) error {
+func EventCmd(
+	ctx context.Context,
+	msg *tgbotapi.MessageConfig,
+	update tgbotapi.Update,
+	bot *tgbotapi.BotAPI,
+) error {
 	msg.Text = "start to create event"
 	currentAccountId := update.Message.From.ID
 	strAccId := strconv.Itoa(int(currentAccountId))

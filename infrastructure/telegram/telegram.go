@@ -4,12 +4,12 @@ import (
 	"context"
 	"events-system/infrastructure/config"
 	parsers "events-system/infrastructure/parser"
+	"events-system/internal/application/commands"
 	"fmt"
 
 	tg_commands "events-system/infrastructure/telegram/commands"
 
 	tg_handlers "events-system/infrastructure/telegram/handlers"
-	"events-system/internal/application/commands"
 	"events-system/pkg/utils"
 	"log"
 	"os"
@@ -73,13 +73,28 @@ func (tg *TgBotProvider) Bootstrap() {
 					continue
 				}
 
-				eventsData, err := parsers.ParseCsv(ctx, reader)
+				currentAcc, err := tg_handlers.CheckAccHandler(ctx, &msg, update)
 
 				if err != nil {
 					tg.Bot.Send(msg)
 					continue
 				}
 
+				eventsData, err := parsers.ParseCsv(
+					ctx,
+					reader,
+					parsers.ParseOptions{
+						AccId:  currentAcc.ID,
+						UserId: currentAcc.UserId,
+					},
+				)
+
+				if err != nil {
+					msg.Text = err.Error()
+					tg.Bot.Send(msg)
+					continue
+				}
+				// TODO: transaction
 				for _, eventData := range *eventsData {
 					state, err := commands.CreateEvent.Validate(eventData)
 
@@ -106,7 +121,7 @@ func (tg *TgBotProvider) Bootstrap() {
 			if !ok {
 				tg_commands.DefaultCmd(ctx, &msg, update)
 			}
-			err := cb(ctx, &msg, update)
+			err := cb(ctx, &msg, update, tg.Bot)
 
 			if err != nil {
 				msg.Text = err.Error()

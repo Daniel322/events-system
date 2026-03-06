@@ -14,6 +14,7 @@ func InfoCmd(
 	ctx context.Context,
 	msg *tgbotapi.MessageConfig,
 	update tgbotapi.Update,
+	bot *tgbotapi.BotAPI,
 ) error {
 	accountId := update.Message.From.ID
 	strAccId := strconv.Itoa(int(accountId))
