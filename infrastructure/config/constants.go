@@ -1,0 +1,6 @@
+package config
+
+const DB_URL = "GOOSE_DBSTRING"
+const TG_TOKEN = "TG_BOT_TOKEN"
+const HTTP_PORT = "HTTP_PORT"
+const CRON_INTERVAL = "CRON_INTERVAL"

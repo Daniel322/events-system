@@ -51,12 +51,15 @@ func GenerateError(Name string, Message string) error {
 func SetInterval(callback func() error, interval time.Duration) chan bool {
 	ticker := time.NewTicker(interval)
 	stop := make(chan bool)
-
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
-				callback()
+
+				err := callback()
+				if err != nil {
+					fmt.Println(err)
+				}
 			case <-stop:
 				ticker.Stop()
 				return

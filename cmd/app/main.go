@@ -2,129 +2,101 @@ package main
 
 import (
 	"context"
-	"events-system/infrastructure/providers/cron"
-	"events-system/infrastructure/providers/db"
-	"events-system/infrastructure/providers/http/controllers"
-	"events-system/infrastructure/providers/http/server"
-	"events-system/infrastructure/providers/telegram"
-	"events-system/interfaces"
-	entities "events-system/internal/entity"
-	"events-system/internal/services"
-	"events-system/internal/usecases"
-	dependency_container "events-system/pkg/di"
-	"events-system/pkg/repository"
-	"fmt"
+	"events-system/infrastructure/cache"
+	"events-system/infrastructure/config"
+	"events-system/infrastructure/cron"
+	pg_db "events-system/infrastructure/db/adapters/postgres"
+	"events-system/infrastructure/telegram"
+	"events-system/internal/application/commands"
+	"events-system/internal/application/queries"
+	"events-system/internal/domain/account"
+	"events-system/internal/domain/event"
+	"events-system/internal/domain/task"
+	"events-system/internal/domain/user"
 	"log"
-	"os"
 	"os/signal"
 	"syscall"
-	"time"
-
-	"github.com/joho/godotenv"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
-func initInternalDependencies(
-	di *dependency_container.DependencyContainer,
-	db *db.Database,
-) interfaces.InternalUsecase {
-
-	// init base repository
-	base_repository := repository.NewBaseRepository(db)
-
-	// init repos
-	user_repository := repository.NewRepository[entities.User](repository.Users, base_repository)
-	account_repository := repository.NewRepository[entities.Account](repository.Accounts, base_repository)
-	event_repository := repository.NewRepository[entities.Event](repository.Events, base_repository)
-	task_repository := repository.NewRepository[entities.Task](repository.Tasks, base_repository)
-
-	// init services
-	user_service := services.NewUserService(user_repository)
-	account_service := services.NewAccountService(account_repository)
-	event_service := services.NewEventService(event_repository)
-	task_service := services.NewTaskService(task_repository)
-
-	internalUseCases := usecases.NewInternalUseCases(
-		base_repository,
-		user_service,
-		account_service,
-		event_service,
-		task_service,
-	)
-
-	di.Add("useCases", internalUseCases)
-
-	return internalUseCases
-}
+// TODO: think about refactor transactions, make one method in command before run and maybe create base cmd struct
 
 func main() {
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
+	ctx := context.Background()
+
+	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
-	}
-
-	db_url := os.Getenv("GOOSE_DBSTRING")
-
-	conn, err := gorm.Open(postgres.Open(db_url), &gorm.Config{
-		SkipDefaultTransaction: true,
-	})
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("Connected!")
-
-	// init external providers
-	database_instance := db.NewDatabase(db_url, conn)
-	server := server.NewEchoInstance()
-
-	// init di container
-
-	dependency_container := dependency_container.NewDIContainer()
-
-	internalUseCases := initInternalDependencies(dependency_container, database_instance)
-
-	// init controllers
-	userController := controllers.NewUserController(
-		server.Instance,
-		internalUseCases,
-	)
-	eventController := controllers.NewEventController(server.Instance, internalUseCases)
-	taskController := controllers.NewTaskController(server.Instance, internalUseCases)
-
-	tgBotProvider, err := telegram.NewTgBotProvider(os.Getenv("TG_BOT_TOKEN"), internalUseCases)
+	err := config.Config.Bootstrap()
 
 	if err != nil {
 		panic(err.Error())
 	}
 
-	cronProvider := cron.NewCronProvider(tgBotProvider, internalUseCases)
+	db_conn, err := pg_db.Connect()
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	pg_db.InitAdapter(db_conn)
+
+	cache.Init()
+
+	user.InitRepo(pg_db.Adapter)
+	account.InitRepo(pg_db.Adapter)
+	event.InitRepo(pg_db.Adapter)
+	task.InitRepo(pg_db.Adapter)
+
+	commands.InitCreateUser()
+	commands.InitCreateEvent()
+	commands.InitExecTask()
+	queries.InitGetUser()
+	queries.InitTasksList()
+	queries.InitCheckAccount()
+	queries.InitEventsList()
+
+	err = telegram.NewTgBotProvider()
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	cronProvider := cron.NewCronProvider(telegram.Provider)
 
 	cronProvider.Bootstrap()
 
-	go tgBotProvider.Bootstrap()
+	go telegram.Provider.Bootstrap()
 
-	// init http routes
-	userController.InitRoutes()
-	eventController.InitRoutes()
-	taskController.InitRoutes()
+	// state, _ := createEventAction.Validate(commands.CreateEventData{
+	// 	UserId:       "9bd6d11f-c4b2-4863-93ab-09dbd7728880",
+	// 	AccId:        "0f6af9d8-af28-42ee-b895-417901cd70a1",
+	// 	Info:         "app test event with tasks",
+	// 	Date:         time.Now(),
+	// 	NotifyLevels: []string{"today", "tomorrow"},
+	// 	Providers:    []string{"telegram"},
+	// })
 
-	// start http server
-	go server.Start(os.Getenv("HTTP_PORT"))
+	// event, err := createEventAction.Run(ctx, state)
+
+	// fmt.Println(event.ToPlain())
+
+	// state, _ := createUserAction.Validate(commands.CreateUserData{
+	// 	Username:     "Daniil",
+	// 	Type:         "mail",
+	// 	AccountValue: "kravchenkodanil12342@gmail.com",
+	// })
+
+	// user, err := createUserAction.Run(ctx, *state)
+
+	// userG, err := getUserAction.Run(ctx, user.ID.String())
+
+	// fmt.Println(userG)
 
 	<-ctx.Done()
 
 	log.Println("shutting down server gracefully")
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	database_instance.Close()
-	tgBotProvider.Close()
-	server.Close(shutdownCtx)
+	cronProvider.Stop()
+	telegram.Provider.Close()
+	pg_db.Close(db_conn)
 }
