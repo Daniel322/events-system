@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	pg_db "events-system/infrastructure/db/adapters/postgres"
 	"events-system/internal/domain/account"
 	"events-system/internal/domain/event"
 	"events-system/internal/domain/task"
@@ -54,27 +53,30 @@ func (this IExectask) Validate(data ExecTaskData) (*ExecTaskState, error) {
 }
 
 func (this IExectask) Run(ctx context.Context, state *ExecTaskState) (*ExecTaskResult, error) {
+	isCurrentTransaction := false
 	if ctx.Value("transaction") == nil {
-		transaction := pg_db.Adapter.CreateTransaction()
-
-		ctx = context.WithValue(ctx, "transaction", transaction)
+		ctx = this.taskRepo.Repository.CreateTransaction(ctx)
+		isCurrentTransaction = true
 	}
 	// find task by id from state
 	currentTask, err := this.taskRepo.FindOne(ctx, map[string]interface{}{"id": state.id})
 
 	if err != nil {
+		this.taskRepo.Repository.Rollback(ctx)
 		return nil, utils.GenerateError("ExecTask.Run", err.Error())
 	}
 
 	currentEvent, err := this.eventRepo.FindOne(ctx, map[string]interface{}{"id": currentTask.EventId})
 
 	if err != nil {
+		this.taskRepo.Repository.Rollback(ctx)
 		return nil, utils.GenerateError("ExecTask.Run", err.Error())
 	}
 
 	currentAcc, err := this.accRepo.FindOne(ctx, map[string]interface{}{"id": currentTask.AccountId})
 
 	if err != nil {
+		this.taskRepo.Repository.Rollback(ctx)
 		return nil, utils.GenerateError("ExecTask.Run", err.Error())
 	}
 
@@ -90,10 +92,15 @@ func (this IExectask) Run(ctx context.Context, state *ExecTaskState) (*ExecTaskR
 	err = this.taskRepo.Save(ctx, newTask.ToPlain())
 
 	if err != nil {
+		this.taskRepo.Repository.Rollback(ctx)
 		return nil, utils.GenerateError("ExecTask.Run", err.Error())
 	}
 
 	text := "Attention!" + " For " + (*currentTask).Type + " in " + (*currentEvent).Date.Format("2 January") + " will be event " + (*currentEvent).Info
+
+	if isCurrentTransaction {
+		this.taskRepo.Repository.Commit(ctx)
+	}
 
 	return &ExecTaskResult{ChatId: currentAcc.AccountId, Text: text}, nil
 }

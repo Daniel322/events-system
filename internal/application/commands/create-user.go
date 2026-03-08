@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	pg_db "events-system/infrastructure/db/adapters/postgres"
 	"events-system/internal/components/vo"
 	"events-system/internal/domain/account"
 	"events-system/internal/domain/user"
@@ -79,10 +78,11 @@ func (this ICreateUser) Run(
 	ctx context.Context,
 	state CreateUserState,
 ) (*user.Entity, error) {
+	isCurrentTransaction := false
 	if ctx.Value("transaction") == nil {
-		transaction := pg_db.Adapter.CreateTransaction()
+		ctx = this.userRepo.Repository.CreateTransaction(ctx)
 
-		ctx = context.WithValue(ctx, "transaction", transaction)
+		isCurrentTransaction = true
 	}
 
 	user := user.New(state.Username)
@@ -91,16 +91,22 @@ func (this ICreateUser) Run(
 	err := this.userRepo.Save(ctx, user.ToPlain())
 
 	if err != nil {
+		this.userRepo.Repository.Rollback(ctx)
 		return nil, utils.GenerateError("Create user", err.Error())
 	}
 
 	err = this.accRepo.Save(ctx, acc.ToPlain())
 
 	if err != nil {
+		this.userRepo.Repository.Rollback(ctx)
 		return nil, utils.GenerateError("Create user", err.Error())
 	}
 
 	user.AddAccount(acc)
+
+	if isCurrentTransaction {
+		this.userRepo.Repository.Commit(ctx)
+	}
 
 	return &user, nil
 }

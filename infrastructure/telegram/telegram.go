@@ -97,9 +97,7 @@ func (tg *TgBotProvider) Bootstrap() {
 				}
 
 				if ctx.Value("transaction") == nil {
-					transaction := pg_db.Adapter.CreateTransaction()
-
-					ctx = context.WithValue(ctx, "transaction", transaction)
+					ctx = pg_db.Adapter.CreateTransaction(ctx)
 				}
 
 				for _, eventData := range *eventsData {

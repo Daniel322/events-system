@@ -28,10 +28,25 @@ func InitAdapter(instance *gorm.DB) {
 	}
 }
 
-func (adapter *DbAdapter) CreateTransaction() *gorm.DB {
-	tx := adapter.Instance.Begin()
+func (adapter *DbAdapter) CreateTransaction(ctx context.Context) context.Context {
+	if ctx.Value("transaction") == nil {
+		tx := adapter.Instance.Begin()
+		ctx = context.WithValue(ctx, "transaction", tx)
+	}
 
-	return tx
+	return ctx
+}
+
+func (adapter *DbAdapter) Commit(ctx context.Context) {
+	if ctx.Value("transaction") != nil {
+		ctx.Value("transaction").(*gorm.DB).Commit()
+	}
+}
+
+func (adapter *DbAdapter) Rollback(ctx context.Context) {
+	if ctx.Value("transaction") != nil {
+		ctx.Value("transaction").(*gorm.DB).Rollback()
+	}
 }
 
 func (adapter *DbAdapter) instance(ctx context.Context) *gorm.DB {

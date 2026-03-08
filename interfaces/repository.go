@@ -18,4 +18,7 @@ type Repository interface {
 		ctx context.Context,
 		options map[string]interface{},
 	) error
+	CreateTransaction(ctx context.Context) context.Context
+	Commit(ctx context.Context)
+	Rollback(ctx context.Context)
 }

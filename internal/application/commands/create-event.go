@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	pg_db "events-system/infrastructure/db/adapters/postgres"
 	"events-system/internal/components/vo"
 	"events-system/internal/domain/account"
 	"events-system/internal/domain/event"
@@ -112,10 +111,11 @@ func (this ICreateEvent) Run(
 	state *CreateEventState,
 ) (*event.Entity, error) {
 
-	if ctx.Value("transaction") == nil {
-		transaction := pg_db.Adapter.CreateTransaction()
+	isCurrentTransaction := false
 
-		ctx = context.WithValue(ctx, "transaction", transaction)
+	if ctx.Value("transaction") == nil {
+		ctx = this.userRepo.Repository.CreateTransaction(ctx)
+		isCurrentTransaction = true
 	}
 
 	event := event.New(
@@ -130,6 +130,7 @@ func (this ICreateEvent) Run(
 	err := this.eventRepo.Save(ctx, event.ToPlain())
 
 	if err != nil {
+		this.userRepo.Repository.Rollback(ctx)
 		return nil, utils.GenerateError("Create event", err.Error())
 	}
 
@@ -178,8 +179,17 @@ func (this ICreateEvent) Run(
 
 			err = this.taskRepo.Save(ctx, task.ToPlain())
 
+			if err != nil {
+				this.userRepo.Repository.Rollback(ctx)
+				return nil, err
+			}
+
 			// tasks = append(tasks, task)
 		}
+	}
+
+	if isCurrentTransaction {
+		this.userRepo.Repository.Commit(ctx)
 	}
 
 	return &event, nil
