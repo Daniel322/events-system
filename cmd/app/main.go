@@ -18,6 +18,8 @@ import (
 	"syscall"
 )
 
+// TODO: think about refactor transactions, make one method in command before run and maybe create base cmd struct
+
 func main() {
 	ctx := context.Background()
 
