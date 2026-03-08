@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	pg_db "events-system/infrastructure/db/adapters/postgres"
 	"events-system/internal/components/vo"
 	"events-system/internal/domain/account"
 	"events-system/internal/domain/user"
@@ -78,7 +79,11 @@ func (this ICreateUser) Run(
 	ctx context.Context,
 	state CreateUserState,
 ) (*user.Entity, error) {
-	// TODO: add tranasction
+	if ctx.Value("transaction") == nil {
+		transaction := pg_db.Adapter.CreateTransaction()
+
+		ctx = context.WithValue(ctx, "transaction", transaction)
+	}
 
 	user := user.New(state.Username)
 	acc := account.New(state.AccountValue, state.Type, user.ID)

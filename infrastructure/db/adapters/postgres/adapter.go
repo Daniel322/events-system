@@ -28,6 +28,12 @@ func InitAdapter(instance *gorm.DB) {
 	}
 }
 
+func (adapter *DbAdapter) CreateTransaction() *gorm.DB {
+	tx := adapter.Instance.Begin()
+
+	return tx
+}
+
 func (adapter *DbAdapter) instance(ctx context.Context) *gorm.DB {
 	if ctx.Value("transaction") != nil {
 		return ctx.Value("transaction").(*gorm.DB)

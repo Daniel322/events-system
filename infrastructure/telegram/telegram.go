@@ -3,6 +3,7 @@ package telegram
 import (
 	"context"
 	"events-system/infrastructure/config"
+	pg_db "events-system/infrastructure/db/adapters/postgres"
 	parsers "events-system/infrastructure/parser"
 	"events-system/internal/application/commands"
 	"fmt"
@@ -94,7 +95,13 @@ func (tg *TgBotProvider) Bootstrap() {
 					tg.Bot.Send(msg)
 					continue
 				}
-				// TODO: transaction
+
+				if ctx.Value("transaction") == nil {
+					transaction := pg_db.Adapter.CreateTransaction()
+
+					ctx = context.WithValue(ctx, "transaction", transaction)
+				}
+
 				for _, eventData := range *eventsData {
 					state, err := commands.CreateEvent.Validate(eventData)
 

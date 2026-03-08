@@ -27,9 +27,13 @@ func StartCmd(
 
 	strAccId := strconv.Itoa(int(accountId))
 
-	checkAccState := queries.NewCheckAccountState(strAccId, t)
+	checkAccState, err := queries.NewCheckAccountState(strAccId, t)
 
-	currentAcc, err := queries.CheckAccount.Run(ctx, checkAccState)
+	if err != nil {
+		return utils.GenerateError("StartCmd", err.Error())
+	}
+
+	currentAcc, err := queries.CheckAccount.Run(ctx, *checkAccState)
 
 	if err != nil {
 		return utils.GenerateError("StartCmd", err.Error())

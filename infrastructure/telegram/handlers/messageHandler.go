@@ -24,9 +24,13 @@ func MessageHandler(ctx context.Context, msg *tgbotapi.MessageConfig, update tgb
 		return utils.GenerateError("MessageHandler", err.Error())
 	}
 
-	checkAccState := queries.NewCheckAccountState(strAccId, t)
+	checkAccState, err := queries.NewCheckAccountState(strAccId, t)
 
-	currentAcc, err := queries.CheckAccount.Run(ctx, checkAccState)
+	if err != nil {
+		return utils.GenerateError("MessageHandler", err.Error())
+	}
+
+	currentAcc, err := queries.CheckAccount.Run(ctx, *checkAccState)
 
 	if err != nil {
 		return utils.GenerateError("MessageHandler", err.Error())

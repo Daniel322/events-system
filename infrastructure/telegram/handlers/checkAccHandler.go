@@ -16,9 +16,13 @@ func CheckAccHandler(ctx context.Context, msg *tgbotapi.MessageConfig, update tg
 
 	t, err := account.NewAccountType("telegram")
 
-	checkAccState := queries.NewCheckAccountState(strAccId, t)
+	checkAccState, err := queries.NewCheckAccountState(strAccId, t)
 
-	currentAcc, err := queries.CheckAccount.Run(ctx, checkAccState)
+	if err != nil {
+		return nil, utils.GenerateError("CheckAccHandler", err.Error())
+	}
+
+	currentAcc, err := queries.CheckAccount.Run(ctx, *checkAccState)
 
 	if err != nil {
 		return nil, utils.GenerateError("CheckAccHandler", err.Error())

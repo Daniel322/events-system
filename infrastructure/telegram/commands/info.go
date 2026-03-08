@@ -24,9 +24,13 @@ func InfoCmd(
 		return utils.GenerateError("InfoCmd", err.Error())
 	}
 
-	checkAccState := queries.NewCheckAccountState(strAccId, t)
+	checkAccState, err := queries.NewCheckAccountState(strAccId, t)
 
-	currentAcc, err := queries.CheckAccount.Run(ctx, checkAccState)
+	if err != nil {
+		return utils.GenerateError("InfoCmd", err.Error())
+	}
+
+	currentAcc, err := queries.CheckAccount.Run(ctx, *checkAccState)
 
 	if err != nil {
 		return utils.GenerateError("InfoCmd", err.Error())

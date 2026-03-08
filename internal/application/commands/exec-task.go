@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	pg_db "events-system/infrastructure/db/adapters/postgres"
 	"events-system/internal/domain/account"
 	"events-system/internal/domain/event"
 	"events-system/internal/domain/task"
@@ -53,7 +54,11 @@ func (this IExectask) Validate(data ExecTaskData) (*ExecTaskState, error) {
 }
 
 func (this IExectask) Run(ctx context.Context, state *ExecTaskState) (*ExecTaskResult, error) {
-	// TODO: add tranasction
+	if ctx.Value("transaction") == nil {
+		transaction := pg_db.Adapter.CreateTransaction()
+
+		ctx = context.WithValue(ctx, "transaction", transaction)
+	}
 	// find task by id from state
 	currentTask, err := this.taskRepo.FindOne(ctx, map[string]interface{}{"id": state.id})
 

@@ -16,14 +16,14 @@ type CheckAccountState struct {
 	value account.AccountValue
 }
 
-func NewCheckAccountState(value string, t account.AccountType) CheckAccountState {
+func NewCheckAccountState(value string, t account.AccountType) (*CheckAccountState, error) {
 	accValue, err := account.NewAccountValue(value, t)
 
 	if err != nil {
-		// TODO: add handle err
+		return nil, err
 	}
 
-	return CheckAccountState{value: accValue}
+	return &CheckAccountState{value: accValue}, nil
 }
 
 var CheckAccount *ICheckAccount

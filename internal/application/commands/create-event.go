@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	pg_db "events-system/infrastructure/db/adapters/postgres"
 	"events-system/internal/components/vo"
 	"events-system/internal/domain/account"
 	"events-system/internal/domain/event"
@@ -110,7 +111,13 @@ func (this ICreateEvent) Run(
 	ctx context.Context,
 	state *CreateEventState,
 ) (*event.Entity, error) {
-	// TODO: add transaction
+
+	if ctx.Value("transaction") == nil {
+		transaction := pg_db.Adapter.CreateTransaction()
+
+		ctx = context.WithValue(ctx, "transaction", transaction)
+	}
+
 	event := event.New(
 		state.Info,
 		state.Date,
