@@ -58,3 +58,7 @@ func (cfg *IConfig) HTTP_PORT() (string, error) {
 func (cfg *IConfig) CRON_INTERVAL() (string, error) {
 	return cfg.get(CRON_INTERVAL)
 }
+
+func (cfg *IConfig) EXAMPLE_FILE_PATH() (string, error) {
+	return cfg.get(EXAMPLE_FILE_PATH)
+}

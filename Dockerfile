@@ -16,6 +16,7 @@ WORKDIR /app
 COPY --from=builder /app/app .
 COPY --from=builder /app/run-migrations.sh .
 COPY --from=builder /app/infrastructure/db/migrations ./migrations
+COPY --from=builder /app/infrastructure/static/example.csv ./example.csv
 RUN chmod +x ./run-migrations.sh
 
 RUN apk add --no-cache bash curl zip

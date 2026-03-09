@@ -2,6 +2,7 @@ package tg_commands
 
 import (
 	"context"
+	"events-system/infrastructure/config"
 	"fmt"
 	"path/filepath"
 
@@ -14,7 +15,7 @@ func UploadCmd(
 	update tgbotapi.Update,
 	bot *tgbotapi.BotAPI,
 ) error {
-	relativePath := "infrastructure/static/example.csv"
+	relativePath, _ := config.Config.EXAMPLE_FILE_PATH()
 	absPath, err := filepath.Abs(relativePath)
 	if err != nil {
 		fmt.Println(err)
