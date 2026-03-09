@@ -19,6 +19,6 @@ type Repository interface {
 		options map[string]interface{},
 	) error
 	CreateTransaction(ctx context.Context) context.Context
-	Commit(ctx context.Context)
-	Rollback(ctx context.Context)
+	Commit(ctx context.Context) context.Context
+	Rollback(ctx context.Context) context.Context
 }

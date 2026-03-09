@@ -96,6 +96,7 @@ func (tg *TgBotProvider) Bootstrap() {
 					continue
 				}
 
+				// TODO: подумать как можно вынести логику транзакции из этого слоя, чтобы был какой-то хендлер, куда можно передать контекст и колбек, хендлер будет отвечать за ролбеки и комиты
 				if ctx.Value("transaction") == nil {
 					ctx = pg_db.Adapter.CreateTransaction(ctx)
 				}
@@ -104,6 +105,7 @@ func (tg *TgBotProvider) Bootstrap() {
 					state, err := commands.CreateEvent.Validate(eventData)
 
 					if err != nil {
+						ctx = pg_db.Adapter.Rollback(ctx)
 						tg.Bot.Send(msg)
 						continue
 					}
@@ -111,10 +113,13 @@ func (tg *TgBotProvider) Bootstrap() {
 					_, err = commands.CreateEvent.Run(ctx, state)
 
 					if err != nil {
+						ctx = pg_db.Adapter.Rollback(ctx)
 						tg.Bot.Send(msg)
 						continue
 					}
 				}
+
+				ctx = pg_db.Adapter.Commit(ctx)
 
 				msg.Text = fmt.Sprint(len(*eventsData)) + " events created!"
 			}

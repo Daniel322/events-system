@@ -91,21 +91,21 @@ func (this ICreateUser) Run(
 	err := this.userRepo.Save(ctx, user.ToPlain())
 
 	if err != nil {
-		this.userRepo.Repository.Rollback(ctx)
+		ctx = this.userRepo.Repository.Rollback(ctx)
 		return nil, utils.GenerateError("Create user", err.Error())
 	}
 
 	err = this.accRepo.Save(ctx, acc.ToPlain())
 
 	if err != nil {
-		this.userRepo.Repository.Rollback(ctx)
+		ctx = this.userRepo.Repository.Rollback(ctx)
 		return nil, utils.GenerateError("Create user", err.Error())
 	}
 
 	user.AddAccount(acc)
 
 	if isCurrentTransaction {
-		this.userRepo.Repository.Commit(ctx)
+		ctx = this.userRepo.Repository.Commit(ctx)
 	}
 
 	return &user, nil

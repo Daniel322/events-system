@@ -37,16 +37,22 @@ func (adapter *DbAdapter) CreateTransaction(ctx context.Context) context.Context
 	return ctx
 }
 
-func (adapter *DbAdapter) Commit(ctx context.Context) {
+func (adapter *DbAdapter) Commit(ctx context.Context) context.Context {
 	if ctx.Value("transaction") != nil {
 		ctx.Value("transaction").(*gorm.DB).Commit()
+		ctx = context.Background()
 	}
+
+	return ctx
 }
 
-func (adapter *DbAdapter) Rollback(ctx context.Context) {
+func (adapter *DbAdapter) Rollback(ctx context.Context) context.Context {
 	if ctx.Value("transaction") != nil {
 		ctx.Value("transaction").(*gorm.DB).Rollback()
+		ctx = context.Background()
 	}
+
+	return ctx
 }
 
 func (adapter *DbAdapter) instance(ctx context.Context) *gorm.DB {

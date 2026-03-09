@@ -130,7 +130,7 @@ func (this ICreateEvent) Run(
 	err := this.eventRepo.Save(ctx, event.ToPlain())
 
 	if err != nil {
-		this.userRepo.Repository.Rollback(ctx)
+		ctx = this.userRepo.Repository.Rollback(ctx)
 		return nil, utils.GenerateError("Create event", err.Error())
 	}
 
@@ -180,7 +180,7 @@ func (this ICreateEvent) Run(
 			err = this.taskRepo.Save(ctx, task.ToPlain())
 
 			if err != nil {
-				this.userRepo.Repository.Rollback(ctx)
+				ctx = this.userRepo.Repository.Rollback(ctx)
 				return nil, err
 			}
 
@@ -189,7 +189,7 @@ func (this ICreateEvent) Run(
 	}
 
 	if isCurrentTransaction {
-		this.userRepo.Repository.Commit(ctx)
+		ctx = this.userRepo.Repository.Commit(ctx)
 	}
 
 	return &event, nil

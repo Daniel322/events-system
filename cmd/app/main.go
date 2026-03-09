@@ -29,7 +29,7 @@ func main() {
 	err := config.Config.Bootstrap()
 
 	if err != nil {
-		panic(err.Error())
+		log.Println(err.Error())
 	}
 
 	db_conn, err := pg_db.Connect()
