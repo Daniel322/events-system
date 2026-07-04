@@ -8,4 +8,5 @@ var COMMANDS = interfaces.Commands{
 	"event":  EventCmd,
 	"help":   HelpCmd,
 	"upload": UploadCmd,
+	"export": ExportCmd,
 }
